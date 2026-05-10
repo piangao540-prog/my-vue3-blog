@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useBlogStore } from '@/stores/blog'
 import { ElCard, ElTag, ElRow, ElCol } from 'element-plus'
-import { Document } from '@element-plus/icons-vue'
+import { Document, View } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
 
 const blogStore = useBlogStore()
@@ -62,6 +62,9 @@ const allTags = ['Vue3', 'Vite', 'TypeScript', 'pinia', 'CSS3', 'ElementPlus']
                 <p class="article-summary">{{ article.summary }}</p>
                 <div class="article-meta">
                   <span class="article-date">{{ article.createdAt }}</span>
+                  <span class="article-views">
+                    <el-icon><View /></el-icon> {{ article.views }}
+                  </span>
                   <div class="article-tags">
                     <el-tag v-for="tag in article.tags" :key="tag" size="small" type="info">
                       {{ tag }}
@@ -362,5 +365,13 @@ const allTags = ['Vue3', 'Vite', 'TypeScript', 'pinia', 'CSS3', 'ElementPlus']
   .stat-number {
     font-size: 1.5rem;
   }
+}
+/* 文章阅读量显示 */
+.article-views {
+  display: flex;
+  align-items: center;
+  gap: 4px;  /* 图标和数字之间的间距 */
+  color: #909399;  /* 和日期同色 */
+  font-size: 0.85rem;
 }
 </style>

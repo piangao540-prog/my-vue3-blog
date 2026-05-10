@@ -9,6 +9,7 @@ export interface Article {
     content: string
     createdAt: string
     tags: string[]
+    views: number
 }
 
 export const useBlogStore = defineStore('blog', () => {
@@ -32,11 +33,37 @@ export const useBlogStore = defineStore('blog', () => {
         return articles.value.filter((article) => article.tags.includes(tag))
     }
 
+    // 保存阅读量到localStorage
+    const addViews = (articleId: number) => {
+        const article = articles.value.find(a => a.id === articleId)
+        if (article) {
+            article.views++
+            localStorage.setItem('views_' + articleId, article.views.toString())
+        }
+    }
+
+
+    // 从localStorage获取阅读量
+
+    const loadViews = () => {
+        articles.value.forEach(article => {
+            const saved = localStorage.getItem('views_' + article.id)
+            if (saved) {
+                article.views = Number(saved)
+            }
+        })
+    }
+    loadViews()
+    // 从localStorage获取阅读量
+
+
     return {
         articles,
         latestArticles,
         paginatedArticles,
         getArticleById,
         getArticlesByTag,
+        addViews,
+        loadViews,
     }
 })

@@ -42,10 +42,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRoute,useRouter } from 'vue-router'
 import { useBlogStore } from '../stores/blog'
 import { Calendar, User, ArrowLeft } from '@element-plus/icons-vue'
+
 
 const route = useRoute()
 const router = useRouter()
@@ -73,6 +74,13 @@ const nextArticle = computed(() => {
 const goToArticle = (id: number) => {
   router.push(`/articles/${id}`)
 }
+
+// 文章阅读量统计
+onMounted(() =>{
+  if(article.value){
+    blogStore.addViews(article.value.id)
+  }
+})
 
 </script>
 

@@ -18,8 +18,10 @@ export const articleList: Article[] = [
             <h2>项目结构</h2>
             <p>我们的博客项目采用模块化设计，便于维护和扩展。</p>
         `,
+        views: 0, // 初始阅读量
         createdAt: '2026-05-09',
         tags: ['Vue3', 'Vite'],
+        
     },
     {
         id: 2,
@@ -37,6 +39,7 @@ export const articleList: Article[] = [
             <h3>watch</h3>
             <p>监听数据变化并执行相应的操作。</p>
         `,
+        views: 0, // 初始阅读量
         createdAt: '2026-05-08',
         tags: ['Vue3', 'TypeScript'],
     },
@@ -48,11 +51,12 @@ export const articleList: Article[] = [
             <p>TypeScript 让我们的代码更加健壮和可维护。</p>
             <h2>基础类型</h2>
             <p>TypeScript 支持多种基础类型：string、number、boolean、array 等。</p>
-            <h2>接口</h2>
+            <h2>接口</h2> 
             <p>接口用于定义对象的结构，提供更好的类型检查。</p>
             <h2>泛型</h2>
             <p>泛型让我们编写可重用的组件，支持多种类型。</p>
         `,
+        views: 0, // 初始阅读量
         createdAt: '2026-05-07',
         tags: ['TypeScript', 'JavaScript'],
     },
@@ -71,6 +75,7 @@ export const articleList: Article[] = [
                 <li>简单的配置</li>
             </ul>
         `,
+        views: 0, // 初始阅读量
         createdAt: '2026-05-06',
         tags: ['Vite', 'Vue3'],
     },
@@ -89,7 +94,33 @@ export const articleList: Article[] = [
             <h2>基本使用</h2>
             <p>Pinia 的 API 非常简单易用。</p>
         `,
+        views: 0, // 初始阅读量
         createdAt: '2026-05-05',
         tags: ['Pinia', 'Vue3'],
+    },
+    {
+        id: 6,
+        title: '文章阅读量',
+        summary: '文章阅读量统计功能。',
+        content: `
+            <p>文章阅读量统计功能的关键是使用 localStorage 来存储和检索阅读量。</p>
+            <h2>文章阅读量统计的核心原理</h2>
+            <div>
+                用户访问文章详情页
+     ↓
+                onMounted() 触发
+                    ↓
+                调用 blogStore.incrementViews(id)
+                    ↓
+                article.views++
+                    ↓
+                saveViews() → localStorage 保存
+                    ↓
+                页面更新显示最新阅读量
+            </div>
+            <h2>基本使用</h2>`,
+        views: 0, // 初始阅读量
+        createdAt: '2026-05-05',
+        tags: ['localStorage', 'Vue3'],
     },
 ]
