@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { articleList } from '@/data/articles'
 
 export interface Article {
     id: number
@@ -11,25 +12,31 @@ export interface Article {
 }
 
 export const useBlogStore = defineStore('blog', () => {
-    const articles = ref<Article[]>([
-        {
-            id: 1,
-            title: '我的第一篇博客',
-            summary: '这是博客项目的第一篇示例文章。',
-            content: '这里是文章正文内容。',
-            createdAt: '2026-05-09',
-            tags: ['Vue3', 'Vite'],
-        },
-    ])
-
+    const articles = ref<Article[]>(articleList)
 
     const latestArticles = computed(() => articles.value.slice(0, 5))
 
+    const paginatedArticles = computed(() => {
+        return (page: number, pageSize: number) => {
+            const start = (page - 1) * pageSize
+            const end = start + pageSize
+            return articles.value.slice(start, end)
+        }
+    })
 
     function getArticleById(id: number): Article | undefined {
         return articles.value.find((article) => article.id === id)
     }
 
+    function getArticlesByTag(tag: string): Article[] {
+        return articles.value.filter((article) => article.tags.includes(tag))
+    }
 
-    return { articles, latestArticles, getArticleById }
+    return {
+        articles,
+        latestArticles,
+        paginatedArticles,
+        getArticleById,
+        getArticlesByTag,
+    }
 })
