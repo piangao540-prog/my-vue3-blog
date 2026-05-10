@@ -1,3 +1,4 @@
+// 底部信息
 export interface TechStack {
   name: string
   level: string

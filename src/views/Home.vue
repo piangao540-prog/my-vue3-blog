@@ -131,6 +131,8 @@ const allTags = ['Vue3', 'Vite', 'TypeScript', 'pinia', 'CSS3', 'ElementPlus']
 }
 
 .hero-section {
+  /* width: 500px;
+  height: 300px; */
   background: linear-gradient(135deg, #68696f 0%, #370c61 100%);
   border-radius: 16px;
   padding: 60px 40px;

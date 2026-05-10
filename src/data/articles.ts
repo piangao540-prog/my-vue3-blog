@@ -1,5 +1,6 @@
 import type { Article } from '@/stores/blog'
 
+// 文章列表信息
 export const articleList: Article[] = [
     {
         id: 1,

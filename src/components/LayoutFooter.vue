@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import {RouterLink} from 'vue-router'
 import { User, Message, MapLocation } from '@element-plus/icons-vue'
 import portrait from '@/assets/images/portrait.png'
 import { getTechStack, getContactInfo } from '@/api'
@@ -56,9 +57,9 @@ onMounted(async () => {
       <div class="footer-section links-section">
         <h4>快速链接</h4>
         <ul class="quick-links">
-          <li><a href="/">首页</a></li>
-          <li><a href="/articles">文章列表</a></li>
-          <li><a href="/about">关于我</a></li>
+          <li><RouterLink to="/">首页</RouterLink></li>
+          <li><RouterLink to="/articles">文章列表</RouterLink></li>
+          <li><RouterLink to="/about">关于我</RouterLink></li>
         </ul>
       </div>
     </div>
