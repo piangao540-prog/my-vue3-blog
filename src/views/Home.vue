@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useBlogStore } from '@/stores/blog'
 import { ElCard, ElTag, ElRow, ElCol } from 'element-plus'
+import { Document } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
 
 const blogStore = useBlogStore()
@@ -46,7 +47,10 @@ const allTags = ['Vue3', 'Vite', 'TypeScript', 'pinia', 'CSS3', 'ElementPlus']
       <el-col :xs="24" :sm="24" :md="16">
         <section class="latest-articles">
           <div class="section-header">
-            <h2>最新文章</h2>
+            <div class="header-left">
+              <el-icon><Document /></el-icon>
+              <h2>最新文章</h2>
+            </div>
             <el-button text @click="goToArticles">查看全部 →</el-button>
           </div>
 
@@ -116,24 +120,6 @@ const allTags = ['Vue3', 'Vite', 'TypeScript', 'pinia', 'CSS3', 'ElementPlus']
         </aside>
       </el-col>
     </el-row>
-
-    <!-- <section class="tags-section">
-      <div class="section-header">
-        <h2>探索标签</h2>
-      </div>
-      <div class="explore-tags">
-        <el-tag
-          v-for="tag in allTags"
-          :key="tag"
-          size="large"
-          type="info"
-          class="explore-tag"
-          effect="plain"
-        >
-          {{ tag }}
-        </el-tag>
-      </div>
-    </section> -->
   </div>
 </template>
 
@@ -240,6 +226,12 @@ const allTags = ['Vue3', 'Vite', 'TypeScript', 'pinia', 'CSS3', 'ElementPlus']
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .section-header h2 {
@@ -351,33 +343,6 @@ const allTags = ['Vue3', 'Vite', 'TypeScript', 'pinia', 'CSS3', 'ElementPlus']
   font-size: 0.95rem;
   color: #409eff;
   line-height: 1.4;
-}
-
-.tags-section {
-  margin-top: 40px;
-  padding: 30px;
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
-}
-
-.explore-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 16px;
-}
-
-.explore-tag {
-  padding: 8px 16px;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.explore-tag:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 @media (max-width: 768px) {
