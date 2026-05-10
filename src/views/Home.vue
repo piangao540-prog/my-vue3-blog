@@ -54,13 +54,8 @@ const allTags = ['Vue3', 'Vite', 'TypeScript', 'pinia', 'CSS3', 'ElementPlus']
             <el-button text @click="goToArticles">查看全部 →</el-button>
           </div>
 
-          <el-card
-            v-for="article in blogStore.latestArticles"
-            :key="article.id"
-            class="article-card"
-            shadow="hover"
-            @click="goToArticle(article.id)"
-          >
+          <el-card v-for="article in blogStore.latestArticles" :key="article.id"
+            class="article-card" shadow="hover"@click="goToArticle(article.id)">
             <div class="article-content">
               <div class="article-info">
                 <h3>{{ article.title }}</h3>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import LayoutHead from './LayoutHead.vue'
 import LayoutFooter from './LayoutFooter.vue'
+import BackToTop from './BackToTop.vue'
 </script>
 
 <template>
@@ -10,6 +11,7 @@ import LayoutFooter from './LayoutFooter.vue'
     <main class="blog-main">
       <router-view />
     </main>
+    <BackToTop />
 
     <LayoutFooter />
   </div>
