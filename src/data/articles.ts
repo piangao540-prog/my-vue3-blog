@@ -20,8 +20,9 @@ export const articleList: Article[] = [
         `,
         views: 0, // 初始阅读量
         createdAt: '2026-05-09',
+        like: false,
         tags: ['Vue3', 'Vite'],
-        
+
     },
     {
         id: 2,
@@ -41,6 +42,7 @@ export const articleList: Article[] = [
         `,
         views: 0, // 初始阅读量
         createdAt: '2026-05-08',
+        like: false,
         tags: ['Vue3', 'TypeScript'],
     },
     {
@@ -58,6 +60,7 @@ export const articleList: Article[] = [
         `,
         views: 0, // 初始阅读量
         createdAt: '2026-05-07',
+        like: false,
         tags: ['TypeScript', 'JavaScript'],
     },
     {
@@ -77,6 +80,7 @@ export const articleList: Article[] = [
         `,
         views: 0, // 初始阅读量
         createdAt: '2026-05-06',
+        like: false,
         tags: ['Vite', 'Vue3'],
     },
     {
@@ -96,6 +100,7 @@ export const articleList: Article[] = [
         `,
         views: 0, // 初始阅读量
         createdAt: '2026-05-05',
+        like: false,
         tags: ['Pinia', 'Vue3'],
     },
     {
@@ -119,6 +124,7 @@ export const articleList: Article[] = [
                 页面更新显示最新阅读量
             </div>
             <h2>基本使用</h2>`,
+        like: false,
         views: 0, // 初始阅读量
         createdAt: '2026-05-05',
         tags: ['localStorage', 'Vue3'],

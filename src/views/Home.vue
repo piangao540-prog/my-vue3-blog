@@ -65,6 +65,11 @@ const allTags = ['Vue3', 'Vite', 'TypeScript', 'pinia', 'CSS3', 'ElementPlus']
                   <span class="article-views">
                     <el-icon><View /></el-icon> {{ article.views }}
                   </span>
+                  <span class="article-like"
+                    :type="article.like ? 'primary' : 'default'" 
+                    @click.stop="blogStore.togglelike(article.id)">
+                    {{ article.like ? '❤️ 已收藏' : '🤍 收藏' }}
+                  </span>
                   <div class="article-tags">
                     <el-tag v-for="tag in article.tags" :key="tag" size="small" type="info">
                       {{ tag }}
@@ -368,6 +373,14 @@ const allTags = ['Vue3', 'Vite', 'TypeScript', 'pinia', 'CSS3', 'ElementPlus']
 }
 /* 文章阅读量显示 */
 .article-views {
+  display: flex;
+  align-items: center;
+  gap: 4px;  /* 图标和数字之间的间距 */
+  color: #909399;  /* 和日期同色 */
+  font-size: 0.85rem;
+}
+
+.article-like {
   display: flex;
   align-items: center;
   gap: 4px;  /* 图标和数字之间的间距 */

@@ -10,6 +10,7 @@ export interface Article {
     createdAt: string
     tags: string[]
     views: number
+    like: boolean
 }
 
 export const useBlogStore = defineStore('blog', () => {
@@ -32,7 +33,7 @@ export const useBlogStore = defineStore('blog', () => {
     function getArticlesByTag(tag: string): Article[] {
         return articles.value.filter((article) => article.tags.includes(tag))
     }
-
+    // 文章阅读量统计功能
     // 保存阅读量到localStorage
     const addViews = (articleId: number) => {
         const article = articles.value.find(a => a.id === articleId)
@@ -41,10 +42,7 @@ export const useBlogStore = defineStore('blog', () => {
             localStorage.setItem('views_' + articleId, article.views.toString())
         }
     }
-
-
     // 从localStorage获取阅读量
-
     const loadViews = () => {
         articles.value.forEach(article => {
             const saved = localStorage.getItem('views_' + article.id)
@@ -54,7 +52,29 @@ export const useBlogStore = defineStore('blog', () => {
         })
     }
     loadViews()
-    // 从localStorage获取阅读量
+
+    //文章收藏功能
+    // 切换收藏功能
+    const togglelike = (articleId: number) => {
+        const article = articles.value.find(a => a.id === articleId)
+        if (article) {
+            article.like = !article.like
+            const likeIds = articles.value.filter(a => a.like).map(a => a.id)
+            localStorage.setItem('liked_articles', JSON.stringify(likeIds))
+        }
+    }
+    // 加载收藏
+    const loadLike = () => {
+        const saved = localStorage.getItem('liked_articles')
+        if (saved) {
+            const likeIds: number[] = JSON.parse(saved)
+            articles.value.forEach(article => {
+                article.like = likeIds.includes(article.id)
+            })
+
+        }
+    }
+    loadLike()
 
 
     return {
@@ -65,5 +85,7 @@ export const useBlogStore = defineStore('blog', () => {
         getArticlesByTag,
         addViews,
         loadViews,
+        togglelike,
+        loadLike,
     }
 })
