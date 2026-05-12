@@ -21,7 +21,7 @@ export const articleList: Article[] = [
         views: 0, // 初始阅读量
         createdAt: '2026-05-09',
         like: false,
-        tags: ['Vue3', 'Vite'],
+        tags: ['Vue3', 'Vite', 'Element Plus', 'TypeScript', 'Pinia'],
 
     },
     {
@@ -31,7 +31,7 @@ export const articleList: Article[] = [
         content: `
             <p>Vue3 引入了组合式 API，这是一个强大的新特性。</p>
             <h2>为什么需要组合式 API？</h2>
-            <p>组合式 API 提供了更好的逻辑复用和代码组织方式。</p>
+            <p>组合式 API 提供了更好的逻辑复用和代码组织方式。</p> 
             <h2>核心概念</h2>
             <h3>ref 和 reactive</h3>
             <p>ref 用于基本类型数据，reactive 用于对象类型数据。</p>
@@ -97,6 +97,65 @@ export const articleList: Article[] = [
             </ul>
             <h2>基本使用</h2>
             <p>Pinia 的 API 非常简单易用。</p>
+                        <h2>使用案例：Composable 状态不共享</h2>
+            <h3>问题描述</h3>
+            <p>在 Home.vue 和 TagFilter.vue 中分别调用 composable 时，发现筛选功能不生效。点击标签后，文章列表没有变化。</p>
+            <p>每次调用 composable 都会创建新的状态实例，导致两个组件的状态不同步：</p>
+            <pre><code>// Home.vue 创建实例1
+const { filterArticles } = userTagFilter()
+
+// TagFilter.vue 创建实例2
+const { selectedTag, setTag } = userTagFilter()
+
+// 两个实例的 selectedTag 相互独立</code></pre>
+            <h3>解决方案</h3>
+            <p>让 composable 接收外部状态，而不是自己创建：</p>
+            <pre><code>// composable 接收外部状态
+export const useTagFilter = (selectedTag: { value: string }) => {
+  const filteredArticles = computed(() => {
+    if (!selectedTag.value) {
+      return blogStore.latestArticles
+    }
+    return blogStore.getArticlesByTag(selectedTag.value)
+  })
+  return { filteredArticles }
+}
+
+// 父组件定义状态
+const selectedTag = ref('')
+const { filteredArticles } = useTagFilter(selectedTag)</code></pre>
+            <h2>问题二：子组件无法更新父组件状态</h2>
+            <h3>问题描述</h3>
+            <p>TagFilter 组件中的 setTag 方法无法更新父组件的状态。</p>
+            <h3>原因分析</h3>
+            <p>子组件直接修改 props 是无效的，Vue 中数据流是单向的。</p>
+            <h3>解决方案</h3>
+            <p>使用 emit 事件向父组件发送消息：</p>
+            <pre><code>// TagFilter.vue
+const emit = defineEmits(['update:selectedTag'])
+
+const setTag = (tag: string) => {
+  emit('update:selectedTag', tag)
+}
+
+// Home.vue
+&lt;TagFilter
+  :selected-tag="selectedTag"
+  @update:selected-tag="selectedTag = $event"
+/&gt;</code></pre>
+            <h2>问题三：筛选逻辑不生效</h2>
+            <h3>问题描述</h3>
+            <p>选择标签后，不包含该标签的文章仍然显示。</p>
+            <h3>原因分析</h3>
+            <p>筛选逻辑使用了错误的数据源或条件判断。</p>
+            <h3>解决方案</h3>
+            <p>确保使用 computed 属性正确筛选：</p>
+            <pre><code>const filteredArticles = computed(() => {
+  if (!selectedTag.value) {
+    return blogStore.latestArticles
+  }
+  return blogStore.getArticlesByTag(selectedTag.value)
+})</code></pre
         `,
         views: 0, // 初始阅读量
         createdAt: '2026-05-05',

@@ -15,7 +15,8 @@ export interface Article {
 
 export const useBlogStore = defineStore('blog', () => {
     const articles = ref<Article[]>(articleList)
-
+    
+    // 获取最新文章
     const latestArticles = computed(() => articles.value.slice(0, 5))
 
     const paginatedArticles = computed(() => {
