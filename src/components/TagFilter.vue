@@ -1,25 +1,21 @@
 <script setup lang="ts">
-// import { userTagFilter } from '@/composables/useTagFilter'
 import { ElButton } from 'element-plus'
-// const {selectedTag, allTags} = userTagFilter()
+import { useSearchStore } from '@/stores/search'
+import { useSearchFilter } from '@/composables/useSearchFilter'
 
-// 接受父组件传来的数据
-defineProps<{
-  selectedTag:string
-  allTags:string[]
-}>()
-// 声明可以触发的事件
-const emit = defineEmits<{(e:'update:selectedTag',value:string):void}>()
-const setTag = (tag: string) => {emit('update:selectedTag', tag) }
+
+const searchStore = useSearchStore()
+const {allTags} = useSearchFilter()
+
 </script>
 
 <template>
   <div class="tag-filter">
-    <el-button :type="selectedTag === '' ? 'primary' : 'default'" @click="setTag('')">
+    <el-button :type="searchStore.selectedTag === '' ? 'primary' : 'default'" @click="searchStore.setSelectedTag('')">
       全部
     </el-button>
-    <el-button v-for="tag in allTags" :key="tag" :type="selectedTag === tag ? 'primary' : 'default'"
-      @click="setTag(tag)">
+    <el-button v-for="tag in allTags" :key="tag" :type="searchStore.selectedTag === tag ? 'primary' : 'default'"
+      @click="searchStore.setSelectedTag(tag)">
       {{ tag }}
     </el-button>
   </div>

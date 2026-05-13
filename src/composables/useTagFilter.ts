@@ -1,4 +1,4 @@
-import { watch, computed } from 'vue'
+import { computed } from 'vue'
 import { useBlogStore } from '@/stores/blog'
 
 export const userTagFilter = (selectedTag: { value: string }) => {

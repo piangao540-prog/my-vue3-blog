@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import { useBlogStore } from '@/stores/blog'
 import { ElCard, ElTag, ElRow, ElCol } from 'element-plus'
 import { Document, View } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
 import TagFilter from '@/components/TagFilter.vue'
-import { userTagFilter } from '@/composables/useTagFilter'
+import { useSearchFilter } from '@/composables/useSearchFilter'
+
 
 const blogStore = useBlogStore()
 
@@ -19,8 +19,8 @@ const goToArticles = () => {
   router.push('/articles')
 }
 
-const selectedTag = ref('')
-const {filterArticles, allTags} = userTagFilter(selectedTag)
+
+const {filterArticles, allTags} = useSearchFilter()
 </script>
 
 <template>
@@ -58,7 +58,7 @@ const {filterArticles, allTags} = userTagFilter(selectedTag)
             </div>
             <el-button text @click="goToArticles">查看全部 →</el-button>
           </div>
-          <TagFilter :selectedTag="selectedTag" :allTags = "allTags" @update:selected-tag="selectedTag = $event" />
+          <TagFilter />
           <el-card v-for="article in filterArticles" :key="article.id"
             class="article-card" shadow="hover"@click="goToArticle(article.id)">
             <div class="article-content">

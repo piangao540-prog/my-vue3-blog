@@ -1,11 +1,19 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { Menu as MenuIcon } from '@element-plus/icons-vue'
+import { Menu as MenuIcon ,Search} from '@element-plus/icons-vue'
 import portrait from '@/assets/images/portrait.png'
+import { useSearchStore } from '@/stores/search'
 
+
+
+const searchStore = useSearchStore()
 const drawer = ref(false)
 const route = useRoute()
+
+
+
+
 
 const activeMenu = computed(() => {
   if (route.path.startsWith('/articles')) {
@@ -34,6 +42,15 @@ const activeMenu = computed(() => {
         <el-menu-item index="/about">关于</el-menu-item>
       </el-menu>
     </el-drawer>
+        <!-- 搜索框 -->
+    <div class="search-box">
+      <el-input
+        v-model="searchStore.searchKeyword"
+        placeholder="搜索文章..."
+        :prefix-icon="Search"
+        clearable
+      />
+    </div>
   </header>
 </template>
 
@@ -43,6 +60,7 @@ const activeMenu = computed(() => {
   align-items: center;
   border-bottom: 1px solid #e5e7eb;
   padding: 10px;
+  justify-content: space-between;
 }
 
 .logo {
