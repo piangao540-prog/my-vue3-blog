@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router'
 import { Menu as MenuIcon ,Search} from '@element-plus/icons-vue'
 import portrait from '@/assets/images/portrait.png'
 import { useSearchStore } from '@/stores/search'
+import {debounce} from '@/utils/debounce'
 
 
 
@@ -11,7 +12,11 @@ const searchStore = useSearchStore()
 const drawer = ref(false)
 const route = useRoute()
 
-
+// 搜索框防抖
+const localKeyword = ref('')
+const debounceSearch = debounce((value:string) => {
+    searchStore.setSearchKeyword(value)
+}, 500)
 
 
 
@@ -41,7 +46,8 @@ const activeMenu = computed(() => {
     <div class="header-right">
       <div class="search-box">
         <el-input
-          v-model="searchStore.searchKeyword"
+          v-model="localKeyword"
+          @input="debounceSearch"
           placeholder="搜索文章..."
           :prefix-icon="Search"
           clearable
