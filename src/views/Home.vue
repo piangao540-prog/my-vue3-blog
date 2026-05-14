@@ -9,6 +9,8 @@ import { useSearchFilter } from '@/composables/useSearchFilter'
 import SortFilter from '@/components/SortFilter.vue'
 import { useSort, type SortKey } from '@/composables/useSort'
 import { getTagColor } from '@/composables/useTagColor'
+import TagChart from '@/components/TagChart.vue'
+
 
 
 const blogStore = useBlogStore()
@@ -117,6 +119,7 @@ const articles = computed(() => {
                 {{ tag }}
               </el-tag>
             </div>
+            <TagChart />
           </el-card>
 
           <el-card class="sidebar-card">
@@ -171,6 +174,10 @@ const articles = computed(() => {
 .hero-content {
   position: relative;
   z-index: 1;
+}
+
+.main-content {
+  width: 1112px;
 }
 
 .hero-title {
