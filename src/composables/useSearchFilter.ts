@@ -7,7 +7,7 @@ export const useSearchFilter = () => {
     const blogStore = useBlogStore()
     const searchStore = useSearchStore()
 
-    const filterArticles = computed(() => {
+    const filteredArticles = computed(() => {
         let articles = blogStore.latestArticles
         if (searchStore.selectedTag) {
             articles = articles.filter(article =>
@@ -29,5 +29,5 @@ export const useSearchFilter = () => {
         })
         return Array.from(tags)
     })
-    return { filterArticles, allTags }
+    return { filteredArticles, allTags }
 }

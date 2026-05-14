@@ -1,10 +1,13 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useBlogStore } from '@/stores/blog'
 import { ElCard, ElTag, ElRow, ElCol } from 'element-plus'
 import { Document, View } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
 import TagFilter from '@/components/TagFilter.vue'
 import { useSearchFilter } from '@/composables/useSearchFilter'
+import SortFilter from '@/components/SortFilter.vue'
+import { useSort } from '@/composables/useSort'
 
 
 const blogStore = useBlogStore()
@@ -19,8 +22,16 @@ const goToArticles = () => {
   router.push('/articles')
 }
 
-
-const {filterArticles, allTags} = useSearchFilter()
+const { currentSort, compareByKey} = useSort()
+const {allTags, filteredArticles} = useSearchFilter()
+const articles = computed(() =>{
+  const filtered = filteredArticles.value
+  const {key, desc} = currentSort
+  return [...filtered].sort((a,b) =>{
+    const comparison = compareByKey(a, b, key)
+    return desc ? -comparison : comparison
+  })
+})
 </script>
 
 <template>
@@ -56,10 +67,11 @@ const {filterArticles, allTags} = useSearchFilter()
               <el-icon><Document /></el-icon>
               <h2>最新文章</h2>
             </div>
+            <SortFilter />
             <el-button text @click="goToArticles">查看全部 →</el-button>
           </div>
           <TagFilter />
-          <el-card v-for="article in filterArticles" :key="article.id"
+          <el-card v-for="article in articles" :key="article.id"
             class="article-card" shadow="hover"@click="goToArticle(article.id)">
             <div class="article-content">
               <div class="article-info">
