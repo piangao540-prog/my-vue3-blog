@@ -1,6 +1,6 @@
 <template>
   <div class="article-detail" v-if="article">
-    <el-button text @click="router.push('/articles')">
+    <el-button link @click="router.push('/articles')">
       <el-icon><ArrowLeft /></el-icon>返回文章列表
     </el-button>
     <!-- 文章主题 -->

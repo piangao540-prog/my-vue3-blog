@@ -22,12 +22,12 @@ const goToArticles = () => {
   router.push('/articles')
 }
 
-const { currentSort, compareByKey} = useSort()
-const {allTags, filteredArticles} = useSearchFilter()
-const articles = computed(() =>{
+const { currentSort, compareByKey } = useSort()
+const { allTags, filteredArticles } = useSearchFilter()
+const articles = computed(() => {
   const filtered = filteredArticles.value
-  const {key, desc} = currentSort
-  return [...filtered].sort((a,b) =>{
+  const { key, desc } = currentSort
+  return [...filtered].sort((a, b) => {
     const comparison = compareByKey(a, b, key)
     return desc ? -comparison : comparison
   })
@@ -40,7 +40,7 @@ const articles = computed(() =>{
       <div class="hero-content">
         <h1 class="hero-title">个人博客</h1>
         <p class="hero-subtitle">
-           Vue3、TypeScript、前端工程化等热门技术内容
+          Vue3、TypeScript、前端工程化等热门技术内容
         </p>
         <div class="hero-actions">
           <el-button type="primary" class="primary-action" size="large" @click="goToArticles">浏览文章</el-button>
@@ -64,15 +64,17 @@ const articles = computed(() =>{
         <section class="latest-articles">
           <div class="section-header">
             <div class="header-left">
-              <el-icon><Document /></el-icon>
+              <el-icon>
+                <Document />
+              </el-icon>
               <h2>最新文章</h2>
             </div>
             <SortFilter />
-            <el-button text @click="goToArticles">查看全部 →</el-button>
+            <el-button link @click="goToArticles">查看全部 →</el-button>
           </div>
           <TagFilter />
-          <el-card v-for="article in articles" :key="article.id"
-            class="article-card" shadow="hover"@click="goToArticle(article.id)">
+          <el-card v-for="article in articles" :key="article.id" class="article-card" shadow="hover"
+            @click="goToArticle(article.id)">
             <div class="article-content">
               <div class="article-info">
                 <h3>{{ article.title }}</h3>
@@ -80,10 +82,11 @@ const articles = computed(() =>{
                 <div class="article-meta">
                   <span class="article-date">{{ article.createdAt }}</span>
                   <span class="article-views">
-                    <el-icon><View /></el-icon> {{ article.views }}
+                    <el-icon>
+                      <View />
+                    </el-icon> {{ article.views }}
                   </span>
-                  <span class="article-like"
-                    :type="article.like ? 'primary' : 'default'" 
+                  <span class="article-like" :type="article.like ? 'primary' : 'default'"
                     @click.stop="blogStore.togglelike(article.id)">
                     {{ article.like ? '❤️ 已收藏' : '🤍 收藏' }}
                   </span>
@@ -108,13 +111,7 @@ const articles = computed(() =>{
               </div>
             </template>
             <div class="tags-cloud">
-              <el-tag
-                v-for="tag in allTags"
-                :key="tag"
-                class="tag-item"
-                type="info"
-                effect="plain"
-              >
+              <el-tag v-for="tag in allTags" :key="tag" class="tag-item" type="info" effect="plain">
                 {{ tag }}
               </el-tag>
             </div>
@@ -127,12 +124,8 @@ const articles = computed(() =>{
               </div>
             </template>
             <div class="recommended-list">
-              <div
-                v-for="article in blogStore.latestArticles.slice(0, 3)"
-                :key="article.id"
-                class="recommended-item"
-                @click="goToArticle(article.id)"
-              >
+              <div v-for="article in blogStore.latestArticles.slice(0, 3)" :key="article.id" class="recommended-item"
+                @click="goToArticle(article.id)">
                 <span class="recommended-title">{{ article.title }}</span>
               </div>
             </div>
@@ -388,20 +381,25 @@ const articles = computed(() =>{
     font-size: 1.5rem;
   }
 }
+
 /* 文章阅读量显示 */
 .article-views {
   display: flex;
   align-items: center;
-  gap: 4px;  /* 图标和数字之间的间距 */
-  color: #909399;  /* 和日期同色 */
+  gap: 4px;
+  /* 图标和数字之间的间距 */
+  color: #909399;
+  /* 和日期同色 */
   font-size: 0.85rem;
 }
 
 .article-like {
   display: flex;
   align-items: center;
-  gap: 4px;  /* 图标和数字之间的间距 */
-  color: #909399;  /* 和日期同色 */
+  gap: 4px;
+  /* 图标和数字之间的间距 */
+  color: #909399;
+  /* 和日期同色 */
   font-size: 0.85rem;
 }
 </style>
