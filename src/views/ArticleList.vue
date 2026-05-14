@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { useBlogStore } from '../stores/blog'
 import { useRouter } from 'vue-router';
 import { ArrowLeft } from '@element-plus/icons-vue'
+import { getTagColor } from '@/composables/useTagColor'
 
 const blogStore = useBlogStore()
 const router = useRouter()
@@ -62,7 +63,7 @@ const goToArticle = (id: number) => {
       <h2>{{ article.title }}</h2>
       <p class="summary">{{ article.summary }}</p>
 
-      <el-tag v-for="tag in article.tags" :key="tag" class="tag">
+      <el-tag v-for="(tag, index) in article.tags" :key="index" class="tag" :style="{ color: getTagColor(tag) }">
         {{ tag }}
       </el-tag>
     </el-card>

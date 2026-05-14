@@ -7,7 +7,8 @@ import { useRouter } from 'vue-router'
 import TagFilter from '@/components/TagFilter.vue'
 import { useSearchFilter } from '@/composables/useSearchFilter'
 import SortFilter from '@/components/SortFilter.vue'
-import { useSort } from '@/composables/useSort'
+import { useSort, type SortKey } from '@/composables/useSort'
+import { getTagColor } from '@/composables/useTagColor'
 
 
 const blogStore = useBlogStore()
@@ -28,7 +29,7 @@ const articles = computed(() => {
   const filtered = filteredArticles.value
   const { key, desc } = currentSort
   return [...filtered].sort((a, b) => {
-    const comparison = compareByKey(a, b, key)
+    const comparison = compareByKey(a, b, key as SortKey)
     return desc ? -comparison : comparison
   })
 })
@@ -70,7 +71,7 @@ const articles = computed(() => {
               <h2>最新文章</h2>
             </div>
             <SortFilter />
-            <el-button link @click="goToArticles">查看全部 →</el-button>
+            <el-button text @click="goToArticles">查看全部 →</el-button>
           </div>
           <TagFilter />
           <el-card v-for="article in articles" :key="article.id" class="article-card" shadow="hover"
@@ -111,7 +112,8 @@ const articles = computed(() => {
               </div>
             </template>
             <div class="tags-cloud">
-              <el-tag v-for="tag in allTags" :key="tag" class="tag-item" type="info" effect="plain">
+              <el-tag v-for="tag in allTags" :key="tag" class="tag-item" type="info" effect="plain"
+                :style="{ color: getTagColor(tag) }">
                 {{ tag }}
               </el-tag>
             </div>
