@@ -37,13 +37,13 @@ onMounted(() => {
         series: [
             {
                 type: 'pie',
-                radius: ['20%', '40%'],
+                radius: ['13%', '45%'],
                 center: ['50%', '50%'],
                 roseType: 'area',
 
                 // 图形的设置
                 itemStyle: {
-                    borderRadius: 2,
+                    borderRadius: 5,
                     borderColor: '#fff',
                     borderWidth: 2
                 },

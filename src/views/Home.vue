@@ -10,6 +10,7 @@ import SortFilter from '@/components/SortFilter.vue'
 import { useSort, type SortKey } from '@/composables/useSort'
 import { getTagColor } from '@/composables/useTagColor'
 import TagChart from '@/components/TagChart.vue'
+import ArticleCarousel from '@/components/ArticleCarousel.vue'
 
 
 
@@ -41,23 +42,31 @@ const articles = computed(() => {
   <div class="home-container">
     <section class="hero-section">
       <div class="hero-content">
-        <h1 class="hero-title">个人博客</h1>
-        <p class="hero-subtitle">
-          Vue3、TypeScript、前端工程化等热门技术内容
-        </p>
-        <div class="hero-actions">
-          <el-button type="primary" class="primary-action" size="default" @click="goToArticles">浏览文章</el-button>
-          <el-button size="default" class="secondary-action" @click="router.push('/about')">关于我</el-button>
+        <!-- 左边：标题和按钮 -->
+        <div class="hero-left">
+          <h1 class="hero-title">个人博客</h1>
+          <p class="hero-subtitle">
+            Vue3、TypeScript、前端工程化等热门技术内容
+          </p>
+          <div class="hero-actions">
+            <el-button type="primary" class="primary-action" size="default" @click="goToArticles">浏览文章</el-button>
+            <el-button size="default" class="secondary-action" @click="router.push('/about')">关于我</el-button>
+          </div>
+          <div class="hero-stats">
+            <div class="stat-item">
+              <span class="stat-number">{{ blogStore.articles.length }}</span>
+              <span class="stat-label">篇文章</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-number">{{ allTags.length }}</span>
+              <span class="stat-label">个标签</span>
+            </div>
+          </div>
         </div>
-      </div>
-      <div class="hero-stats">
-        <div class="stat-item">
-          <span class="stat-number">{{ blogStore.articles.length }}</span>
-          <span class="stat-label">篇文章</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-number">{{ allTags.length }}</span>
-          <span class="stat-label">个标签</span>
+
+        <!-- 右边：轮播图 -->
+        <div class="hero-right">
+          <ArticleCarousel />
         </div>
       </div>
     </section>
@@ -149,17 +158,16 @@ const articles = computed(() => {
 }
 
 .hero-section {
-  width: 650px;
-  height: 252px;
+  width: 900px;
+  height: 300px;
   margin: 0px auto;
   background: linear-gradient(135deg, #68696f 0%, #370c61 100%);
   border-radius: 16px;
-  padding: 23px 40px;
+  padding: 40px;
   color: white;
-  text-align: center;
-  margin-bottom: 30px;
   position: relative;
   overflow: hidden;
+  margin-bottom: 40px;
 }
 
 .hero-section::before {
@@ -175,6 +183,26 @@ const articles = computed(() => {
 .hero-content {
   position: relative;
   z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 40px;
+  height: 100%;
+}
+
+.hero-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.hero-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .main-content {
@@ -185,24 +213,23 @@ const articles = computed(() => {
 }
 
 .hero-title {
-  font-size: 1.5rem;
+  font-size: 1.8rem;
   font-weight: 700;
-  margin-bottom: 10px;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+  margin-bottom: 0;
 }
 
 .hero-subtitle {
-  font-size: 0.9rem;
-  opacity: 0.95;
-  max-width: 500px;
-  margin: 0 auto 16px;
+  font-size: 1rem;
+  opacity: 0.9;
   line-height: 1.5;
+  margin: 0;
+  max-width: 400px;
 }
 
 .hero-actions {
   display: flex;
   gap: 12px;
-  justify-content: center;
 }
 
 .primary-action {
@@ -210,7 +237,7 @@ const articles = computed(() => {
   border-color: #e86f83;
   color: #fff;
   border-radius: 20px;
-  padding: 0 22px;
+  padding: 8px 20px;
 }
 
 .primary-action:hover {
@@ -221,31 +248,29 @@ const articles = computed(() => {
 
 .secondary-action {
   border-radius: 20px;
-  padding: 0 22px;
+  padding: 8px 20px;
 }
 
 .hero-stats {
   display: flex;
-  justify-content: center;
   gap: 30px;
-  margin-top: 32px;
-  padding-top: 20px;
+  margin-top: 16px;
+  padding-top: 16px;
   border-top: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .stat-item {
   display: flex;
   flex-direction: column;
-  align-items: center;
 }
 
 .stat-number {
-  font-size: 1.25rem;
+  font-size: 1.8rem;
   font-weight: 700;
 }
 
 .stat-label {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   opacity: 0.8;
 }
 
