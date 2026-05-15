@@ -46,8 +46,8 @@ const articles = computed(() => {
           Vue3、TypeScript、前端工程化等热门技术内容
         </p>
         <div class="hero-actions">
-          <el-button type="primary" class="primary-action" size="large" @click="goToArticles">浏览文章</el-button>
-          <el-button size="large" class="secondary-action" @click="router.push('/about')">关于我</el-button>
+          <el-button type="primary" class="primary-action" size="default" @click="goToArticles">浏览文章</el-button>
+          <el-button size="default" class="secondary-action" @click="router.push('/about')">关于我</el-button>
         </div>
       </div>
       <div class="hero-stats">
@@ -149,14 +149,15 @@ const articles = computed(() => {
 }
 
 .hero-section {
-  /* width: 500px;
-  height: 300px; */
+  width: 650px;
+  height: 252px;
+  margin: 0px auto;
   background: linear-gradient(135deg, #68696f 0%, #370c61 100%);
   border-radius: 16px;
-  padding: 60px 40px;
+  padding: 23px 40px;
   color: white;
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 30px;
   position: relative;
   overflow: hidden;
 }
@@ -178,21 +179,24 @@ const articles = computed(() => {
 
 .main-content {
   width: 1112px;
+  margin-left: -47px !important;
+
+  margin-top: 56px;
 }
 
 .hero-title {
-  font-size: 2.5rem;
+  font-size: 1.5rem;
   font-weight: 700;
-  margin-bottom: 16px;
+  margin-bottom: 10px;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .hero-subtitle {
-  font-size: 1.1rem;
+  font-size: 0.9rem;
   opacity: 0.95;
-  max-width: 600px;
-  margin: 0 auto 24px;
-  line-height: 1.6;
+  max-width: 500px;
+  margin: 0 auto 16px;
+  line-height: 1.5;
 }
 
 .hero-actions {
@@ -223,9 +227,9 @@ const articles = computed(() => {
 .hero-stats {
   display: flex;
   justify-content: center;
-  gap: 40px;
-  margin-top: 40px;
-  padding-top: 30px;
+  gap: 30px;
+  margin-top: 32px;
+  padding-top: 20px;
   border-top: 1px solid rgba(255, 255, 255, 0.2);
 }
 
@@ -236,12 +240,12 @@ const articles = computed(() => {
 }
 
 .stat-number {
-  font-size: 2rem;
+  font-size: 1.25rem;
   font-weight: 700;
 }
 
 .stat-label {
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   opacity: 0.8;
 }
 
