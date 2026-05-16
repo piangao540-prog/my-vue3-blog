@@ -14,6 +14,8 @@ export const articleList: Article[] = [
                 <li>TypeScript - JavaScript的超集，提供类型检查</li>
                 <li>Vite - 下一代前端构建工具</li>
                 <li>Element Plus - 基于Vue3的组件库</li>
+                <li>Pinia - 状态管理库</li>
+                <li>Echarts - 一个基于 JavaScript 的开源可视化图表库</li>
             </ul>
             <h2>项目结构</h2>
             <p>我们的博客项目采用模块化设计，便于维护和扩展。</p>
@@ -21,7 +23,7 @@ export const articleList: Article[] = [
         views: 0, // 初始阅读量
         createdAt: '2026-05-09',
         like: false,
-        tags: ['Vue3', 'Vite', 'Element Plus', 'TypeScript', 'Pinia'],
+        tags: ['Vue3', 'Vite', 'Element Plus', 'TypeScript', 'Pinia', 'Echarts'],
 
     },
     {
@@ -186,6 +188,6 @@ const setTag = (tag: string) => {
         like: false,
         views: 0, // 初始阅读量
         createdAt: '2026-05-05',
-        tags: ['localStorage', 'Vue3'],
+        tags: ['Vue3'],
     },
 ]

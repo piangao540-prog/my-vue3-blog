@@ -1,7 +1,9 @@
 <template>
   <div class="article-detail" v-if="article">
     <el-button link @click="router.push('/articles')">
-      <el-icon><ArrowLeft /></el-icon>返回文章列表
+      <el-icon>
+        <ArrowLeft />
+      </el-icon>返回文章列表
     </el-button>
     <!-- 文章主题 -->
     <article class="article-main">
@@ -9,11 +11,15 @@
         <h1 class="article-title">{{ article.title }}</h1>
         <div class="article-meta">
           <span class="meta-item">
-            <el-icon><Calendar /></el-icon>
+            <el-icon>
+              <Calendar />
+            </el-icon>
             {{ article.createdAt }}
           </span>
           <span class="meta-item">
-            <el-icon><User /></el-icon>
+            <el-icon>
+              <User />
+            </el-icon>
             Piangao
           </span>
           <div class="article-tags">
@@ -24,7 +30,7 @@
         </div>
       </header>
       <div class="article-content" v-html="article.content"></div>
-            <footer class="article-footer">
+      <footer class="article-footer">
         <el-divider />
         <div class="article-nav">
           <div class="nav-prev" v-if="prevArticle" @click="goToArticle(prevArticle.id)">
@@ -38,15 +44,30 @@
         </div>
       </footer>
     </article>
+    <!-- 评论区 -->
+    <div v-if="userStore.isLoggedIn">
+      <CommentSection />
+    </div>
+    <div v-else>
+      <div class="login-prompt">
+        <p>请先登录才能发表评论</p>
+        <router-link to="/login">
+          <el-button type="primary">去登录</el-button>
+        </router-link>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
-import { useRoute,useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useBlogStore } from '../stores/blog'
 import { Calendar, User, ArrowLeft } from '@element-plus/icons-vue'
+import CommentSection from '../components/CommentSection.vue'
+import { useUserStore } from '../stores/user'
 
+const userStore = useUserStore()
 
 const route = useRoute()
 const router = useRouter()
@@ -68,7 +89,7 @@ const prevArticle = computed(() => {
 const nextArticle = computed(() => {
   const index = currentIndex.value
   return index < blogStore.articles.length - 1 ? blogStore.articles[index + 1] : null
-})  
+})
 
 // 跳转到指定文章
 const goToArticle = (id: number) => {
@@ -76,8 +97,8 @@ const goToArticle = (id: number) => {
 }
 
 // 文章阅读量统计
-onMounted(() =>{
-  if(article.value){
+onMounted(() => {
+  if (article.value) {
     blogStore.addViews(article.value.id)
   }
 })
@@ -228,5 +249,18 @@ onMounted(() =>{
 
 .nav-next {
   text-align: right;
+}
+
+.login-prompt {
+  text-align: center;
+  padding: 40px;
+  background: #f5f5f5;
+  border-radius: 8px;
+  margin-top: 20px;
+}
+
+.login-prompt p {
+  margin-bottom: 16px;
+  color: #666;
 }
 </style>

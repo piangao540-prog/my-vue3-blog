@@ -21,6 +21,6 @@ export const mockTechStack: TechStack[] = [
 
 export const mockContactInfo: ContactInfo[] = [
   { icon: 'User', text: 'GitHub', link: 'https://github.com/piangao540-prog' },
-  { icon: 'Message', text: 'Email', link: 'mailto:example@example.com' },
+  { icon: 'Message', text: 'Email', link: 'mailto:piangao540prog@qq.com' },
   { icon: 'MapLocation', text: '城市', link: '#' },
 ]
