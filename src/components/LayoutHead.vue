@@ -45,12 +45,8 @@ const activeMenu = computed(() => {
     <!-- 右侧：搜索框 -->
     <div class="header-right">
       <div class="search-box">
-        <el-input
-          v-model="localKeyword"
-          @input="debounceSearch"
-          placeholder="搜索文章..."
-          :prefix-icon="Search"
-          clearable
+        <el-input v-model="localKeyword" @input="debounceSearch"
+          placeholder="搜索文章...":prefix-icon="Search"clearable
           class="search-input"
         />
       </div>
@@ -110,7 +106,7 @@ const activeMenu = computed(() => {
 }
 
 .search-input {
-  width: 280px;
+  width: 136px;
   height: 36px;
   border-radius: 8px;
   border: 1px solid #e5e7eb;

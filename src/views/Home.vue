@@ -207,7 +207,7 @@ const articles = computed(() => {
 
 .main-content {
   width: 1112px;
-  margin-left: -47px !important;
+  margin-left: -70px !important;
 
   margin-top: 56px;
 }
