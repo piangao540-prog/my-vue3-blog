@@ -87,6 +87,8 @@ const handleRegister = () => {
   display: flex;
   min-height: 70vh;
   min-width: 60vw;
+  box-sizing: border-box;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2)
 }
 
 /* 左边区域 */
