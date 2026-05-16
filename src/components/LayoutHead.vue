@@ -1,21 +1,24 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { Menu as MenuIcon ,Search} from '@element-plus/icons-vue'
+import { Menu as MenuIcon, Search } from '@element-plus/icons-vue'
 import portrait from '@/assets/images/portrait.png'
 import { useSearchStore } from '@/stores/search'
-import {debounce} from '@/utils/debounce'
+import { debounce } from '@/utils/debounce'
+import router from '@/router'
+import { useUserStore } from '@/stores/user'
 
 
 
 const searchStore = useSearchStore()
+const userStore = useUserStore()
 const drawer = ref(false)
 const route = useRoute()
 
 // 搜索框防抖
 const localKeyword = ref('')
-const debounceSearch = debounce((value:string) => {
-    searchStore.setSearchKeyword(value)
+const debounceSearch = debounce((value: string) => {
+  searchStore.setSearchKeyword(value)
 }, 500)
 
 
@@ -40,25 +43,37 @@ const activeMenu = computed(() => {
           <MenuIcon />
         </el-icon>
       </el-button>
+      <el-drawer v-model="drawer" direction="ltr" size="240px" title="菜单">
+        <el-menu mode="vertical" router :default-active="activeMenu" @select="drawer = false">
+          <el-menu-item index="/">首页</el-menu-item>
+          <el-menu-item index="/articles">文章</el-menu-item>
+          <el-menu-item index="/about">关于</el-menu-item>
+        </el-menu>
+      </el-drawer>
     </div>
 
-    <!-- 右侧：搜索框 -->
+    <!-- 右侧：搜索框 ,登录按钮 -->
     <div class="header-right">
       <div class="search-box">
-        <el-input v-model="localKeyword" @input="debounceSearch"
-          placeholder="搜索文章...":prefix-icon="Search"clearable
-          class="search-input"
-        />
+        <el-input v-model="localKeyword" @input="debounceSearch" placeholder="搜索文章..." :prefix-icon="Search" clearable
+          class="search-input" />
+      </div>
+      <div v-if="userStore.isLoggedIn">
+        <el-dropdown>
+          <el-button>{{ userStore.userInfo?.username }}</el-button>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item @click="userStore.loginOut">退出</el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+      </div>
+      <div v-else>
+        <el-button class="login-button" @click="router.push('/login')">登录</el-button>
       </div>
     </div>
 
-    <el-drawer v-model="drawer" direction="ltr" size="240px" title="菜单">
-      <el-menu mode="vertical" router :default-active="activeMenu" @select="drawer = false">
-        <el-menu-item index="/">首页</el-menu-item>
-        <el-menu-item index="/articles">文章</el-menu-item>
-        <el-menu-item index="/about">关于</el-menu-item>
-      </el-menu>
-    </el-drawer>
+
   </header>
 </template>
 
@@ -66,7 +81,8 @@ const activeMenu = computed(() => {
 .blog-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;  /* 左右分布 */
+  justify-content: space-between;
+  /* 左右分布 */
   border-bottom: 1px solid #e5e7eb;
   padding: 12px 20px;
   background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
@@ -132,5 +148,10 @@ const activeMenu = computed(() => {
 
 .search-input:focus :deep(.el-input__icon) {
   color: #e86f83;
+}
+
+.login-button {
+  background: #7b99d6;
+  color: #fff;
 }
 </style>

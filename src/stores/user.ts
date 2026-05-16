@@ -48,7 +48,7 @@ export const useUserStore = defineStore('user', () => {
   }
   
   // 登出
-  const logout = () => {
+  const loginOut = () => {
     userInfo.value = null
     localStorage.removeItem('currentUser')
   }
@@ -68,6 +68,6 @@ export const useUserStore = defineStore('user', () => {
     isLoggedIn,
     login,
     register,
-    logout
+    loginOut
   }
 })
