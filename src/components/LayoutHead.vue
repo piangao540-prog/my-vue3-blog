@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router'
 import { Menu as MenuIcon, Search } from '@element-plus/icons-vue'
 import portrait from '@/assets/images/portrait.png'
 import { useSearchStore } from '@/stores/search'
+import { ElMenu, ElMenuItem } from 'element-plus'
 import { debounce } from '@/utils/debounce'
 import router from '@/router'
 import { useUserStore } from '@/stores/user'
@@ -52,7 +53,14 @@ const activeMenu = computed(() => {
         </el-menu>
       </el-drawer>
     </div>
-
+    <div class="header-middle">
+        <el-menu mode="horizontal" router :default-active="activeMenu" class="nav-menu">
+          <el-menu-item index="/">首页</el-menu-item>
+          <el-menu-item index="/articles">文章</el-menu-item>
+          <el-menu-item index="/about">关于</el-menu-item>
+          <el-menu-item index="/archive">归档</el-menu-item>
+        </el-menu>
+    </div>
     <!-- 右侧：搜索框 ,登录按钮 -->
     <div class="header-right">
       <div class="search-box">
@@ -110,6 +118,18 @@ const activeMenu = computed(() => {
 
 .el-button {
   margin-left: 10px;
+}
+
+.header-middle {
+  flex: 1;
+  /* 占据中间空间 */
+  display: flex;
+  justify-content: center;
+}
+
+.nav-menu {
+  border: none;
+  /* 去掉默认边框 */
 }
 
 /* 搜索框容器 */
