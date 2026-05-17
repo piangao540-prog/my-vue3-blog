@@ -48,6 +48,7 @@ const activeMenu = computed(() => {
           <el-menu-item index="/">首页</el-menu-item>
           <el-menu-item index="/articles">文章</el-menu-item>
           <el-menu-item index="/about">关于</el-menu-item>
+          <el-menu-item index="/archive">归档</el-menu-item>
         </el-menu>
       </el-drawer>
     </div>
