@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { articleList } from '@/data/articles'
+import * as articleApi from '@/api/articles'
 
 export interface Article {
     id: number
@@ -15,11 +15,22 @@ export interface Article {
 }
 
 export const useBlogStore = defineStore('blog', () => {
-    const articles = ref<Article[]>(articleList)
-
+    const articles = ref<Article[]>([])
+    const loading = ref(false)
+    // 初始化加载文章
+    const loadArticles = async () => {
+        loading.value = true
+        try {
+            articles.value = await articleApi.getArticles()
+        } catch (error) {
+            console.error('加载文章失败:', error)
+        } finally {
+            loading.value = false
+        }
+    }
     // 获取最新文章
     const latestArticles = computed(() => articles.value.slice(0, 5))
-
+    // 分页获取文章
     const paginatedArticles = computed(() => {
         return (page: number, pageSize: number) => {
             const start = (page - 1) * pageSize
@@ -28,20 +39,22 @@ export const useBlogStore = defineStore('blog', () => {
         }
     })
 
-    function getArticleById(id: number): Article | undefined {
-        return articles.value.find((article) => article.id === id)
+    // 获取文章详情
+    const getArticleById = async (id: number): Promise<Article | undefined> => {
+        return await articleApi.getArticleById(id)
     }
 
-    function getArticlesByTag(tag: string): Article[] {
-        return articles.value.filter((article) => article.tags.includes(tag))
+    // 获取文章列表
+    const getArticlesByTag = async (tag: string): Promise<Article[]> => {
+        return await articleApi.getArticleByTag(tag)
     }
     // 文章阅读量统计功能
     // 保存阅读量到localStorage
-    const addViews = (articleId: number) => {
+    const addViews = async (articleId: number) => {
+        await articleApi.incrementViews(articleId)
         const article = articles.value.find(a => a.id === articleId)
         if (article) {
             article.views++
-            localStorage.setItem('views_' + articleId, article.views.toString())
         }
     }
     // 从localStorage获取阅读量
@@ -57,14 +70,13 @@ export const useBlogStore = defineStore('blog', () => {
 
     //文章收藏功能
     // 切换收藏功能
-    const togglelike = (articleId: number) => {
+    const togglelike = async (articleId: number) => {
         const article = articles.value.find(a => a.id === articleId)
         if (article) {
-            article.like = !article.like
-            const likeIds = articles.value.filter(a => a.like).map(a => a.id)
-            localStorage.setItem('liked_articles', JSON.stringify(likeIds))
+            article.like = await articleApi.toggleLike(articleId)
         }
     }
+
     // 加载收藏
     const loadLike = () => {
         const saved = localStorage.getItem('liked_articles')
@@ -83,11 +95,13 @@ export const useBlogStore = defineStore('blog', () => {
         articles,
         latestArticles,
         paginatedArticles,
+        loading,
         getArticleById,
         getArticlesByTag,
         addViews,
         loadViews,
         togglelike,
         loadLike,
+        loadArticles,
     }
 })

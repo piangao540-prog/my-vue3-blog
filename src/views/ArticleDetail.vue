@@ -60,24 +60,23 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useBlogStore } from '../stores/blog'
+import { useBlogStore } from '@/stores/blog'
 import { Calendar, User, ArrowLeft } from '@element-plus/icons-vue'
-import CommentSection from '../components/CommentSection.vue'
-import { useUserStore } from '../stores/user'
+import CommentSection from '@/components/CommentSection.vue'
+import { useUserStore } from '@/stores/user'
+import type {Article} from '@/stores/blog'
 
 const userStore = useUserStore()
-
 const route = useRoute()
 const router = useRouter()
 const blogStore = useBlogStore()
 
-const article = computed(() => {
-  return blogStore.getArticleById(Number(route.params.id))
-})
+const article = ref<Article | null>(null)
 // 获取当前文章的索引
 const currentIndex = computed(() => {
+  if (!article.value) return -1
   return blogStore.articles.findIndex((item) => item.id === Number(route.params.id))
 })
 // 获取上一篇文章
@@ -97,7 +96,12 @@ const goToArticle = (id: number) => {
 }
 
 // 文章阅读量统计
-onMounted(() => {
+onMounted(async () => {
+  const id = Number(route.params.id)
+  const data = await blogStore.getArticleById(id)
+  article.value = data || null
+
+  // 阅读量统计
   if (article.value) {
     blogStore.addViews(article.value.id)
   }

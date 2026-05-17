@@ -53,6 +53,7 @@ const goToArticles = (id: number) => {
                 <h3 class="month">{{ monthNames[month] }}</h3>
                 <ul class="article-list">
                     <li v-for="article in articles" :key="article.id" @click="goToArticles(article.id)">
+                        <span class="article-tag">{{ article.sumTag }}</span>
                         <span class="article-title">{{ article.title }}</span>
                         <span class="article-date">{{ article.createdAt.slice(5, 10) }}</span>
                     </li>
@@ -129,5 +130,14 @@ const goToArticles = (id: number) => {
     color: #999;
     font-size: 0.9rem;
     margin-left: 20px;
+}
+
+.article-tag {
+    background: #667eea;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    margin-right: 10px;
 }
 </style>

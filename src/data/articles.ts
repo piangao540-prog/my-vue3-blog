@@ -21,7 +21,7 @@ export const articleList: Article[] = [
             <p>我们的博客项目采用模块化设计，便于维护和扩展。</p>
         `,
         views: 0, // 初始阅读量
-        createdAt: '2026-05-09',
+        createdAt: '2026-05-05',
         like: false,
         sumTag: '前端技术',
         tags: ['Vue3', 'Vite', 'Element Plus', 'TypeScript', 'Pinia', 'Echarts'],
@@ -44,7 +44,7 @@ export const articleList: Article[] = [
             <p>监听数据变化并执行相应的操作。</p>
         `,
         views: 0, // 初始阅读量
-        createdAt: '2026-05-08',
+        createdAt: '2026-05-06',
         like: false,
         sumTag: '组合式 API',
         tags: ['Vue3', 'TypeScript'],
@@ -164,7 +164,7 @@ const setTag = (tag: string) => {
 })</code></pre
         `,
         views: 0, // 初始阅读量
-        createdAt: '2026-05-05',
+        createdAt: '2026-05-08',
         like: false,
         sumTag: '状态管理',
         tags: ['Pinia', 'Vue3'],
@@ -192,7 +192,7 @@ const setTag = (tag: string) => {
             <h2>基本使用</h2>`,
         like: false,
         views: 0, // 初始阅读量
-        createdAt: '2026-05-05',
+        createdAt: '2026-05-08',
         sumTag: '文章阅读量',
         tags: ['Vue3'],
     },

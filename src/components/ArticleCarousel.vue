@@ -1,3 +1,4 @@
+<!-- 文章轮播图组件 -->
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useBlogStore } from '@/stores/blog'
@@ -19,7 +20,9 @@ const currentArticle = computed(() => {
 })
 // 下一篇
 const nextArticles = () => {
-    return currentIndex.value = (currentIndex.value + 1) % carouselArticles.value.length
+    if (carouselArticles.value.length > 0) {
+        currentIndex.value = (currentIndex.value + 1) % carouselArticles.value.length
+    }
 }
 // 上一篇
 // const prevArticles = () => {
@@ -30,8 +33,11 @@ const goToSlide = (index: number) => {
 }
 // 跳转详情页
 const goToDetail = () => {
-    router.push(`/articles/${currentArticle.value.id}`)
+    if (currentArticle.value) {
+        router.push(`/articles/${currentArticle.value.id}`)
+    }
 }
+
 onMounted(() => {
     timer = setInterval(() => {
         nextArticles()
@@ -44,10 +50,11 @@ onUnmounted(() => {
 <template>
     <div class="carousel">
         <transition name="fade" mode="out-in">
-            <div class="carousel-item" :key="currentArticle.id" @click="goToDetail">
+            <div v-if="currentArticle" class="carousel-item" :key="currentArticle.id" @click="goToDetail">
                 <h4 class="carousel-title">{{ currentArticle.title }}</h4>
                 <p class="carousel-summary">{{ currentArticle.summary }}</p>
             </div>
+            <div v-else class="carousel-loading">加载中...</div>
         </transition>
         <div class="carousel-indicators">
             <button v-for="(_, index) in carouselArticles" :key="index" :class="{ active: index === currentIndex }"

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useBlogStore } from '@/stores/blog'
 import { ElCard, ElTag, ElRow, ElCol } from 'element-plus'
 import { Document, View } from '@element-plus/icons-vue'
@@ -25,8 +25,9 @@ const goToArticle = (id: number) => {
 const goToArticles = () => {
   router.push('/articles')
 }
-
+// 排序
 const { currentSort, compareByKey } = useSort()
+// 搜索
 const { allTags, filteredArticles } = useSearchFilter()
 const articles = computed(() => {
   const filtered = filteredArticles.value
@@ -35,6 +36,11 @@ const articles = computed(() => {
     const comparison = compareByKey(a, b, key as SortKey)
     return desc ? -comparison : comparison
   })
+})
+
+// 加载文章
+onMounted(() => {
+  blogStore.loadArticles()
 })
 </script>
 
@@ -85,6 +91,7 @@ const articles = computed(() => {
             <el-button text @click="goToArticles">查看全部 →</el-button>
           </div>
           <TagFilter />
+          <div v-if="blogStore.loading">加载中...</div>
           <el-card v-for="article in articles" :key="article.id" class="article-card" shadow="hover"
             @click="goToArticle(article.id)">
             <div class="article-content">
