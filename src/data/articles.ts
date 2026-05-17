@@ -23,6 +23,7 @@ export const articleList: Article[] = [
         views: 0, // 初始阅读量
         createdAt: '2026-05-09',
         like: false,
+        sumTag: '前端技术',
         tags: ['Vue3', 'Vite', 'Element Plus', 'TypeScript', 'Pinia', 'Echarts'],
 
     },
@@ -45,6 +46,7 @@ export const articleList: Article[] = [
         views: 0, // 初始阅读量
         createdAt: '2026-05-08',
         like: false,
+        sumTag: '组合式 API',
         tags: ['Vue3', 'TypeScript'],
     },
     {
@@ -63,6 +65,7 @@ export const articleList: Article[] = [
         views: 0, // 初始阅读量
         createdAt: '2026-05-07',
         like: false,
+        sumTag: 'TypeScript',
         tags: ['TypeScript', 'JavaScript'],
     },
     {
@@ -83,6 +86,7 @@ export const articleList: Article[] = [
         views: 0, // 初始阅读量
         createdAt: '2026-05-06',
         like: false,
+        sumTag: '前端框架',
         tags: ['Vite', 'Vue3'],
     },
     {
@@ -162,6 +166,7 @@ const setTag = (tag: string) => {
         views: 0, // 初始阅读量
         createdAt: '2026-05-05',
         like: false,
+        sumTag: '状态管理',
         tags: ['Pinia', 'Vue3'],
     },
     {
@@ -188,6 +193,7 @@ const setTag = (tag: string) => {
         like: false,
         views: 0, // 初始阅读量
         createdAt: '2026-05-05',
+        sumTag: '文章阅读量',
         tags: ['Vue3'],
     },
 ]

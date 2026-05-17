@@ -8,6 +8,7 @@ export interface Article {
     summary: string
     content: string
     createdAt: string
+    sumTag: string
     tags: string[]
     views: number
     like: boolean
@@ -15,7 +16,7 @@ export interface Article {
 
 export const useBlogStore = defineStore('blog', () => {
     const articles = ref<Article[]>(articleList)
-    
+
     // 获取最新文章
     const latestArticles = computed(() => articles.value.slice(0, 5))
 
