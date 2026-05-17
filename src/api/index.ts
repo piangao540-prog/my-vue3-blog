@@ -2,7 +2,7 @@ import axios from './axios'
 // 引入模拟数据
 import { mockTechStack, mockContactInfo, type TechStack, type ContactInfo } from './mock'
 // 定义是否使用模拟数据
-const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true' || !import.meta.env.VITE_API_URL
+const USE_MOCK = (import.meta as any).env.VITE_USE_MOCK === 'true' || !(import.meta as any).env.VITE_API_URL
 
 // 获取技术栈
 export async function getTechStack(): Promise<TechStack[]> {

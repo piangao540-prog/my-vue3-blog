@@ -13,7 +13,7 @@ const currentIndex = ref(0)
 const carouselArticles = computed(() => {
     return blogStore.articles.slice(0, 4)
 })
-let timer: number
+let timer: NodeJS.Timeout
 // 当前显示的文章
 const currentArticle = computed(() => {
     return carouselArticles.value[currentIndex.value]
