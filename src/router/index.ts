@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useUserStore } from '@/stores/user'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -36,7 +37,14 @@ const router = createRouter({
     path: '/about',
     name: 'about',
     component: () => import('@/views/About.vue')
-  }]
+  },
+  {
+    path: '/profile',
+    name: 'profile',
+    component: () => import('@/views/Profile.vue'),
+    meta: { requiresAuth: true }
+  }],
+
 })
 
 export default router
