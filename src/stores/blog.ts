@@ -22,6 +22,8 @@ export const useBlogStore = defineStore('blog', () => {
         loading.value = true
         try {
             articles.value = await articleApi.getArticles()
+            loadViews()   // 文章加载后再恢复阅读量
+            loadLike()    // 文章加载后再恢复收藏状态
         } catch (error) {
             console.error('加载文章失败:', error)
         } finally {
@@ -51,10 +53,10 @@ export const useBlogStore = defineStore('blog', () => {
     // 文章阅读量统计功能
     // 保存阅读量到localStorage
     const addViews = async (articleId: number) => {
-        await articleApi.incrementViews(articleId)
         const article = articles.value.find(a => a.id === articleId)
         if (article) {
             article.views++
+            localStorage.setItem('views_' + articleId, String(article.views))
         }
     }
     // 从localStorage获取阅读量
@@ -66,14 +68,19 @@ export const useBlogStore = defineStore('blog', () => {
             }
         })
     }
-    loadViews()
-
     //文章收藏功能
+    // 保存收藏状态到localStorage
+    const saveLike = () => {
+        const likedIds = articles.value.filter(a => a.like).map(a => a.id)
+        localStorage.setItem('liked_articles', JSON.stringify(likedIds))
+    }
+
     // 切换收藏功能
     const togglelike = async (articleId: number) => {
         const article = articles.value.find(a => a.id === articleId)
         if (article) {
-            article.like = await articleApi.toggleLike(articleId)
+            article.like = !article.like
+            saveLike()
         }
     }
 
@@ -88,7 +95,6 @@ export const useBlogStore = defineStore('blog', () => {
 
         }
     }
-    loadLike()
 
 
     return {
