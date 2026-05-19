@@ -71,8 +71,8 @@ const likedArticles = computed(() => {
 // 获取用户头像和简介
 const initForm = () => {
   basicForm.value = {
-    nickname: userInfo.value.nickname || '',
-    bio: userInfo.value.bio || ''
+    nickname: userInfo.value?.nickname || '',
+    bio: userInfo.value?.bio || ''
   }
 }
 
