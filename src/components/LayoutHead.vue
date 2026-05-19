@@ -98,7 +98,6 @@ const activeMenu = computed(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  /* 左右分布 */
   border-bottom: 1px solid #e5e7eb;
   padding: 12px 20px;
   background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
@@ -106,6 +105,8 @@ const activeMenu = computed(() => {
   top: 0;
   z-index: 999;
   box-shadow: 0 2px 8px rgba(0, 0, 0, .05);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .header-left {
@@ -185,5 +186,46 @@ const activeMenu = computed(() => {
 .login-button {
   background: #7b99d6;
   color: #fff;
+}
+
+/* 移动端响应式 */
+@media (max-width: 768px) {
+  .header-middle {
+    display: none;
+  }
+
+  .search-box {
+    display: none;
+  }
+
+  .header-right {
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+
+  .logo {
+    font-size: 18px;
+  }
+
+  .menu-button {
+    margin-left: 8px;
+    flex-shrink: 0;
+  }
+
+  .blog-header {
+    padding: 10px 12px;
+    min-width: 0;
+  }
+
+  .header-left {
+    flex-shrink: 0;
+  }
+}
+
+
+@media (min-width: 769px) {
+  .menu-button {
+    display: none;
+  }
 }
 </style>

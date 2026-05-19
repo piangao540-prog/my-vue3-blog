@@ -6,6 +6,4 @@ import Bloglayout from './components/Bloglayout.vue';
   <Bloglayout />
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>

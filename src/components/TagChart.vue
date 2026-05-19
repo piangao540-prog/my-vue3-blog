@@ -85,5 +85,29 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <div ref="chartRef" style="width: 100%; height: 300px;"></div>
+    <div class="tag-chart-container">
+        <div ref="chartRef"></div>
+    </div>
 </template>
+
+<style scoped>
+.tag-chart-container {
+    width: 100%;
+    max-width: 400px;
+    /* 限制最大宽度 */
+    margin: 0 auto;
+}
+
+.tag-chart-container>div {
+    width: 100%;
+    height: 300px;
+}
+
+/* 大屏幕适配 */
+@media (min-width: 1024px) {
+    .tag-chart-container>div {
+        height: 350px;
+        /* 大屏幕更高 */
+    }
+}
+</style>

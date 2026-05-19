@@ -165,7 +165,7 @@ onMounted(() => {
 }
 
 .hero-section {
-  width: 900px;
+  max-width: 900px;
   height: 300px;
   margin: 0px auto;
   background: linear-gradient(135deg, #68696f 0%, #370c61 100%);
@@ -351,6 +351,7 @@ onMounted(() => {
 }
 
 .sidebar {
+  /* max-width: 300px; */
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -425,6 +426,18 @@ onMounted(() => {
   .stat-number {
     font-size: 1.5rem;
   }
+}
+
+@media (max-width:1024px) {
+  .hero-section {
+    max-width: 814px;
+  }
+
+  .main-content {
+    width: 860px;
+    margin-left: 28px !important;
+  }
+  
 }
 
 /* 文章阅读量显示 */
