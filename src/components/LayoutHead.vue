@@ -54,12 +54,12 @@ const activeMenu = computed(() => {
       </el-drawer>
     </div>
     <div class="header-middle">
-        <el-menu mode="horizontal" router :default-active="activeMenu" class="nav-menu">
-          <el-menu-item index="/">首页</el-menu-item>
-          <el-menu-item index="/articles">文章</el-menu-item>
-          <el-menu-item index="/archive">归档</el-menu-item>
-          <el-menu-item index="/about">关于</el-menu-item>
-        </el-menu>
+      <el-menu mode="horizontal" router :default-active="activeMenu" class="nav-menu">
+        <el-menu-item index="/">首页</el-menu-item>
+        <el-menu-item index="/articles">文章</el-menu-item>
+        <el-menu-item index="/archive">归档</el-menu-item>
+        <el-menu-item index="/about">关于</el-menu-item>
+      </el-menu>
     </div>
     <!-- 右侧：搜索框 ,登录按钮 -->
     <div class="header-right">
@@ -72,6 +72,7 @@ const activeMenu = computed(() => {
           <el-button>{{ userStore.userInfo?.username }}</el-button>
           <template #dropdown>
             <el-dropdown-menu>
+              <el-dropdown-item @click="router.push('/profile')">个人中心</el-dropdown-item>
               <el-dropdown-item @click="userStore.loginOut">退出</el-dropdown-item>
             </el-dropdown-menu>
           </template>
