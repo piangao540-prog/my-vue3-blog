@@ -80,6 +80,7 @@ const initForm = () => {
 const saveBasicInfo = () => {
   userStore.updateUserInfo(basicForm.value)
   alert('保存成功')
+  basicForm.value = { nickname: '', bio: '' }
 }
 const changePassword = () => {
   userStore.changePassword(
@@ -87,6 +88,7 @@ const changePassword = () => {
     passwordForm.value.newPassword
   )
   alert('修改成功')
+  passwordForm.value = { oldPassword: '', newPassword: '' }
 }
 
 onMounted(() => {
