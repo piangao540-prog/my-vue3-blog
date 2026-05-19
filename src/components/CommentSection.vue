@@ -30,6 +30,7 @@ const handleSubmit = () => {
         <div class="comment-list">
             <div v-for="comment in comments" :key="comment.id" class="comment-item">
                 <div class="comment-header">
+                    <el-avatar :size="32" :src="comment.authorAvatar" />
                     <span class="comment-author">{{ comment.author || '匿名用户' }}</span>
                     <span class="comment-time">{{ formatTime(comment.createdAt) }}</span>
                 </div>

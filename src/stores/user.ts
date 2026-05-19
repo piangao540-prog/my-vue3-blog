@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import defaultAvatar from '@/assets/images/converted_image.png'
 
 export const useUserStore = defineStore('user', () => {
   // 用户信息
@@ -24,7 +25,12 @@ export const useUserStore = defineStore('user', () => {
       return false
     }
 
-    userInfo.value = { username: user.username }
+    userInfo.value = {
+      username: user.username,
+      nickname: user.nickname,
+      bio: user.bio,
+      avatar: user.avatar || defaultAvatar
+    }
     localStorage.setItem('currentUser', username)
     return true
   }
@@ -41,6 +47,7 @@ export const useUserStore = defineStore('user', () => {
     localStorage.setItem(`user_${username}`, JSON.stringify({
       username,
       password,
+      avatar: defaultAvatar,
       createdAt: new Date().toISOString()
     }))
 
@@ -94,7 +101,7 @@ export const useUserStore = defineStore('user', () => {
           username: user.username,
           nickname: user.nickname,
           bio: user.bio,
-          avatar: user.avatar
+          avatar: user.avatar || defaultAvatar
         }
       } else {
         userInfo.value = { username: currentUser }

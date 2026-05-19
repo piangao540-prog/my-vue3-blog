@@ -1,11 +1,13 @@
 import { ref, computed } from 'vue'
 import { useUserStore } from '@/stores/user'
+import userAvatar from '@/assets/images/converted_image.png'
 
 export interface Comment {
     id: number
     content: string
     author: string
     createdAt: string
+    authorAvatar: string
 }
 
 // 格式化时间为标准格式 YYYY-MM-DD HH:MM
@@ -40,7 +42,8 @@ export const useComments = () => {
             id: Date.now(),
             content,
             author: userStore.userInfo?.nickname || '匿名用户',
-            createdAt: new Date().toISOString()
+            createdAt: new Date().toISOString(),
+            authorAvatar: userStore.userInfo?.avatar || userAvatar
         }
         comments.value.unshift(comment)
         saveComment()
