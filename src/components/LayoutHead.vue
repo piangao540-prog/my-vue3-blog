@@ -22,6 +22,12 @@ const debounceSearch = debounce((value: string) => {
   searchStore.setSearchKeyword(value)
 }, 500)
 
+// 退出登录
+const handleLogout = () => {
+  userStore.loginOut()
+  router.push('/login')
+}
+
 
 
 const activeMenu = computed(() => {
@@ -73,7 +79,7 @@ const activeMenu = computed(() => {
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item @click="router.push('/profile')">个人中心</el-dropdown-item>
-              <el-dropdown-item @click="userStore.loginOut">退出</el-dropdown-item>
+              <el-dropdown-item @click="handleLogout">退出</el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>

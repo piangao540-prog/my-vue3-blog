@@ -43,8 +43,16 @@ const router = createRouter({
     name: 'profile',
     component: () => import('@/views/Profile.vue'),
     meta: { requiresAuth: true }
-  }],
-
+  }]
+})
+// 路由守卫
+router.beforeEach((to, from, next) => {
+  const userStore = useUserStore()
+  if (to.meta.requiresAuth && !userStore.isLoggedIn) {
+    next('/login')
+  } else {
+    next()
+  }
 })
 
 export default router
