@@ -7,6 +7,7 @@
         <h2>{{ userInfo?.username }}</h2>
         <p>{{ userInfo?.nickname || '未设置昵称' }}</p>
       </div>
+      <div class="bio">{{ userInfo?.bio || '未设置简介' }}</div>
     </div>
     <!-- 标签页 -->
     <el-tabs v-model="activeTab">
@@ -37,7 +38,7 @@
       <el-tab-pane label="我的收藏" name="likes">
         <div v-if="likedArticles.length === 0" class="empty-tip">暂无收藏</div>
         <ul v-else class="article-list">
-          <li v-for="article in likedArticles" :key="article.id" class="article-item">
+          <li v-for="article in likedArticles" :key="article.id" class="article-item" @click="goToArticle(article)">
             {{ article.title }}
           </li>
         </ul>
@@ -50,6 +51,7 @@
 import { computed, ref, onMounted } from 'vue'
 import { useBlogStore } from '@/stores/blog'
 import { useUserStore } from '@/stores/user'
+import router from '@/router'
 
 const userStore = useUserStore()
 const blogStore = useBlogStore()
@@ -71,9 +73,14 @@ const likedArticles = computed(() => {
 // 获取用户头像和简介
 const initForm = () => {
   basicForm.value = {
-    nickname: userInfo.value?.nickname || '',
-    bio: userInfo.value?.bio || ''
+    nickname: '',
+    bio: ''
   }
+}
+
+// 点击跳转文章
+const goToArticle = (article) => {
+  router.push({ name: 'article-detail', params: { id: article.id } })
 }
 
 // 保存信息
@@ -125,6 +132,21 @@ onMounted(() => {
   margin: 0;
   color: #999;
   font-size: 14px;
+}
+
+.user-card .bio {
+  margin-left: 43px;
+  margin-top: 12px;
+  color: #666;
+  font-size: 14px;
+  line-height: 1.6;
+  max-width: 600px;
+  min-width: 388px;
+  padding: 12px 16px;
+  background: #f5f5f5;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  min-height: 60px;
 }
 
 .empty-tip {
