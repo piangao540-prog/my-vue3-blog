@@ -21,7 +21,7 @@ const handleSubmit = () => {
         <div class="comment-form">
             <textarea v-model="newComment" placeholder="留下你想说的话..." rows="3"></textarea>
             <div class="form-actions">
-                <span class="author-info">发表者：{{ userStore.userInfo?.username }}</span>
+                <span class="author-info">发表者：{{ userStore.userInfo?.nickname || '匿名用户' }}</span>
                 <el-button type="primary" @click="handleSubmit">发表评论</el-button>
             </div>
         </div>
@@ -30,7 +30,7 @@ const handleSubmit = () => {
         <div class="comment-list">
             <div v-for="comment in comments" :key="comment.id" class="comment-item">
                 <div class="comment-header">
-                    <span class="comment-author">{{ comment.author }}</span>
+                    <span class="comment-author">{{ comment.author || '匿名用户' }}</span>
                     <span class="comment-time">{{ formatTime(comment.createdAt) }}</span>
                 </div>
                 <p class="comment-content">{{ comment.content }}</p>

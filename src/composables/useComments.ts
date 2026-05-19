@@ -39,7 +39,7 @@ export const useComments = () => {
         const comment: Comment = {
             id: Date.now(),
             content,
-            author: userStore.userInfo?.username || '匿名用户',
+            author: userStore.userInfo?.nickname || '匿名用户',
             createdAt: new Date().toISOString()
         }
         comments.value.unshift(comment)
