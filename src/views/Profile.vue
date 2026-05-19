@@ -60,7 +60,7 @@
 
 <script setup lang="ts">
 import { computed, ref, onMounted } from 'vue'
-import { useBlogStore } from '@/stores/blog'
+import { useBlogStore, type Article } from '@/stores/blog'
 import { useUserStore } from '@/stores/user'
 import { useComments } from '@/composables/useComments'
 import router from '@/router'
@@ -95,7 +95,7 @@ const initForm = () => {
 }
 
 // 点击跳转文章
-const goToArticle = (article) => {
+const goToArticle = (article: Article) => {
   router.push({ name: 'article-detail', params: { id: article.id } })
 }
 
