@@ -43,7 +43,7 @@ export const useComments = () => {
             content,
             author: userStore.userInfo?.nickname || '匿名用户',
             createdAt: new Date().toISOString(),
-            authorAvatar: userStore.userInfo?.avatar || userAvatar
+            authorAvatar: userStore.userInfo?.avatar || userAvatar,
         }
         comments.value.unshift(comment)
         saveComment()

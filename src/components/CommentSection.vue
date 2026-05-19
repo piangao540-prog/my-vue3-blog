@@ -4,7 +4,8 @@ import { useUserStore } from '@/stores/user'
 import { useComments } from '@/composables/useComments'
 
 const userStore = useUserStore()
-const { comments, addComment, deleteComment, commentCount,formatTime } = useComments()
+const { comments, addComment, deleteComment, commentCount, formatTime } = useComments()
+
 
 const newComment = ref('')
 const handleSubmit = () => {
@@ -46,72 +47,115 @@ const handleSubmit = () => {
     margin-top: 30px;
 }
 
+.comment-section h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #409eff;
+    display: inline-block;
+}
+
 .comment-form {
+    background: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
     margin-bottom: 24px;
 }
 
 .comment-form textarea {
     width: 100%;
-    padding: 12px;
-    border: 1px solid #ddd;
+    padding: 14px 16px;
+    border: 1px solid #e8e8e8;
     border-radius: 8px;
     resize: vertical;
+    font-size: 14px;
+    line-height: 1.6;
+    transition: border-color 0.2s ease;
+    min-height: 100px;
+}
+
+.comment-form textarea:focus {
+    outline: none;
+    border-color: #409eff;
+    box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.1);
 }
 
 .form-actions {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 12px;
+    margin-top: 16px;
 }
 
 .author-info {
     color: #666;
-    font-size: 0.9rem;
+    font-size: 13px;
 }
 
 .comment-list {
-    border-top: 1px solid #eee;
-    padding-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
 
 .comment-item {
-    padding: 16px;
-    border-bottom: 1px solid #eee;
+    background: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+}
+
+.comment-item:hover {
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
 .comment-header {
     display: flex;
-    justify-content: space-between;
-    margin-bottom: 8px;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
 }
 
 .comment-author {
     font-weight: 600;
     color: #333;
+    font-size: 14px;
 }
 
 .comment-time {
     color: #999;
-    font-size: 0.8rem;
+    font-size: 12px;
+    margin-left: auto;
 }
 
 .comment-content {
     color: #555;
-    line-height: 1.6;
+    line-height: 1.7;
+    font-size: 14px;
+    padding: 12px 16px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 12px;
 }
 
 .delete-btn {
-    margin-top: 8px;
-    padding: 4px 12px;
-    font-size: 0.8rem;
-    color: #999;
-    border: none;
-    background: transparent;
+    padding: 6px 14px;
+    font-size: 12px;
+    color: #ff6b6b;
+    background: #fff5f5;
+    border: 1px solid #ffe0e0;
+    border-radius: 6px;
     cursor: pointer;
+    transition: all 0.2s ease;
 }
 
 .delete-btn:hover {
     color: #ff4444;
+    background: #ffeaea;
+    border-color: #ffcccc;
 }
 </style>

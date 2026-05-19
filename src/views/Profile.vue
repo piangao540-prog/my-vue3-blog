@@ -22,7 +22,7 @@
           <el-button type="primary" @click="saveBasicInfo">保存</el-button>
         </el-form>
       </el-tab-pane>
-
+      <!-- 安全设置 -->
       <el-tab-pane label="安全设置" name="security">
         <el-form :model="passwordForm">
           <el-form-item label="原密码">
@@ -34,12 +34,23 @@
           <el-button type="primary" @click="changePassword">修改密码</el-button>
         </el-form>
       </el-tab-pane>
-
+      <!-- 我的收藏 -->
       <el-tab-pane label="我的收藏" name="likes">
         <div v-if="likedArticles.length === 0" class="empty-tip">暂无收藏</div>
         <ul v-else class="article-list">
           <li v-for="article in likedArticles" :key="article.id" class="article-item" @click="goToArticle(article)">
             {{ article.title }}
+          </li>
+        </ul>
+      </el-tab-pane>
+      <!-- 我的评论 -->
+      <el-tab-pane label="我的评论" name="comments">
+        <div v-if="myComments.length === 0" class="empty-tip">暂无评论</div>
+        <ul v-else class="comment-list">
+          <li v-for="comment in myComments" :key="comment.id" class="comment-item">
+            <p>{{ comment.content }}</p>
+            <p>{{ formatTime(comment.createdAt) }}</p>
+            <button @click="deleteComment(comment.id)">删除评论</button>
           </li>
         </ul>
       </el-tab-pane>
@@ -51,10 +62,12 @@
 import { computed, ref, onMounted } from 'vue'
 import { useBlogStore } from '@/stores/blog'
 import { useUserStore } from '@/stores/user'
+import { useComments } from '@/composables/useComments'
 import router from '@/router'
 
 const userStore = useUserStore()
 const blogStore = useBlogStore()
+const { comments, deleteComment, formatTime } = useComments()
 // 默认头像
 import userAvatar from '@/assets/images/converted_image.png'
 
@@ -67,6 +80,9 @@ const passwordForm = ref({ oldPassword: '', newPassword: '' })
 const userInfo = computed(() => userStore.userInfo)
 const likedArticles = computed(() => {
   return blogStore.articles.filter(a => a.like)
+})
+const myComments = computed(() => {
+  return comments.value.filter(a => a.author === userInfo.value?.nickname)
 })
 
 // 方法
@@ -191,5 +207,60 @@ onMounted(() => {
 
 .el-form-item {
   margin-bottom: 20px;
+}
+
+/* 我的评论样式 */
+.comment-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.comment-item {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.comment-item:hover {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.comment-item p:first-child {
+  color: #555;
+  line-height: 1.7;
+  font-size: 14px;
+  padding: 12px 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.comment-item p:last-of-type {
+  color: #999;
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+
+.comment-item button {
+  padding: 6px 14px;
+  font-size: 12px;
+  color: #ff6b6b;
+  background: #fff5f5;
+  border: 1px solid #ffe0e0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.comment-item button:hover {
+  color: #ff4444;
+  background: #ffeaea;
+  border-color: #ffcccc;
 }
 </style>
