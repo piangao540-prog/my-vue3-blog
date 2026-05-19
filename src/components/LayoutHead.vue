@@ -102,6 +102,10 @@ const activeMenu = computed(() => {
   border-bottom: 1px solid #e5e7eb;
   padding: 12px 20px;
   background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  position: sticky;
+  top: 0;
+  z-index: 999;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .05);
 }
 
 .header-left {
