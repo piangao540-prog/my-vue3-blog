@@ -93,3 +93,79 @@ onMounted(() => {
   initForm()
 })
 </script>
+
+<style scoped>
+.profile {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 30px 20px;
+}
+
+.user-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  margin-bottom: 24px;
+}
+
+.user-card h2 {
+  margin: 0 0 8px 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+}
+
+.user-card p {
+  margin: 0;
+  color: #999;
+  font-size: 14px;
+}
+
+.empty-tip {
+  text-align: center;
+  padding: 60px 20px;
+  color: #999;
+  background: #fafafa;
+  border-radius: 8px;
+}
+
+.article-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.article-item {
+  padding: 16px 20px;
+  background: #fff;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.article-item:hover {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  transform: translateX(4px);
+}
+
+.el-tabs__content {
+  padding: 20px 0;
+}
+
+.el-form {
+  background: #fff;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.el-form-item {
+  margin-bottom: 20px;
+}
+</style>
