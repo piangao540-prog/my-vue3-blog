@@ -60,13 +60,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useBlogStore } from '@/stores/blog'
 import { Calendar, User, ArrowLeft } from '@element-plus/icons-vue'
 import CommentSection from '@/components/CommentSection.vue'
 import { useUserStore } from '@/stores/user'
-import type {Article} from '@/stores/blog'
+import type { Article } from '@/stores/blog'
 
 const userStore = useUserStore()
 const route = useRoute()
@@ -91,19 +91,32 @@ const nextArticle = computed(() => {
 })
 
 // 跳转到指定文章
-const goToArticle = (id: number) => {
-  router.push(`/articles/${id}`)
+const goToArticle = async (id: number) => {
+  await router.push({ name: 'article-detail', params: { id } })
 }
 
-// 文章阅读量统计
-onMounted(async () => {
-  const id = Number(route.params.id)
+// 获取文章数据
+const loadArticle = async (id: number) => {
   const data = await blogStore.getArticleById(id)
   article.value = data || null
 
   // 阅读量统计
   if (article.value) {
     blogStore.addViews(article.value.id)
+  }
+}
+
+// 文章阅读量统计
+onMounted(async () => {
+  const id = Number(route.params.id)
+  await loadArticle(id)
+})
+
+// 监听路由参数变化（同一路由不同参数）
+watch(() => route.params.id, async (newId) => {
+  if (newId) {
+    const id = Number(newId)
+    await loadArticle(id)
   }
 })
 
