@@ -280,4 +280,100 @@ watch(() => route.params.id, async (newId) => {
   margin-bottom: 16px;
   color: #666;
 }
+
+@media (max-width: 768px){
+  .article-detail{
+    padding: 15px 10px;
+    max-width: 100%
+  }
+
+  .article-main{
+    margin-top: 15px;
+    padding: 20px 15px;
+    border-radius: 8px;
+  }
+
+  .article-header{
+    margin-bottom:20px;
+    padding-bottom: 15px;
+  }
+
+  .article-title{
+    font-size:1.5rem;
+    line-height: 1.3;
+    margin-bottom: 12px;
+  }
+
+  .article-meta{
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom:12px;
+  }
+/* 文章内容 */
+  .article-content {
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+
+  .article-content :deep(h2){
+    font-size: 1.2rem;
+    margin-top:24px;
+    margin-bottom:12px;
+  }
+
+  .article-content :deep(h3) {
+    font-size: 1.1rem;
+    margin-top: 20px;
+    margin-bottom: 10px;
+  }
+
+  .article-content :deep(p) {
+    margin-bottom: 12px;
+  }
+  
+  .article-content :deep(pre) {
+    padding: 12px;
+    margin-bottom: 12px;
+    font-size: 0.85rem;
+  }
+  
+  .article-content :deep(blockquote) {
+    padding-left: 12px;
+    margin: 12px 0;
+  }
+  
+  .article-content :deep(ul),
+  .article-content :deep(ol) {
+    padding-left: 20px;
+  }
+  /* 文章导航 */
+    .article-footer {
+    margin-top: 30px;
+  }
+  
+  .article-nav {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .nav-prev,
+  .nav-next {
+    padding: 12px;
+    text-align: left;
+  }
+  
+  .nav-next {
+    text-align: left;
+  }
+  
+  .nav-label {
+    font-size: 0.8rem;
+    margin-bottom: 4px;
+  }
+  
+  .nav-prev span:last-child,
+  .nav-next span:last-child {
+    font-size: 0.9rem;
+  }
+}
 </style>
