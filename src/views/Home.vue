@@ -408,23 +408,31 @@ onMounted(() => {
 
 @media (max-width: 768px) {
   .hero-section {
-    padding: 40px 20px;
+    height: 200px;
+    padding: 20px;
+    margin-bottom: 20px;
   }
 
-  .hero-title {
-    font-size: 1.8rem;
-  }
-
-  .hero-subtitle {
-    font-size: 1rem;
-  }
-
-  .hero-stats {
+  .hero-content {
+    transform: scale(0.65);
+    transform-origin: left center;
     gap: 20px;
   }
 
-  .stat-number {
+  .hero-title {
     font-size: 1.5rem;
+  }
+
+  .hero-subtitle {
+    font-size: 0.85rem;
+  }
+
+  .hero-stats {
+    gap: 15px;
+  }
+
+  .stat-number {
+    font-size: 1.2rem;
   }
 
   .main-content {
