@@ -159,7 +159,7 @@ onMounted(() => {
 
 <style scoped>
 .home-container {
-  max-width: 996px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
 }
@@ -213,8 +213,8 @@ onMounted(() => {
 }
 
 .main-content {
-  width: 1112px;
-  margin-left: -70px !important;
+  max-width: 1112px;
+  /* margin-left: -70px !important; */
 
   margin-top: 56px;
 }
@@ -351,7 +351,7 @@ onMounted(() => {
 }
 
 .sidebar {
-  /* max-width: 300px; */
+  /* max-width: 700px; */
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -426,6 +426,11 @@ onMounted(() => {
   .stat-number {
     font-size: 1.5rem;
   }
+
+  .main-content {
+    max-width: 768px;
+    margin: 0 auto;
+  }
 }
 
 @media (max-width:1024px) {
@@ -434,10 +439,10 @@ onMounted(() => {
   }
 
   .main-content {
-    width: 860px;
+    max-width: 860px;
     margin-left: 28px !important;
   }
-  
+
 }
 
 /* 文章阅读量显示 */

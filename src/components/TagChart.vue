@@ -93,8 +93,9 @@ onUnmounted(() => {
 <style scoped>
 .tag-chart-container {
     width: 100%;
-    max-width: 400px;
+    max-width: 500px;
     /* 限制最大宽度 */
+    min-width: 300px;
     margin: 0 auto;
 }
 
@@ -106,8 +107,14 @@ onUnmounted(() => {
 /* 大屏幕适配 */
 @media (min-width: 1024px) {
     .tag-chart-container>div {
-        height: 350px;
-        /* 大屏幕更高 */
+        max-height: 350px;
+    }
+}
+
+@media (max-width: 768px) {
+    .tag-chart-container>div {
+        width: 100%;
+        /* 移动端更小 */
     }
 }
 </style>
