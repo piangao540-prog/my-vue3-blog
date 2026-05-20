@@ -263,4 +263,37 @@ onMounted(() => {
   background: #ffeaea;
   border-color: #ffcccc;
 }
+
+@media (max-width: 768px){
+  .profile{
+    padding: 15px 10px;
+    max-width: 100%;
+  }
+
+  .user-card{
+    flex-direction:column;
+    align-items: center;
+    text-align:center;
+    padding: 20px 15px;
+    gap:15px;
+  }
+
+  .user-card h2{
+    font-size: 18px;
+    margin-bottom: 5px;
+  }
+
+  .user-card p{
+    font-size: 13px;
+  }
+
+  .user-card .bio{
+    margin-left: 0px;
+    margin-top:10px;
+    min-width: auto;
+    min-height: 50px;
+    padding:10px 12px;
+
+  }
+}
 </style>
