@@ -1,9 +1,9 @@
-@media (min-width: 768px) {
+/* @media (min-width: 768px) {
     .container {
         max-width: 780px;
         margin: 0 auto;
     }
-}
+} */
 
 @media (min-width: 1024px) {
     .container {

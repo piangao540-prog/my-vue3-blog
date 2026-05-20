@@ -5,6 +5,8 @@
       "@/*": ["src/*"]
     },
     "ignoreDeprecations": "6.0",
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "module": "ESNext",
+    "moduleResolution": "bundler"
   }
 }

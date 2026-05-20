@@ -406,39 +406,116 @@ onMounted(() => {
   line-height: 1.4;
 }
 
+/* 移动端适配 */
 @media (max-width: 768px) {
+  /* 整体容器适配 */
+  .home-container {
+    padding: 10px;
+    max-width: 100%;
+  }
+  
   .hero-section {
-    height: 200px;
-    padding: 20px;
+    width: 100%;
+    height: auto;
+    min-height: 250px;
+    margin: 0;
+    border-radius: 12px;
+  }
+  
+  .latest-articles {
     margin-bottom: 20px;
   }
+  
+  .sidebar-card {
+    margin-bottom: 15px;
+  }
 
+  .hero-section {
+    flex-direction: column;
+    text-align: center;
+    padding: 20px;
+  }
+  
   .hero-content {
-    transform: scale(0.65);
-    transform-origin: left center;
+    flex-direction: column;
     gap: 20px;
   }
-
-  .hero-title {
-    font-size: 1.5rem;
+  
+  .hero-left {
+    order: 1;
+    margin-bottom: 20px;
   }
-
-  .hero-subtitle {
+  
+  .hero-right {
+    order: 2;
+    width: 100%;
+  }
+  
+  .hero-title {
+    font-size: 1.5rem; /* 减小字体 */
+  }
+  
+  .hero-actions {
+    justify-content: center;
+  }
+  
+  .hero-stats {
+    justify-content: center;
+  }
+  /* 主内容 */
+  .main-content {
+    flex-direction: column;
+    width: 100% !important;
+    margin-left: 0 !important;
+  }
+  
+  .el-col {
+    width: 100% !important;
+  }
+  
+  .sidebar {
+    margin-top: 30px;
+  }
+/* 文章卡片 */
+  .article-card {
+    margin-bottom: 12px;
+    padding: 15px;
+  }
+  
+  .article-content h3 {
+    font-size: 1.1rem;
+  }
+  
+  .article-meta {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .article-tags {
+    width: 100%;
+    margin-top: 8px;
+  }
+  /* 标签 */
+    .tags-cloud {
+    justify-content: center;
+  }
+  
+  .tag-item {
+    margin: 4px;
     font-size: 0.85rem;
   }
-
-  .hero-stats {
-    gap: 15px;
+  
+  /* 筛选器适配 */
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .header-left {
+    width: 100%;
   }
 
-  .stat-number {
-    font-size: 1.2rem;
-  }
-
-  .main-content {
-    max-width: 768px;
-    margin: 0 auto;
-  }
 }
 
 @media (max-width:1024px) {

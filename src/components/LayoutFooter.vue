@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import {RouterLink} from 'vue-router'
+import { RouterLink } from 'vue-router'
 import { User, Message, MapLocation } from '@element-plus/icons-vue'
 import portrait from '@/assets/images/portrait.png'
-import { getTechStack, getContactInfo } from '@/api'
+import { getTechStack, getContactInfo } from '@/api/index'
 
-const techStack = ref<{ name: string; level: string }[]>([])
+const techStack = ref<{ name: string }[]>([])
 const contactInfo = ref<{ icon: string; text: string; link: string }[]>([])
 
 const iconMap: Record<string, unknown> = {
@@ -34,10 +34,11 @@ onMounted(async () => {
         <h3>PianGao</h3>
         <p class="bio">前端开发者 | 技术爱好者</p>
         <div class="contact-links">
-          <a
-            v-for="contact in contactInfo" :key="contact.text" :href="contact.link"
-            class="contact-link" target="_blank" rel="noopener noreferrer">
-            <el-icon :size="18"><component :is="iconMap[contact.icon]" /></el-icon>
+          <a v-for="contact in contactInfo" :key="contact.text" :href="contact.link" class="contact-link"
+            target="_blank" rel="noopener noreferrer">
+            <el-icon :size="18">
+              <component :is="iconMap[contact.icon]" />
+            </el-icon>
             <span>{{ contact.text }}</span>
           </a>
         </div>
@@ -46,8 +47,7 @@ onMounted(async () => {
       <div class="footer-section tech-section">
         <h4>技术栈</h4>
         <div class="tech-tags">
-          <el-tag
-            v-for="tech in techStack" :key="tech.name" type="info" effect="plain" class="tech-tag">
+          <el-tag v-for="tech in techStack" :key="tech.name" type="info" effect="plain" class="tech-tag">
             {{ tech.name }}
             <!-- <span class="tech-level">{{ tech.level }}</span> -->
           </el-tag>
@@ -57,9 +57,18 @@ onMounted(async () => {
       <div class="footer-section links-section">
         <h4>快速链接</h4>
         <ul class="quick-links">
-          <li><RouterLink to="/">首页</RouterLink></li>
-          <li><RouterLink to="/articles">文章列表</RouterLink></li>
-          <li><RouterLink to="/about">关于我</RouterLink></li>
+          <li>
+            <RouterLink to="/">首页</RouterLink>
+          </li>
+          <li>
+            <RouterLink to="/articles">文章列表</RouterLink>
+          </li>
+          <li>
+            <RouterLink to="/archive">归档</RouterLink>
+          </li>
+          <li>
+            <RouterLink to="/about">关于我</RouterLink>
+          </li>
         </ul>
       </div>
     </div>

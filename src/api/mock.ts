@@ -1,7 +1,6 @@
 // 底部信息
 export interface TechStack {
   name: string
-  level: string
 }
 
 export interface ContactInfo {
@@ -11,12 +10,12 @@ export interface ContactInfo {
 }
 
 export const mockTechStack: TechStack[] = [
-  { name: 'Vue3', level: '熟练' },
-  { name: 'TypeScript', level: '熟练' },
-  { name: 'JavaScript', level: '熟练' },
-  { name: 'Node.js', level: '熟练' },
-  { name: 'Pinia', level: '掌握' },
-  { name: 'ElementPlus', level: '了解' },
+  { name: 'Vue3'},
+  { name: 'TypeScript'},
+  { name: 'JavaScript'},
+  { name: 'Echarts'},
+  { name: 'Pinia'},
+  { name: 'ElementPlus'},
 ]
 
 export const mockContactInfo: ContactInfo[] = [

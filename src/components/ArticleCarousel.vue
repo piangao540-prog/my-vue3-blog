@@ -128,4 +128,24 @@ onUnmounted(() => {
 .fade-leave-to {
     opacity: 0;
 }
+
+@media (max-width:768px){
+      /* 轮播图 */
+    .carousel {
+    min-height: 60px;
+  }
+  
+  .carousel-title {
+    font-size: 0.9rem;
+  }
+  
+  .carousel-summary {
+    font-size: 0.8rem;
+    max-width: 100%;
+  }
+  
+  .carousel-indicators {
+    margin-top: 8px;
+  }
+}
 </style>

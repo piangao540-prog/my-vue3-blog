@@ -4,6 +4,8 @@
     "types": [
       "vite/client"
     ],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
