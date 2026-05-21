@@ -22,7 +22,7 @@
   },
   "devDependencies": {
     "@ricons/ionicons5": "^0.13.0",
-    "@types/node": "^24.12.2",
+    "@types/node": "^24.12.4",
     "@vitejs/plugin-vue": "^6.0.6",
     "@vue/tsconfig": "^0.9.1",
     "naive-ui": "^2.44.1",

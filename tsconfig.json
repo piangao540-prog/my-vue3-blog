@@ -11,7 +11,8 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "allowJs": true, // 允许导入 JavaScript 文件
-    "noImplicitAny": false // 允许隐式的 any 类型
+    "noImplicitAny": false, // 允许隐式的 any 类型
+    "types": ["node"],
   },
   "include": [
     "src/**/*.ts",
