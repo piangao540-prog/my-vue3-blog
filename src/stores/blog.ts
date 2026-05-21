@@ -7,11 +7,16 @@ export interface Article {
     title: string
     summary: string
     content: string
-    createdAt: string
+    createdAt: string //现有的创建时间
     sumTag: string
     tags: string[]
     views: number
     like: boolean
+    status?: 'draft' | 'published'  //文章状态
+    category?: string
+    wordCount: number // 字数统计
+    updatedAt?: string
+    publishedAt?: string  //发布时间
 }
 
 export const useBlogStore = defineStore('blog', () => {
