@@ -63,12 +63,8 @@ const handleSave = () => {
 
 // 发布文章 
 const handlePublish = ()  => {
-    if(props.articleId){
-        const publishedArticle = articleManageStore.publishArticle(props.articleId)
-        if(publishedArticle){
-            emit('publish',content.value,title.value)
-        }
-    }
+    emit('publish',content.value,title.value)
+    
 }
 </script>
 

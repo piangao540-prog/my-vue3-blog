@@ -40,16 +40,27 @@ export const useArticleManagerStore = defineStore('articleManager', () => {
     // 加载所有草稿
     const loadDrafts = () => {
         drafts.value = []
+        const loadedDrafts: Article[] = []
+
         for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i)
             if (key?.startsWith('draft_')) {
                 const draftData = localStorage.getItem(key)
                 if (draftData) {
-                    drafts.value.push(JSON.parse(draftData))
+                    try {
+                        const draft = JSON.parse(draftData)
+                        loadedDrafts.push(draft)
+                    } catch (error) {
+                        console.error('解析草稿失败:', key, error)
+                    }
                 }
             }
         }
+
+        drafts.value = loadedDrafts
+        console.log('加载的草稿:', drafts.value)
     }
+
 
     // 删除草稿
     const deleteDraft = (id: number) => {
@@ -59,9 +70,13 @@ export const useArticleManagerStore = defineStore('articleManager', () => {
 
     // 发布文章
     const publishArticle = (draftId: number) => {
-        const draft = drafts.value.find(d => d.id === draftId)
-        if (!draft) return null
+        // 直接从 localStorage 获取草稿，避免 drafts.value 的问题
+        const savedDraft = localStorage.getItem(`draft_${draftId}`)
+        if (!savedDraft) {
+            return null
+        }
 
+        const draft = JSON.parse(savedDraft)
         const publishedArticle: Article = {
             ...draft,
             status: 'published',
@@ -72,10 +87,15 @@ export const useArticleManagerStore = defineStore('articleManager', () => {
         localStorage.setItem(`article_${publishedArticle.id}`, JSON.stringify(publishedArticle))
 
         // 删除草稿
-        deleteDraft(draftId)
+        localStorage.removeItem(`draft_${draftId}`)
+
+        // 更新 drafts.value
+        drafts.value = drafts.value.filter(d => d.id !== draftId)
 
         return publishedArticle
     }
+
+
 
 
     // 计算字数（支持中英文）
