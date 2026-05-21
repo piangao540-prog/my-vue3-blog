@@ -14,7 +14,7 @@ export interface Article {
     like: boolean
     status?: 'draft' | 'published'  //文章状态
     category?: string
-    wordCount: number // 字数统计
+    wordCount?: number // 字数统计
     updatedAt?: string
     publishedAt?: string  //发布时间
 }
