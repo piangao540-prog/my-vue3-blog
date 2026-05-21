@@ -43,6 +43,11 @@ const router = createRouter({
     name: 'profile',
     component: () => import('@/views/Profile.vue'),
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/editor',
+    name: 'editor',
+    component: () => import('@/views/ArticleEditor.vue')
   }]
 })
 // 路由守卫
