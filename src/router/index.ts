@@ -47,7 +47,7 @@ const router = createRouter({
   {
     path: '/editor',
     name: 'editor',
-    component: () => import('@/views/ArticleEditor.vue')
+    component: () => import('@/views/ArticleEditorView.vue')
   }]
 })
 // 路由守卫

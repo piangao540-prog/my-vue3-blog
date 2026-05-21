@@ -2,11 +2,21 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": [
+        "src/*"
+      ]
     },
     "ignoreDeprecations": "6.0",
     "skipLibCheck": true,
     "module": "ESNext",
-    "moduleResolution": "bundler"
-  }
+    "moduleResolution": "bundler",
+    "allowJs": true, // 允许导入 JavaScript 文件
+    "noImplicitAny": false // 允许隐式的 any 类型
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.d.ts",
+    "src/**/*.tsx",
+    "src/**/*.vue"
+  ]
 }
