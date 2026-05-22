@@ -4,6 +4,8 @@ import { ref } from 'vue'
 export const useSearchStore = defineStore('search', () => {
     const searchKeyword = ref('')
     const selectedTag = ref('')
+    // 分类选择
+    const selectedCategory = ref('')
 
     const setSearchKeyword = (keyword: string) => {
         searchKeyword.value = keyword
@@ -14,7 +16,13 @@ export const useSearchStore = defineStore('search', () => {
     const clearSearch = () => {
         searchKeyword.value = ''
         selectedTag.value = ''
+        selectedCategory.value = ''
     }
+
+    const setSelectedCategory = (category: string) => {
+        selectedCategory.value = category
+    }
+
     const toggleTag = (tag: string) => {
         if (selectedTag.value === tag) {
             selectedTag.value = ''
@@ -23,5 +31,8 @@ export const useSearchStore = defineStore('search', () => {
         }
     }
 
-    return { searchKeyword, selectedTag, setSearchKeyword, setSelectedTag, clearSearch, toggleTag }
+    return {
+        searchKeyword, selectedTag, setSearchKeyword, setSelectedCategory,
+        setSelectedTag, clearSearch, toggleTag, selectedCategory
+    }
 })
