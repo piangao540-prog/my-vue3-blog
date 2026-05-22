@@ -25,7 +25,7 @@ export const articleList: Article[] = [
         like: false,
         sumTag: '前端技术',
         tags: ['Vue3', 'Vite', 'Element Plus', 'TypeScript', 'Pinia', 'Echarts'],
-
+        category: '技术分享'
     },
     {
         id: 2,
@@ -112,6 +112,7 @@ export function useCounter(initialValue = 0) {
         like: false,
         sumTag: '组合式 API',
         tags: ['Vue3', 'TypeScript'],
+        category: '技术分享'
     },
     {
         id: 3,
@@ -261,6 +262,7 @@ type NonNullable<T> = T extends null | undefined ? never : T</code></pre>
         like: false,
         sumTag: 'TypeScript',
         tags: ['TypeScript', 'JavaScript'],
+        category: '技术分享'
     },
     {
         id: 4,
@@ -416,6 +418,7 @@ npm run typecheck</code></pre>
         like: false,
         sumTag: '前端框架',
         tags: ['Vite', 'Vue3'],
+        category: '技术分享'
     },
     {
         id: 5,
@@ -496,6 +499,7 @@ const setTag = (tag: string) => {
         like: false,
         sumTag: '状态管理',
         tags: ['Pinia', 'Vue3'],
+        category: '技术分享'
     },
     {
         id: 6,
@@ -523,5 +527,76 @@ const setTag = (tag: string) => {
         createdAt: '2026-05-08',
         sumTag: '文章阅读量',
         tags: ['Vue3'],
+        category: '项目经验'
     },
+
+  {
+    id: 7,
+    title: 'Vue3博客项目实战踩坑记',
+    summary: '详细总结Vue3+TypeScript+Vite博客项目开发中遇到的实际问题及解决方案。',
+    content: `
+        <h2>1. Pinia状态管理与localStorage同步问题</h2>
+        <p><strong>问题描述</strong>：store中的drafts.value和localStorage数据不同步，导致发布文章时找不到草稿。</p>
+        <p><strong>解决方案</strong>：直接在store中更新数组，避免重新加载整个列表。</p>
+        <pre><code>const saveDraft = (article) => {
+    // 保存到localStorage
+    localStorage.setItem(\`draft_\${draft.id}\`, JSON.stringify(draft))
+    
+    // 直接更新store数组，不要调用loadDrafts()
+    const existingIndex = drafts.value.findIndex(a => a.id === draft.id)
+    if (existingIndex >= 0) {
+        drafts.value[existingIndex] = draft
+    } else {
+        drafts.value.push(draft)
+    }
+}</code></pre>
+
+        <h2>2. v-md-editor组件集成问题</h2>
+        <p><strong>问题描述</strong>：组件注册、CSS加载、TypeScript类型等问题。</p>
+        <p><strong>解决方案</strong>：正确配置main.ts，注意CSS文件路径。</p>
+        <pre><code>import VMdEditor from '@kangc/v-md-editor'
+import '@kangc/v-md-editor/lib/style/base-editor.css'
+import '@kangc/v-md-editor/lib/theme/style/github.css' // 注意这个路径
+
+VMdEditor.use(githubTheme)
+app.use(VMdEditor)</code></pre>
+
+        <h2>3. 发布功能的双次调用问题</h2>
+        <p><strong>问题描述</strong>：发布按钮会触发两次publishArticle调用。</p>
+        <p><strong>解决方案</strong>：让父组件完全控制发布逻辑。</p>
+        <pre><code>// 子组件只emit事件
+const handlePublish = () => {
+    emit('publish', content.value, title.value)
+}
+
+// 父组件处理发布逻辑
+const handlePublish = (content, title) => {
+    articleManagerStore.publishArticle(articleId.value)
+}</code></pre>
+
+        <h2>4. 实时更新的性能优化</h2>
+        <p><strong>问题描述</strong>：发布后重新加载所有文章影响性能。</p>
+        <p><strong>优化思路</strong>：增量更新而非全量重新加载。</p>
+        <pre><code>// 当前做法：重新加载全部
+blogStore.loadArticles()
+
+// 优化方向：只添加新文章
+articles.value.push(publishedArticle)</code></pre>
+
+        <h2>经验总结</h2>
+        <ul>
+            <li>状态管理要考虑数据一致性</li>
+            <li>第三方组件集成要注意配置细节</li>
+            <li>组件通信要避免重复调用</li>
+            <li>用户体验要考虑性能优化</li>
+        </ul>
+    `,
+    views: 0,
+    createdAt: '2026-05-22',
+    like: false,
+    sumTag: '项目实战',
+    tags: ['Vue3', 'TypeScript', '项目经验', '踩坑记录'],
+    category: '项目实战'
+  }
+
 ]

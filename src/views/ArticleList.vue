@@ -7,6 +7,27 @@ import { getTagColor } from '@/composables/useTagColor'
 
 const blogStore = useBlogStore()
 const router = useRouter()
+const selectedCategory = ref('')
+
+// 获取所有分类
+const categories = computed(() => {
+  const cats = new Set<string>()
+  blogStore.articles.forEach(article => {
+    if(article.category){
+      cats.add(article.category)
+    }
+  })
+  return Array.from(cats)
+})
+// 筛选文章
+const filterArticles = computed(() => {
+  if(!selectedCategory.value){
+    return blogStore.articles
+  }
+  return blogStore.articles.filter
+  (article => article.category === selectedCategory.value)
+})
+
 
 // 分页功能
 const currentPage = ref(1)
@@ -61,8 +82,15 @@ onMounted(() => {
 
     </div>
     <h1>文章列表</h1>
+    <!-- 分类选择 -->
+    <div class="category-selected">
+      <el-select v-model="selectedCategory" placeholder="选择" clearable>
+        <el-option label="全部分类" value=""></el-option>
+        <el-option v-for="category in categories" :key="category" :label="category" :value="category"></el-option>
+      </el-select>
+    </div>
     <br>
-    <el-card v-for="article in paginatedArticles" :key="article.id" class="article-card" shadow="hover"
+    <el-card v-for="article in filterArticles.slice(start,end)" :key="article.id" class="article-card" shadow="hover"
       @click="goToArticle(article.id)">
       <h2>{{ article.title }}</h2>
       <p class="summary">{{ article.summary }}</p>
@@ -83,6 +111,14 @@ onMounted(() => {
 <style scoped>
 .article-list-container>.el-button {
   margin-bottom: 20px;
+}
+
+.category-selected{
+  margin-bottom: 20px;
+}
+
+.category-selected .el-select{
+  width: 200px;
 }
 
 .article-card {
