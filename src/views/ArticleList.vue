@@ -4,9 +4,11 @@ import { useBlogStore } from '../stores/blog'
 import { useRouter } from 'vue-router';
 import { ArrowLeft } from '@element-plus/icons-vue'
 import { getTagColor } from '@/composables/useTagColor'
+import { useSearchFilter } from '@/composables/useSearchFilter';
 
 const blogStore = useBlogStore()
 const router = useRouter()
+const {filteredArticles} = useSearchFilter()
 const selectedCategory = ref('')
 
 // 获取所有分类
@@ -19,22 +21,13 @@ const categories = computed(() => {
   })
   return Array.from(cats)
 })
-// 筛选文章
-const filterArticles = computed(() => {
-  if(!selectedCategory.value){
-    return blogStore.articles
-  }
-  return blogStore.articles.filter
-  (article => article.category === selectedCategory.value)
-})
-
 
 // 分页功能
 const currentPage = ref(1)
 const pageSize = ref(5)
 // 总页数
 const totalPages = computed(() => {
-  return Math.ceil(blogStore.articles.length / pageSize.value)
+  return Math.ceil(filteredArticles.value.length / pageSize.value)
 })
 // 计算当前页索引
 const start = computed(() => {
@@ -45,7 +38,7 @@ const end = computed(() => {
 })
 // 计算文章列表
 const paginatedArticles = computed(() => {
-  return blogStore.articles.slice(start.value, end.value)
+  return filteredArticles.value.slice(start.value, end.value)
 })
 // 切换页面
 const gotoPage = (page: number) => {
@@ -90,7 +83,7 @@ onMounted(() => {
       </el-select>
     </div>
     <br>
-    <el-card v-for="article in filterArticles.slice(start,end)" :key="article.id" class="article-card" shadow="hover"
+    <el-card v-for="article in filteredArticles.slice(start,end)" :key="article.id" class="article-card" shadow="hover"
       @click="goToArticle(article.id)">
       <h2>{{ article.title }}</h2>
       <p class="summary">{{ article.summary }}</p>

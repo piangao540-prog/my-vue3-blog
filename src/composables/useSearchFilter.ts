@@ -8,7 +8,7 @@ export const useSearchFilter = () => {
     const searchStore = useSearchStore()
 
     const filteredArticles = computed(() => {
-        let articles = blogStore.latestArticles
+        let articles = blogStore.articles
         // 按分类筛选
         if (searchStore.selectedCategory) {
             articles = articles.filter(article =>
