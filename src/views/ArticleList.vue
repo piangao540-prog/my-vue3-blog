@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted} from 'vue'
 import { useBlogStore } from '../stores/blog'
 import { useRouter } from 'vue-router';
 import { ArrowLeft } from '@element-plus/icons-vue'
@@ -41,6 +41,10 @@ const prevPage = () => {
 const goToArticle = (id: number) => {
   router.push(`/articles/${id}`)
 }
+
+onMounted(() => {
+  blogStore.loadArticles()
+})
 </script>
 
 <template>

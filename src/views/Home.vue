@@ -88,6 +88,9 @@ onMounted(() => {
               <h2>最新文章</h2>
             </div>
             <SortFilter />
+            <el-button type="primary" @click="router.push('/editor')">
+              打开编辑器
+            </el-button>
             <el-button text @click="goToArticles">查看全部 →</el-button>
           </div>
           <TagFilter />

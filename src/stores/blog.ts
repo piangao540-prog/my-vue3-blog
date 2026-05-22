@@ -45,10 +45,10 @@ export const useBlogStore = defineStore('blog', () => {
         for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i)
             if (key?.startsWith('article_')) {
-                const articleDate = localStorage.getItem(key)
-                if (articleDate) {
+                const articleData = localStorage.getItem(key)
+                if (articleData) {
                     try {
-                        const article = JSON.parse(articleDate)
+                        const article = JSON.parse(articleData)
                         if (article.status === 'published') {
                             publishedArticles.push(article)
                         }
@@ -81,7 +81,7 @@ export const useBlogStore = defineStore('blog', () => {
     const getArticlesByTag = async (tag: string): Promise<Article[]> => {
         return await articleApi.getArticleByTag(tag)
     }
-    
+
     // 文章阅读量统计功能
     // 保存阅读量到localStorage
     const addViews = async (articleId: number) => {
