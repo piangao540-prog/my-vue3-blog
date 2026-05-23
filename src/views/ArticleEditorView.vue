@@ -10,11 +10,17 @@
 import {ref,onMounted} from 'vue'
 import ArticleEditor from '@/components/ArticleEditor.vue'
 import { useArticleManagerStore } from '@/stores/articleManager'
+import { useBlogStore } from '@/stores/blog'
+import { useRoute } from 'vue-router'
 
+
+const blogStore = useBlogStore()
+const route = useRoute()
 const articleManagerStore = useArticleManagerStore()
 const articleId = ref<number | undefined>(undefined)
 const initialTitle = ref('')
 const initialContent = ref('')
+
 
 const handleSave = (content:string ,title:string) => {
     const draft = articleManagerStore.saveDraft({title,content})
@@ -46,6 +52,25 @@ const handlePublish = (content: string, title: string) => {
 
 onMounted(() => {
     articleManagerStore.loadDrafts()
+    const id = route.query.id
+    if(id){
+        const numId = Number(id)
+        // 已发布文章找
+        const publishId = blogStore.articles.find(a => a.id === numId)
+        if(publishId){
+            articleId.value = numId
+            initialTitle.value = publishId.title
+            initialContent.value = publishId.content
+            return
+        }
+        // 草稿找
+        const draft = articleManagerStore.drafts.find(d => d.id === numId)
+        if(draft){
+            articleId.value = numId
+            initialContent.value = draft.content
+            initialTitle.value = draft.title
+        }
+    }
 })
 
 </script>
