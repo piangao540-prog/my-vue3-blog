@@ -235,4 +235,21 @@ const activeMenu = computed(() => {
     display: none;
   }
 }
+
+html.dark .blog-header {
+  background: #1a1a1a;
+  border-bottom-color: #333;
+}
+
+html.dark .logo {
+  color: #e5e7eb;
+}
+
+.search-input {
+  background: #ffffff;
+}
+
+html.dark .search-input {
+  background: #333;
+}
 </style>
