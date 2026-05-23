@@ -30,3 +30,25 @@ html, body {
 ::-webkit-scrollbar-thumb:hover {
   background: #a1a1a1;
 }
+/* 暗色主题 */
+html.dark {
+  background-color: #141414;
+  color: #e5e7eb;
+}
+
+html.dark body {
+  background-color: #141414;
+  color: #e5e7eb;
+}
+
+html.dark ::-webkit-scrollbar-track {
+  background: #2a2a2a;
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+  background: #555;
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #777;
+}

@@ -1,16 +1,17 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { Menu as MenuIcon, Search } from '@element-plus/icons-vue'
+import { Menu as MenuIcon, Search ,Sunny, Moon} from '@element-plus/icons-vue'
 import portrait from '@/assets/images/portrait.png'
 import { useSearchStore } from '@/stores/search'
 import { ElMenu, ElMenuItem } from 'element-plus'
 import { debounce } from '@/utils/debounce'
 import router from '@/router'
 import { useUserStore } from '@/stores/user'
+import { useThemeStore } from '@/stores/theme'
 
 
-
+const themeStore = useThemeStore()
 const searchStore = useSearchStore()
 const userStore = useUserStore()
 const drawer = ref(false)
@@ -73,6 +74,7 @@ const activeMenu = computed(() => {
         <el-input v-model="localKeyword" @input="debounceSearch" placeholder="搜索文章..." :prefix-icon="Search" clearable
           class="search-input" />
       </div>
+      <el-button class="theme-toggle" @click="themeStore.toggleTheme" :icon="themeStore.isDark ? Sunny : Moon" circle></el-button>
       <div v-if="userStore.isLoggedIn">
         <el-dropdown>
           <el-button>{{ userStore.userInfo?.username }}</el-button>
@@ -181,6 +183,11 @@ const activeMenu = computed(() => {
 
 .search-input:focus :deep(.el-input__icon) {
   color: #e86f83;
+}
+
+.theme-toggle {
+  margin-left: 12px;
+  font-size: 18px;
 }
 
 .login-button {

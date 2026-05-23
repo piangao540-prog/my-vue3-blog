@@ -7,6 +7,7 @@ import { createPinia } from 'pinia'
 // 引入 Element Plus 组件库
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
+import 'element-plus/theme-chalk/dark/css-vars.css'
 // 引入 v-md-editor - 修正导入路径
 import VMdEditor from '@kangc/v-md-editor'
 import '@kangc/v-md-editor/lib/style/base-editor.css'
