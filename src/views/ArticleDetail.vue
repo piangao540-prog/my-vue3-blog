@@ -376,4 +376,40 @@ watch(() => route.params.id, async (newId) => {
     font-size: 0.9rem;
   }
 }
+
+/* 主题切换 */
+html.dark .article-main {
+  background: #1a1a1a;
+}
+html.dark .article-header {
+  border-bottom-color: #333;
+}
+html.dark .article-title,
+html.dark .article-content,
+html.dark .article-content :deep(h2),
+html.dark .article-content :deep(h3) {
+  color: #e5e7eb;
+}
+html.dark .article-content :deep(pre) {
+  background: #2a2a2a;
+}
+html.dark .article-content :deep(blockquote) {
+  color: #9ca3af;
+  border-left-color: #409eff;
+}
+html.dark .nav-prev,
+html.dark .nav-next {
+  background: #2a2a2a;
+}
+html.dark .nav-prev:hover,
+html.dark .nav-next:hover {
+  background: #333;
+}
+html.dark .login-prompt {
+  background: #2a2a2a;
+}
+html.dark .login-prompt p {
+  color: #9ca3af;
+}
+
 </style>

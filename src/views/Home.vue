@@ -553,4 +553,12 @@ onMounted(() => {
   /* 和日期同色 */
   font-size: 0.85rem;
 }
+
+html.dark .recommended-item {
+  background: #2a2a2a;
+}
+html.dark .recommended-item:hover {
+  background: #333;
+}
+
 </style>
