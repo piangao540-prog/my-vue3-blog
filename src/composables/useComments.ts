@@ -11,7 +11,7 @@ export interface Comment {
 }
 
 // 格式化时间为标准格式 YYYY-MM-DD HH:MM
-const formatTime = (dateStr: string): string => {
+export const formatTime = (dateStr: string): string => {
     const date = new Date(dateStr)
     const year = date.getFullYear()
     const month = String(date.getMonth() + 1).padStart(2, '0')

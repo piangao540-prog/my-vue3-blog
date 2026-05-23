@@ -58,7 +58,7 @@ export const useArticleManagerStore = defineStore('articleManager', () => {
         }
 
         drafts.value = loadedDrafts
-        console.log('加载的草稿:', drafts.value)
+        // console.log('加载的草稿:', drafts.value)
     }
 
 

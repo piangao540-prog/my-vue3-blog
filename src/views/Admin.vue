@@ -19,7 +19,11 @@
             <el-tab-pane label="草稿箱" name="draft">
                 <el-table :data="articleManagerStore.drafts" stripe>
                     <el-table-column prop="title" label="标题" />
-                    <el-table-column prop="updatedAt" label="最后修改" width="180" />
+                    <el-table-column label="最后修改" width="180">
+                    <template #default="{ row }">
+                        {{ formatTime(row.updatedAt) }}
+                    </template>
+                    </el-table-column>
                     <el-table-column prop="wordCount" label="字数" width="80" />
                     <el-table-column label="操作" width="160">
                         <template #default="{row}">
@@ -40,6 +44,7 @@ import { useArticleManagerStore } from '@/stores/articleManager'
 import { useBlogStore } from '@/stores/blog'
 import { useRouter } from 'vue-router'
 import { ElTabs, ElTabPane, ElTable, ElTableColumn, ElButton } from 'element-plus'
+import { formatTime } from '@/composables/useComments'
 
 
 
