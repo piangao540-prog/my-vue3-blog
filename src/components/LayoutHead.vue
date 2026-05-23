@@ -81,6 +81,7 @@ const activeMenu = computed(() => {
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item @click="router.push('/profile')">个人中心</el-dropdown-item>
+              <el-dropdown-item @click="router.push('/admin')">后台管理</el-dropdown-item>
               <el-dropdown-item @click="handleLogout">退出</el-dropdown-item>
             </el-dropdown-menu>
           </template>

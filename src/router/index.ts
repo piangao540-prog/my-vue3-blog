@@ -48,6 +48,12 @@ const router = createRouter({
     path: '/editor',
     name: 'editor',
     component: () => import('@/views/ArticleEditorView.vue')
+  },
+  {
+    path: '/admin',
+    name: 'admin',
+    component: () => import('@/views/Admin.vue'),
+    meta: { requiresAuth: true }
   }]
 })
 // 路由守卫
