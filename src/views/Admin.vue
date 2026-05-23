@@ -6,10 +6,18 @@
                 <el-table :data="publishedArticle" stripe>
                     <el-table-column prop="title" label="标题" />
                     <el-table-column prop="category" label="分类" width="120" />
-                    <el-table-column prop="createAt" label="创建时间" width="120" />
-                    <el-table-column prop="wordCount" label="字数" width="80" />
+                    <el-table-column label="创建时间" width="140" >
+                        <template #default="{ row }">
+                            {{ formatTime(row.createdAt) }}
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="字数" width="80">
+                    <template #default="{ row }">
+                        {{ row.wordCount || '-' }}
+                    </template>
+                    </el-table-column>
                     <el-table-column label="操作" width="160">
-                        <template #default="{row}">
+                        <template #default="{row}" v-if="userStore.isAdmin">
                             <el-button size="small" @click="editArticle(row.id)">编辑</el-button>
                             <el-button size="small" type="danger" @click="handleDelete(row.id)">删除</el-button>
                         </template>
@@ -26,7 +34,7 @@
                     </el-table-column>
                     <el-table-column prop="wordCount" label="字数" width="80" />
                     <el-table-column label="操作" width="160">
-                        <template #default="{row}">
+                        <template #default="{row}" v-if="userStore.isAdmin">
                             <el-button size="small" @click="editArticle(row.id)">编辑</el-button>
                             <el-button size="small" type="danger" @click="handleDeleteDraft(row.id)">删除</el-button>
                         </template>
@@ -45,9 +53,10 @@ import { useBlogStore } from '@/stores/blog'
 import { useRouter } from 'vue-router'
 import { ElTabs, ElTabPane, ElTable, ElTableColumn, ElButton } from 'element-plus'
 import { formatTime } from '@/composables/useComments'
+import { useUserStore } from '@/stores/user'
 
 
-
+const userStore = useUserStore()
 const articleManagerStore = useArticleManagerStore()
 const router = useRouter()
 const blogStore = useBlogStore()

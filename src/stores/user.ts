@@ -4,10 +4,14 @@ import defaultAvatar from '@/assets/images/converted_image.png'
 
 export const useUserStore = defineStore('user', () => {
   // 用户信息
-  const userInfo = ref<{ username: string; avatar?: string; nickname?: string; bio?: string } | null>(null)
+  const userInfo = ref<{
+    username: string; avatar?: string; nickname?: string;
+    bio?: string; role?: string
+  } | null>(null)
 
   // 是否已登录
-  const isLoggedIn = computed(() => !!userInfo.value)
+  const isLoggedIn = computed(() => userInfo.value)
+  const isAdmin = computed(() => userInfo.value?.role === 'admin')
 
   // 登录
   const login = (username: string, password: string): boolean => {
@@ -29,7 +33,8 @@ export const useUserStore = defineStore('user', () => {
       username: user.username,
       nickname: user.nickname,
       bio: user.bio,
-      avatar: user.avatar || defaultAvatar
+      avatar: user.avatar || defaultAvatar,
+      role: user.role || 'user'
     }
     localStorage.setItem('currentUser', username)
     return true
@@ -48,7 +53,8 @@ export const useUserStore = defineStore('user', () => {
       username,
       password,
       avatar: defaultAvatar,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      role: 'user'
     }))
 
     return true
@@ -101,7 +107,8 @@ export const useUserStore = defineStore('user', () => {
           username: user.username,
           nickname: user.nickname,
           bio: user.bio,
-          avatar: user.avatar || defaultAvatar
+          avatar: user.avatar || defaultAvatar,
+          role: user.role || 'user'
         }
       } else {
         userInfo.value = { username: currentUser }
@@ -114,10 +121,11 @@ export const useUserStore = defineStore('user', () => {
   return {
     userInfo,
     isLoggedIn,
+    isAdmin,
     login,
     register,
     loginOut,
     updateUserInfo,
-    changePassword
+    changePassword,
   }
 })
