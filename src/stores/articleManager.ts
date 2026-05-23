@@ -95,7 +95,10 @@ export const useArticleManagerStore = defineStore('articleManager', () => {
         return publishedArticle
     }
 
-
+    // 删除已发布文章
+    const deletePublishedArticle = (id: number) => {
+        localStorage.removeItem(`article_${id}`)
+    }
 
 
     // 计算字数（支持中英文）
@@ -124,6 +127,7 @@ export const useArticleManagerStore = defineStore('articleManager', () => {
         loadDrafts,
         deleteDraft,
         publishArticle,
-        calculateWordCount
+        calculateWordCount,
+        deletePublishedArticle
     }
 })

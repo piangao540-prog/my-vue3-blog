@@ -128,6 +128,13 @@ export const useBlogStore = defineStore('blog', () => {
         }
     }
 
+    // 删除文章
+    const deleteArticle = (id: number) => {
+        articles.value = articles.value.filter(a => a.id !== id)
+        localStorage.removeItem(`article_${id}`)
+        localStorage.removeItem(`draft_${id}`)
+    }
+
 
     return {
         articles,
@@ -141,5 +148,6 @@ export const useBlogStore = defineStore('blog', () => {
         togglelike,
         loadLike,
         loadArticles,
+        deleteArticle
     }
 })
