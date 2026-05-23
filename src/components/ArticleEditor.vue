@@ -51,13 +51,18 @@ watch(content,(newContent) => {
     wordCount.value = articleManageStore.calculateWordCount(newContent)
 })
 
+// 直接写属性名监听不行，函数形式能实时取最新 props 值
+watch(() => props.initialContent, (newVal) => {
+    if(newVal) content.value = newVal
+})
+
+watch(() => props.initialTitle, (newVal) => {
+    if (newVal) title.value = newVal
+})
+
+
 // 保存草稿
 const handleSave = () => {
-    const draft = articleManageStore.saveDraft({
-        id: props.articleId,
-        title: title.value,
-        content: content.value
-    })
     emit('save',content.value,title.value)
 }
 

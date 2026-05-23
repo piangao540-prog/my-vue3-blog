@@ -53,25 +53,29 @@ const handlePublish = (content: string, title: string) => {
 onMounted(() => {
     articleManagerStore.loadDrafts()
     const id = route.query.id
-    if(id){
+    if (id) {
         const numId = Number(id)
-        // 已发布文章找
+        
+        // 从 localStorage 直接读
+        const saved = localStorage.getItem(`article_${numId}`) || localStorage.getItem(`draft_${numId}`)
+        if (saved) {
+            const article = JSON.parse(saved)
+            articleId.value = numId
+            initialTitle.value = article.title
+            initialContent.value = article.content
+            return
+        }
+        
+        // 再从 blogStore 的静态文章找
         const publishId = blogStore.articles.find(a => a.id === numId)
-        if(publishId){
+        if (publishId) {
             articleId.value = numId
             initialTitle.value = publishId.title
             initialContent.value = publishId.content
-            return
-        }
-        // 草稿找
-        const draft = articleManagerStore.drafts.find(d => d.id === numId)
-        if(draft){
-            articleId.value = numId
-            initialContent.value = draft.content
-            initialTitle.value = draft.title
         }
     }
 })
+
 
 </script>
 
