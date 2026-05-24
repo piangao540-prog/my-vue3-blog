@@ -74,7 +74,15 @@ export const useBlogStore = defineStore('blog', () => {
 
     // 获取文章详情
     const getArticleById = async (id: number): Promise<Article | undefined> => {
-        return await articleApi.getArticleById(id)
+        // 先从静态数据查
+        const article = await articleApi.getArticleById(id)
+        if (article) return article
+        // 再从local store
+        const saved = localStorage.getItem(`article_${id}`)
+        if (saved) {
+            return JSON.parse(saved)
+        }
+        return undefined
     }
 
     // 获取文章列表
