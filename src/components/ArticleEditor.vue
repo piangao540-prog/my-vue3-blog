@@ -30,6 +30,12 @@
 import {ref, watch} from 'vue'
 import { ElButton,ElInput } from 'element-plus'
 import { useArticleManagerStore } from '@/stores/articleManager';
+import VMdEditor from '@kangc/v-md-editor'
+import '@kangc/v-md-editor/lib/style/base-editor.css'
+import githubTheme from '@kangc/v-md-editor/lib/theme/github.js'
+import '../../node_modules/@kangc/v-md-editor/lib/theme/style/github.css'
+VMdEditor.use(githubTheme)
+
 
 const props = defineProps<{
     initialContent?: string
