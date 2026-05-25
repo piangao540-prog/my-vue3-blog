@@ -1,45 +1,31 @@
+import axios from './axios'
 import type { Article } from '@/stores/blog'
-import { articleList } from '@/data/articles'
-
-const mockArticles: Article[] = articleList
-
-//模拟异步延迟
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
 // 获取所有文章
-export const getArticles = async () => {
-    await delay(500)
-    return [...mockArticles]
+export const getArticles = async (): Promise<Article[]> => {
+    const response = await axios.get('/articles')
+    return response.data
 }
 
 // 根据ID获取文章
 export const getArticleById = async (id: number): Promise<Article | undefined> => {
-    await delay(300)
-    return mockArticles.find(i => i.id === id)
+    const response = await axios.get(`/articles/${id}`)
+    return response.data
 }
 
 // 根据标签获取文章
 export const getArticleByTag = async (tag: string): Promise<Article[]> => {
-    await delay(300)
-    return mockArticles.filter(i => i.tags.includes(tag))
+    const response = await axios.get('/articles', { params: { tag } })
+    return response.data.filter((a: Article) => a.tags?.includes(tag))
 }
 
 // 更新阅读量
 export const incrementViews = async (id: number): Promise<void> => {
-    await delay(100)
-    const article = mockArticles.find(i => i.id === id)
-    if (article) {
-        article.views++
-    }
+    await axios.post(`/articles/${id}/views`)
 }
+
 
 // 切换收藏状态
 export const toggleLike = async (id: number): Promise<boolean> => {
-    await delay(100)
-    const article = mockArticles.find(i => i.id === id)
-    if (article) {
-        article.like = !article.like
-        return article.like
-    }
     return false
 }
