@@ -5,9 +5,8 @@ import router from '@/router'
 import './assets/styles/responsive.css'
 import { createPinia } from 'pinia'
 // 引入 Element Plus 组件库
-import ElementPlus from 'element-plus'
-import 'element-plus/dist/index.css'
 import 'element-plus/theme-chalk/dark/css-vars.css'
+import 'element-plus/dist/index.css'
 // 引入 v-md-editor - 修正导入路径
 import VMdEditor from '@kangc/v-md-editor'
 import '@kangc/v-md-editor/lib/style/base-editor.css'
@@ -29,7 +28,6 @@ const app = createApp(App)
 
 app.use(createPinia())
 app.use(router)
-app.use(ElementPlus)
 app.use(VMdEditor)
 app.use(VMdPreview)
 app.mount('#app')
