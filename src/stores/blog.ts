@@ -27,7 +27,7 @@ export const useBlogStore = defineStore('blog', () => {
         loading.value = true
         try {
             // 加载静态文章数据
-            articles.value = await articleApi.getArticles()
+            articles.value = (await articleApi.getArticles()).filter(a => a.status !== 'draft')
             // 加载已发布数据
             const publishedArticles = loadPublishedArticles()
             articles.value = [...articles.value, ...publishedArticles]

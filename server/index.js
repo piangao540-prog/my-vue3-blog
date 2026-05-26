@@ -9,10 +9,13 @@ app.use(express.json())
 
 const db = mysql.createConnection({
     host: 'localhost',
+    port: '3307',
     user: 'root',
     password: 'you520.zb',
-    database: 'blog'
+    database: 'blog',
+    charset: 'utf8mb4'
 })
+
 
 db.connect(err => {
     if (err) {
@@ -48,6 +51,7 @@ app.get('/api/articles/:id', (req, res) => {
     })
 })
 
+
 // 访问数据view加一
 app.post('/api/articles/:id/views', (req, res) => {
     db.query('UPDATE articles SET views = views + 1 WHERE id = ?', [req.params.id], (err, result) => {
@@ -59,7 +63,21 @@ app.post('/api/articles/:id/views', (req, res) => {
     })
 })
 
-
+// 发布文章
+app.post('/api/articles', (req, res) => {
+    const { title, content, summary, tags, category, status } = req.body
+    db.query(
+        'INSERT INTO articles (title,content,summary,tags,category,status) VALUES (?,?,?,?,?,?)',
+        [title, content, summary, JSON.stringify(tags), category, status || 'draft'],
+        (err, result) => {
+            if (err) {
+                res.status(500).json({ error: err.message })
+                return
+            }
+            res.json({ id: result.insertId, message: '创建成功' })
+        }
+    )
+})
 
 
 app.listen(3000, () => console.log('服务器运行在 http://localhost:3000'))

@@ -22,13 +22,13 @@ const initialTitle = ref('')
 const initialContent = ref('')
 
 
-const handleSave = (content:string ,title:string) => {
-    const draft = articleManagerStore.saveDraft({title,content})
+const handleSave = async (content:string ,title:string) => {
+    const draft = await articleManagerStore.saveDraft({title,content})
     articleId.value = draft.id
     alert('草稿已保存')
 }
 
-const handlePublish = (content: string, title: string) => {
+const handlePublish = async (content: string, title: string) => {
     if (articleId.value) {
         const publishedArticle = articleManagerStore.publishArticle(articleId.value)
         if (publishedArticle) {
@@ -39,7 +39,7 @@ const handlePublish = (content: string, title: string) => {
         }
     } else {
         const draft = articleManagerStore.saveDraft({ content, title })
-        const publishedArticle = articleManagerStore.publishArticle(draft.id)
+        const publishedArticle = articleManagerStore.publishArticle((await draft).id)
         if (publishedArticle) {
             alert('文章已发布')
         } else {

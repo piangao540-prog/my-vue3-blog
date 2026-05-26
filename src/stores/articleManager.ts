@@ -1,31 +1,38 @@
 import { defineStore } from "pinia"
 import { ref } from 'vue'
 import type { Article } from "./blog"
+import { createArticle } from "@/api/articles"
 
 export const useArticleManagerStore = defineStore('articleManager', () => {
     const drafts = ref<Article[]>([])
     const isLoading = ref(false)
 
     // 保存草稿
-    const saveDraft = (article: Partial<Article>) => {
+    const saveDraft = async (article: Partial<Article>) => {
+        const result = await createArticle({
+            title: article.title || '未命名草稿',
+            content: article.content || '',
+            tags: article.tags || [],
+            category: article.category,
+            status: 'draft'
+        })
+
+        // 更新draft数据
         const draft: Article = {
-            id: article.id || Date.now(),  // 如果没有ID，使用时间戳
+            id: result.id,
             title: article.title || '未命名草稿',
             content: article.content || '',
             summary: article.summary || '',
-            createdAt: article.createdAt || new Date().toISOString(),
+            createdAt: new Date().toISOString(),
             sumTag: article.sumTag || '',
             tags: article.tags || [],
-            views: article.views || 0,
-            like: article.like || false,
+            views: 0,
+            like: false,
             status: 'draft',
             updatedAt: new Date().toISOString(),
             wordCount: calculateWordCount(article.content || ''),
         }
-        // 保存到localStorage
-        localStorage.setItem(`draft_${draft.id}`, JSON.stringify(draft))
 
-        // 更新draft数据
         const existingIndex = drafts.value.findIndex(a => a.id === draft.id)
         if (existingIndex >= 0) {
             drafts.value[existingIndex] = draft //更新
