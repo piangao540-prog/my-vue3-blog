@@ -1,7 +1,7 @@
 import { defineStore } from "pinia"
 import { ref } from 'vue'
 import type { Article } from "./blog"
-import { createArticle, updateArticle ,deleteArticle} from "@/api/articles"
+import { createArticle, updateArticle ,deleteArticle,getArticles} from "@/api/articles"
 
 export const useArticleManagerStore = defineStore('articleManager', () => {
     const drafts = ref<Article[]>([])
@@ -45,34 +45,15 @@ export const useArticleManagerStore = defineStore('articleManager', () => {
     }
 
     // 加载所有草稿
-    const loadDrafts = () => {
-        drafts.value = []
-        const loadedDrafts: Article[] = []
-
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i)
-            if (key?.startsWith('draft_')) {
-                const draftData = localStorage.getItem(key)
-                if (draftData) {
-                    try {
-                        const draft = JSON.parse(draftData)
-                        loadedDrafts.push(draft)
-                    } catch (error) {
-                        console.error('解析草稿失败:', key, error)
-                    }
-                }
-            }
-        }
-
-        drafts.value = loadedDrafts
-        // console.log('加载的草稿:', drafts.value)
+    const loadDrafts = async () => {
+        const allArticles = await getArticles()
+        drafts.value = allArticles.filter(a => a.status === 'draft')
     }
 
 
     // 删除草稿
     const deleteDraft = async (id: number) => {
         await deleteArticle(id)
-        localStorage.removeItem(`draft_${id}`)
         drafts.value = drafts.value.filter(a => a.id !== id)
     }
 
@@ -95,11 +76,6 @@ export const useArticleManagerStore = defineStore('articleManager', () => {
             console.log('发布失败', error)
             return false
         }
-    }
-
-    // 删除已发布文章
-    const deletePublishedArticle = (id: number) => {
-        localStorage.removeItem(`article_${id}`)
     }
 
 
@@ -130,6 +106,5 @@ export const useArticleManagerStore = defineStore('articleManager', () => {
         deleteDraft,
         publishArticle,
         calculateWordCount,
-        deletePublishedArticle
     }
 })

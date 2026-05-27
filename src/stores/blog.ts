@@ -26,12 +26,8 @@ export const useBlogStore = defineStore('blog', () => {
     const loadArticles = async () => {
         loading.value = true
         try {
-            // 加载静态文章数据
+            // 加载文章数据
             articles.value = (await articleApi.getArticles()).filter(a => a.status !== 'draft')
-            // 加载已发布数据
-            const publishedArticles = loadPublishedArticles()
-            articles.value = [...articles.value, ...publishedArticles]
-            loadViews()   // 文章加载后再恢复阅读量
             loadLike()    // 文章加载后再恢复收藏状态
         } catch (error) {
             console.error('加载文章失败:', error)
@@ -39,27 +35,7 @@ export const useBlogStore = defineStore('blog', () => {
             loading.value = false
         }
     }
-    // 从localStorage 加载已发布文章
-    const loadPublishedArticles = () => {
-        const publishedArticles: Article[] = []
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i)
-            if (key?.startsWith('article_')) {
-                const articleData = localStorage.getItem(key)
-                if (articleData) {
-                    try {
-                        const article = JSON.parse(articleData)
-                        if (article.status === 'published') {
-                            publishedArticles.push(article)
-                        }
-                    } catch (error) {
-                        console.error('解析已发布文章失败', key, error)
-                    }
-                }
-            }
-        }
-        return publishedArticles
-    }
+
 
     // 获取最新文章
     const latestArticles = computed(() => articles.value.slice(0, 5))
@@ -74,15 +50,7 @@ export const useBlogStore = defineStore('blog', () => {
 
     // 获取文章详情
     const getArticleById = async (id: number): Promise<Article | undefined> => {
-        // 先从静态数据查
-        const article = await articleApi.getArticleById(id)
-        if (article) return article
-        // 再从local store
-        const saved = localStorage.getItem(`article_${id}`)
-        if (saved) {
-            return JSON.parse(saved)
-        }
-        return undefined
+        return await articleApi.getArticleById(id)
     }
 
     // 获取文章列表
@@ -93,21 +61,13 @@ export const useBlogStore = defineStore('blog', () => {
     // 文章阅读量统计功能
     // 保存阅读量到localStorage
     const addViews = async (articleId: number) => {
+        await articleApi.incrementViews(articleId)
         const article = articles.value.find(a => a.id === articleId)
         if (article) {
             article.views++
-            localStorage.setItem('views_' + articleId, String(article.views))
         }
     }
-    // 从localStorage获取阅读量
-    const loadViews = () => {
-        articles.value.forEach(article => {
-            const saved = localStorage.getItem('views_' + article.id)
-            if (saved) {
-                article.views = Number(saved)
-            }
-        })
-    }
+
     //文章收藏功能
     // 保存收藏状态到localStorage
     const saveLike = () => {
@@ -153,7 +113,6 @@ export const useBlogStore = defineStore('blog', () => {
         getArticleById,
         getArticlesByTag,
         addViews,
-        loadViews,
         togglelike,
         loadLike,
         loadArticles,

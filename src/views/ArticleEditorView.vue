@@ -52,12 +52,10 @@ const handlePublish = async (content: string, title: string) => {
 
 
 onMounted(async () => {
-    articleManagerStore.loadDrafts()
+    await articleManagerStore.loadDrafts()
     const id = route.query.id
     if (id) {
         const numId = Number(id)
-        
-        
         const article = await blogStore.getArticleById(numId)
         if (article) {
             articleId.value = numId

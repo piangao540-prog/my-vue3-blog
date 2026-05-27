@@ -84,9 +84,9 @@ const handleDeleteDraft = (id:number) => {
     }
 }
 
-onMounted(() => {
-    blogStore.loadArticles()
-    articleManagerStore.loadDrafts()
+onMounted(async () => {
+    await blogStore.loadArticles()
+    await articleManagerStore.loadDrafts()
 })
 </script>
 
