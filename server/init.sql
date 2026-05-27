@@ -13,3 +13,15 @@ CREATE TABLE IF NOT EXISTS articles (
     updatedAt TIMESTAMP NULL
 ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 INSERT INTO articles (title, content, summary, tags, category) VALUES ('第一篇文章', '这是从 MySQL 读出来的数据', '测试摘要', '["MySQL", "教程"]', '技术');
+
+
+CREATE TABLE  IF NOT EXISTS user(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(500) NOT NULL,
+    password VARCHAR(100) NOT NULL,
+    nickname VARCHAR(50),
+    bio TEXt,
+    avatar VARCHAR(500),
+    role VARCHAR(20) DEFAULT 'user',
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)

@@ -96,6 +96,7 @@ app.put('/api/articles/:id', (req, res) => {
     )
 })
 
+// 删除文章
 app.delete('/api/articles/:id', (req, res) => {
     db.query('DELETE FROM articles WHERE id=?', [req.params.id], (err, result) => {
         if (err) {
@@ -105,5 +106,30 @@ app.delete('/api/articles/:id', (req, res) => {
         res.json({ success: true })
     })
 })
+
+// 注册
+app.post('/api/auth/register', (req, res) => {
+    const { usrname, password } = req.body
+    db.query('SELECT id FROM users WHRER username=?', [username], (err, result) => {
+        if (result.length > 0) {
+            res.status(400).json(error, '用户名已经存在')
+            return
+        }
+        db.query(
+            'INSERT INTO users (username, password, role) VALUE (?,?,?)',
+            [username, password, 'user'],
+            (err, result) => {
+                if (err) {
+                    res.status(500).json({ error: err.message })
+                    return
+                }
+                res.json({ id: result.insertId, username, role: 'user' })
+            }
+
+        )
+    })
+})
+
+
 
 app.listen(3000, () => console.log('服务器运行在 http://localhost:3000'))
