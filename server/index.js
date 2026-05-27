@@ -109,14 +109,15 @@ app.delete('/api/articles/:id', (req, res) => {
 
 // 注册
 app.post('/api/auth/register', (req, res) => {
-    const { usrname, password } = req.body
-    db.query('SELECT id FROM users WHRER username=?', [username], (err, result) => {
+    const { username, password } = req.body
+    db.query('SELECT id FROM users WHERE username=?', [username], (err, result) => {
+        if (err) return res.status(500).json({ error: err.message })
         if (result.length > 0) {
-            res.status(400).json(error, '用户名已经存在')
+            res.status(400).json({ error: '用户名已经存在' })
             return
         }
         db.query(
-            'INSERT INTO users (username, password, role) VALUE (?,?,?)',
+            'INSERT INTO users (username, password, role) VALUES (?,?,?)',
             [username, password, 'user'],
             (err, result) => {
                 if (err) {
@@ -127,6 +128,31 @@ app.post('/api/auth/register', (req, res) => {
             }
 
         )
+    })
+})
+
+// 登录
+app.post('/api/auth/login', (req, res) => {
+    const { username, password } = req.body
+    db.query('SELECT * FROM users WHERE username=?', [username], (err, result) => {
+        if (err) return res.status(500).json({ error: err.message })
+        if (result.length === 0) {
+            res.status(400).json({ error: '用户不存在' })
+            return
+        }
+        const user = result[0]
+        if (user.password !== password) {
+            res.status(400).json({ error: '密码错误' })
+            return
+        }
+        res.json({
+            id: user.id,
+            username: user.username,
+            nickname: user.nickname,
+            bio: user.bio,
+            avatar: user.avatar,
+            role: user.role
+        })
     })
 })
 
