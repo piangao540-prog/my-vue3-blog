@@ -13,7 +13,7 @@
                     </el-table-column>
                     <el-table-column label="字数" width="80">
                     <template #default="{ row }">
-                        {{ row.wordCount || '-' }}
+                        {{ articleManagerStore.calculateWordCount(row.content) || '-' }}
                     </template>
                     </el-table-column>
                     <el-table-column label="操作" width="160">
@@ -32,7 +32,11 @@
                         {{ formatTime(row.updatedAt) }}
                     </template>
                     </el-table-column>
-                    <el-table-column prop="wordCount" label="字数" width="80" />
+                    <el-table-column label="字数" width="80">
+                    <template #default="{ row }">
+                        {{ articleManagerStore.calculateWordCount(row.content) || '-' }}
+                    </template>
+                    </el-table-column>
                     <el-table-column label="操作" width="160">
                         <template #default="{row}" v-if="userStore.isAdmin">
                             <el-button size="small" @click="editArticle(row.id)">编辑</el-button>
@@ -78,9 +82,9 @@ const handleDelete = async (id:number) =>{
 }
 
 // 删除草稿
-const handleDeleteDraft = (id:number) => {
+const handleDeleteDraft = async (id:number) => {
     if(confirm('确定要删除这个草稿')){
-        articleManagerStore.deleteDraft(id)
+        await articleManagerStore.deleteDraft(id)
     }
 }
 
