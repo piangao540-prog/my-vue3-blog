@@ -137,7 +137,8 @@ export const useBlogStore = defineStore('blog', () => {
     }
 
     // 删除文章
-    const deleteArticle = (id: number) => {
+    const deleteArticle = async (id: number) => {
+        await articleApi.deleteArticle(id)
         articles.value = articles.value.filter(a => a.id !== id)
         localStorage.removeItem(`article_${id}`)
         localStorage.removeItem(`draft_${id}`)

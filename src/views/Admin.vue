@@ -71,9 +71,9 @@ const editArticle = (id:number) =>{
 
 const activeTab = ref('published')
 // 删除已发布文章
-const handleDelete = (id:number) =>{
+const handleDelete = async (id:number) =>{
     if(confirm('确定要删除这篇文章吗')){
-        blogStore.deleteArticle(id)
+       await blogStore.deleteArticle(id)
     }
 }
 

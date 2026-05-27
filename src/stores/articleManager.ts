@@ -1,7 +1,7 @@
 import { defineStore } from "pinia"
 import { ref } from 'vue'
 import type { Article } from "./blog"
-import { createArticle, updateArticle } from "@/api/articles"
+import { createArticle, updateArticle ,deleteArticle} from "@/api/articles"
 
 export const useArticleManagerStore = defineStore('articleManager', () => {
     const drafts = ref<Article[]>([])
@@ -70,7 +70,8 @@ export const useArticleManagerStore = defineStore('articleManager', () => {
 
 
     // 删除草稿
-    const deleteDraft = (id: number) => {
+    const deleteDraft = async (id: number) => {
+        await deleteArticle(id)
         localStorage.removeItem(`draft_${id}`)
         drafts.value = drafts.value.filter(a => a.id !== id)
     }

@@ -61,3 +61,9 @@ export const updateArticle = async (id: number, article: {
 }): Promise<void> => {
     await axios.put(`/articles/${id}`, article)
 }
+
+// 删除文章
+export const deleteArticle = async (id:number):Promise<void> => {
+    await axios.delete(`/articles/${id}`)
+}
+

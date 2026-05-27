@@ -96,5 +96,14 @@ app.put('/api/articles/:id', (req, res) => {
     )
 })
 
+app.delete('/api/articles/:id', (req, res) => {
+    db.query('DELETE FROM articles WHERE id=?', [req.params.id], (err, result) => {
+        if (err) {
+            res.status(500).json({ error: err.message })
+            return
+        }
+        res.json({ success: true })
+    })
+})
 
 app.listen(3000, () => console.log('服务器运行在 http://localhost:3000'))
