@@ -49,3 +49,15 @@ export const createArticle = async (article: {
     const response = await axios.post('/articles', article)
     return response.data
 }
+
+// 更新文章
+export const updateArticle = async (id: number, article: {
+    title?: string
+    content?: string
+    summary?: string
+    tags?: string[]
+    category?: string
+    status?: 'draft' | 'published'
+}): Promise<void> => {
+    await axios.put(`/articles/${id}`, article)
+}

@@ -28,9 +28,10 @@ const handleSave = async (content:string ,title:string) => {
     alert('草稿已保存')
 }
 
+// 发布文章
 const handlePublish = async (content: string, title: string) => {
     if (articleId.value) {
-        const publishedArticle = articleManagerStore.publishArticle(articleId.value)
+        const publishedArticle = await articleManagerStore.publishArticle(articleId.value)
         if (publishedArticle) {
             alert('文章已发布')
             articleId.value = undefined
@@ -39,7 +40,7 @@ const handlePublish = async (content: string, title: string) => {
         }
     } else {
         const draft = articleManagerStore.saveDraft({ content, title })
-        const publishedArticle = articleManagerStore.publishArticle((await draft).id)
+        const publishedArticle = await articleManagerStore.publishArticle((await draft).id)
         if (publishedArticle) {
             alert('文章已发布')
         } else {

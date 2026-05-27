@@ -1,7 +1,7 @@
 import { defineStore } from "pinia"
 import { ref } from 'vue'
 import type { Article } from "./blog"
-import { createArticle } from "@/api/articles"
+import { createArticle, updateArticle } from "@/api/articles"
 
 export const useArticleManagerStore = defineStore('articleManager', () => {
     const drafts = ref<Article[]>([])
@@ -76,30 +76,24 @@ export const useArticleManagerStore = defineStore('articleManager', () => {
     }
 
     // 发布文章
-    const publishArticle = (draftId: number) => {
-        // 直接从 localStorage 获取草稿，避免 drafts.value 的问题
-        const savedDraft = localStorage.getItem(`draft_${draftId}`)
-        if (!savedDraft) {
-            return null
+    const publishArticle = async (draftId: number) => {
+        try {
+            const draft = drafts.value.find(d => d.id === draftId)
+            if (!draft) return false
+            await updateArticle(draftId, {
+                title: draft.title,
+                content: draft.content,
+                summary: draft.summary,
+                tags: draft.tags,
+                category: draft.category,
+                status: 'published'
+            })
+            drafts.value = drafts.value.filter(d => d.id !== draftId)
+            return true
+        } catch (error) {
+            console.log('发布失败', error)
+            return false
         }
-
-        const draft = JSON.parse(savedDraft)
-        const publishedArticle: Article = {
-            ...draft,
-            status: 'published',
-            publishedAt: new Date().toISOString()
-        }
-
-        // 保存已发布的文章
-        localStorage.setItem(`article_${publishedArticle.id}`, JSON.stringify(publishedArticle))
-
-        // 删除草稿
-        localStorage.removeItem(`draft_${draftId}`)
-
-        // 更新 drafts.value
-        drafts.value = drafts.value.filter(d => d.id !== draftId)
-
-        return publishedArticle
     }
 
     // 删除已发布文章
