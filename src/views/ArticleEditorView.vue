@@ -51,28 +51,18 @@ const handlePublish = async (content: string, title: string) => {
 
 
 
-onMounted(() => {
+onMounted(async () => {
     articleManagerStore.loadDrafts()
     const id = route.query.id
     if (id) {
         const numId = Number(id)
         
-        // 从 localStorage 直接读
-        const saved = localStorage.getItem(`article_${numId}`) || localStorage.getItem(`draft_${numId}`)
-        if (saved) {
-            const article = JSON.parse(saved)
+        
+        const article = await blogStore.getArticleById(numId)
+        if (article) {
             articleId.value = numId
             initialTitle.value = article.title
             initialContent.value = article.content
-            return
-        }
-        
-        // 再从 blogStore 的静态文章找
-        const publishId = blogStore.articles.find(a => a.id === numId)
-        if (publishId) {
-            articleId.value = numId
-            initialTitle.value = publishId.title
-            initialContent.value = publishId.content
         }
     }
 })
