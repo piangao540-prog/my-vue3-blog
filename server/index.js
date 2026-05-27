@@ -79,5 +79,22 @@ app.post('/api/articles', (req, res) => {
     )
 })
 
+// 更新文章
+app.post('/api/articles', (req, res) => {
+    const { title, content, summary, tags, category, status } = req.body
+    db.query(
+        'UPDATE articles SET title=?,content=?,tags=?,category=?,status=? WHERE id=?',
+        [title, content, JSON.stringify(tags), category, status, req.params.id],
+        (err, result) => {
+            if (err) {
+                res.status(500).json({ error: err.message })
+                return
+            }
+            res.json({ success: true })
+        }
+
+    )
+})
+
 
 app.listen(3000, () => console.log('服务器运行在 http://localhost:3000'))
