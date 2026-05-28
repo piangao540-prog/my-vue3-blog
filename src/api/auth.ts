@@ -12,6 +12,12 @@ export const login = async (username: string, password: string) => {
     return response.data
 }
 
+// 查询用户信息
+export const getMe = async (username: string) => {
+    const response = await axios.get('/auth/me', { params: { username } })
+    return response.data
+}
+
 // 更新用户信息
 export const updateProfile = async (data: {
     username: string

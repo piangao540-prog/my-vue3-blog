@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import defaultAvatar from '@/assets/images/converted_image.png'
 import { register as apiRegister, login as apiLogin, updateProfile, changePassword as apiChangePassword } from '@/api/auth'
+import { getMe as apiGetMe } from '@/api/auth'
 
 export const useUserStore = defineStore('user', () => {
   // 用户信息
@@ -77,12 +78,11 @@ export const useUserStore = defineStore('user', () => {
   }
 
   // 初始化
-  const init = () => {
+  const init = async () => {
     const currentUser = localStorage.getItem('currentUser')
     if (currentUser) {
-      const saved = localStorage.getItem(`user_${currentUser}`)
-      if (saved) {
-        const user = JSON.parse(saved)
+      try {
+        const user = await apiGetMe(currentUser)
         userInfo.value = {
           username: user.username,
           nickname: user.nickname,
@@ -90,8 +90,10 @@ export const useUserStore = defineStore('user', () => {
           avatar: user.avatar || defaultAvatar,
           role: user.role || 'user'
         }
-      } else {
-        userInfo.value = { username: currentUser }
+      } catch {
+        // 验证失败
+        localStorage.removeItem('currentUser')
+        userInfo.value = null
       }
     }
   }

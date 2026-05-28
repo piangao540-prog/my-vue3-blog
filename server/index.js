@@ -165,6 +165,20 @@ app.post('/api/auth/login', (req, res) => {
     })
 })
 
+// 查询用户信息
+app.get('/api/auth/me', (req, res) => {
+    const { username } = req.query
+    if (!username) return res.status(400).json({ error: '缺少用户名' })
+    db.query('SELECT id,username,nickname,bio,avatar,role FROM users WHERE username=?',
+        [username], (err, result) => {
+            if (err) return res.status(500).json({ error: err.message })
+            if (result.length === 0) return res.status(401).json({ error: err.message })
+            res.json(result[0])
+        })
+})
+
+
+
 // 更新用户信息
 app.put('/api/auth/profile', (req, res) => {
     const { username, nickname, bio, avatar } = req.body
