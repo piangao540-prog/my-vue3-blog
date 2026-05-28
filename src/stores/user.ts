@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import defaultAvatar from '@/assets/images/converted_image.png'
+import { register as apiRegister, login as apiLogin } from '@/api/auth'
 
 export const useUserStore = defineStore('user', () => {
   // 用户信息
@@ -14,50 +15,37 @@ export const useUserStore = defineStore('user', () => {
   const isAdmin = computed(() => userInfo.value?.role === 'admin')
 
   // 登录
-  const login = (username: string, password: string): boolean => {
-    const savedUser = localStorage.getItem(`user_${username}`)
-
-    if (!savedUser) {
-      alert('用户不存在')
+  const login = async (username: string, password: string): Promise<boolean> => {
+    try {
+      const user = await apiLogin(username, password)
+      localStorage.setItem('currentUser', username)
+      userInfo.value = {
+        username: user.username,
+        nickname: user.nickname,
+        bio: user.bio,
+        avatar: user.avatar || defaultAvatar,
+        role: user.role || 'user'
+      }
+      localStorage.setItem('currentuser', username)
+      localStorage.setItem(`user_${username}`, JSON.stringify(password))
+      return true
+    } catch (error: any) {
+      alert(error.response?.data?.error || '登录失败')
       return false
     }
 
-    const user = JSON.parse(savedUser)
-
-    if (user.password !== password) {
-      alert('密码错误')
-      return false
-    }
-
-    userInfo.value = {
-      username: user.username,
-      nickname: user.nickname,
-      bio: user.bio,
-      avatar: user.avatar || defaultAvatar,
-      role: user.role || 'user'
-    }
-    localStorage.setItem('currentUser', username)
-    return true
   }
 
   // 注册
-  const register = (username: string, password: string): boolean => {
-    const savedUser = localStorage.getItem(`user_${username}`)
-
-    if (savedUser) {
-      alert('用户名已存在')
+  const register = async (username: string, password: string): Promise<boolean> => {
+    try {
+      await apiRegister(username, password)
+      return true
+    } catch (error: any) {
+      alert(error.response?.data?.error || '注册失败')
       return false
     }
 
-    localStorage.setItem(`user_${username}`, JSON.stringify({
-      username,
-      password,
-      avatar: defaultAvatar,
-      createdAt: new Date().toISOString(),
-      role: 'user'
-    }))
-
-    return true
   }
 
   // 登出

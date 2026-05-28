@@ -10,7 +10,7 @@ const username = ref('')
 const password = ref('')
 const confirmPassword = ref('')
 
-const handleRegister = () => {
+const handleRegister = async () => {
   if (!username.value || !password.value || !confirmPassword.value) {
     alert('请填写完整')
     return
@@ -21,7 +21,7 @@ const handleRegister = () => {
     return
   }
 
-  const success = userStore.register(username.value, password.value)
+  const success = await userStore.register(username.value, password.value)
 
   if (success) {
     alert('注册成功！请登录')

@@ -9,13 +9,13 @@ const userStore = useUserStore()
 const username = ref('')
 const password = ref('')
 
-const handleLogin = () => {
+const handleLogin = async () => {
   if (!username.value || !password.value) {
     alert('请填写完整')
     return
   }
 
-  const success = userStore.login(username.value, password.value)
+  const success = await userStore.login(username.value, password.value)
 
   if (success) {
     router.push('/')
