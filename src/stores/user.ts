@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import defaultAvatar from '@/assets/images/converted_image.png'
-import { register as apiRegister, login as apiLogin } from '@/api/auth'
+import { register as apiRegister, login as apiLogin, updateProfile, changePassword as apiChangePassword } from '@/api/auth'
 
 export const useUserStore = defineStore('user', () => {
   // 用户信息
@@ -26,8 +26,7 @@ export const useUserStore = defineStore('user', () => {
         avatar: user.avatar || defaultAvatar,
         role: user.role || 'user'
       }
-      localStorage.setItem('currentuser', username)
-      localStorage.setItem(`user_${username}`, JSON.stringify(password))
+      localStorage.setItem(`user_${username}`, JSON.stringify(userInfo.value))
       return true
     } catch (error: any) {
       alert(error.response?.data?.error || '登录失败')
@@ -55,33 +54,27 @@ export const useUserStore = defineStore('user', () => {
   }
 
   // 更新用户信息
-  const updateUserInfo = (info: { nickname?: string; bio?: string; avatar?: string }) => {
-    if (userInfo.value) {
-      userInfo.value = { ...userInfo.value, ...info }
-      const saved = localStorage.getItem(`user_${userInfo.value.username}`)
-      if (saved) {
-        const user = JSON.parse(saved)
-        localStorage.setItem(`user_${userInfo.value.username}`, JSON.stringify({ ...user, ...info }))
-      }
-    }
+  const updateUserInfo = async (info: { nickname?: string; bio?: string; avatar?: string }) => {
+    if (!userInfo.value) return
+    await updateProfile({ username: userInfo.value.username, ...info })
+    userInfo.value = { ...userInfo.value, ...info }
+
   }
 
   // 修改密码
-  const changePassword = (oldPassword: string, newPassword: string): boolean => {
+  const changePassword = async (oldPassword: string, newPassword: string): Promise<boolean> => {
     if (!userInfo.value) return false
-
-    const saved = localStorage.getItem(`user_${userInfo.value.username}`)
-    if (!saved) return false
-
-    const user = JSON.parse(saved)
-    if (user.password !== oldPassword) {
-      alert('原密码错误')
+    try {
+      await apiChangePassword({
+        username: userInfo.value.username,
+        oldPassword,
+        newPassword
+      })
+      return true
+    } catch (error: any) {
+      alert(error.response?.data?.error || '修改失败')
       return false
     }
-
-    user.password = newPassword
-    localStorage.setItem(`user_${userInfo.value.username}`, JSON.stringify(user))
-    return true
   }
 
   // 初始化

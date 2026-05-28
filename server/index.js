@@ -156,6 +156,32 @@ app.post('/api/auth/login', (req, res) => {
     })
 })
 
+// 更新用户信息
+app.put('/api/auth/profile', (req, res) => {
+    const { username, nickname, bio, avatar } = req.body
+    db.query(
+        'UPDATE users SET nickname=?,bio=?,avatar=? WHERE username=?',
+        [nickname, bio, avatar, username],(err,result) =>{
+            if (err) return res.status(500).json({ error: err.message })
+            res.json({error:true})
+        }
+    )
+})
 
+// 修改密码
+app.put('/api/auth/password', (req, res) => {
+    const { username, oldPassword, newPassword } = req.body
+    db.query('SELECT password  FROM users WHERE username=?', [username], (err, result) => {
+        if (err) return res.status(500).json({ error: err.message })
+        if (result[0].password !== oldPassword) {
+            res.status(400).json({ error: '原密码错误' })
+            return
+        }
+        db.query('UPDATE users SET password=? WHERE username=?', [newPassword, username], (err, result) => {
+            if (err) return res.status(500).json({ error: err.message })
+            res.json({ success: true })
+        })
+    })
+})
 
 app.listen(3000, () => console.log('服务器运行在 http://localhost:3000'))
