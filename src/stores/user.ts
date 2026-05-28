@@ -15,7 +15,7 @@ export const useUserStore = defineStore('user', () => {
   const isAdmin = computed(() => userInfo.value?.role === 'admin')
 
   // 登录
-  const login = async (username: string, password: string): Promise<boolean> => {
+  const login = async (username: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
       const user = await apiLogin(username, password)
       localStorage.setItem('currentUser', username)
@@ -27,10 +27,9 @@ export const useUserStore = defineStore('user', () => {
         role: user.role || 'user'
       }
       localStorage.setItem(`user_${username}`, JSON.stringify(userInfo.value))
-      return true
+      return { success: true }
     } catch (error: any) {
-      alert(error.response?.data?.error || '登录失败')
-      return false
+      return { success: false, error: error.response?.data?.error || '登录失败' }
     }
 
   }

@@ -15,10 +15,15 @@ const handleLogin = async () => {
     return
   }
 
-  const success = await userStore.login(username.value, password.value)
+  const result = await userStore.login(username.value, password.value)
 
-  if (success) {
+  if (result.success) {
     router.push('/')
+  }else if(result.error?.includes('不存在')){
+    alert(result.error || '用户不存在')
+    router.push('/register')
+  }else{
+    alert(result.error || '登陆失败')
   }
 }
 </script>

@@ -19,7 +19,7 @@ export const updateProfile = async (data: {
     bio?: string
     avatar?: string
 }) => {
-    const response = await axios.post('/auth/profile', data)
+    const response = await axios.put('/auth/profile', data)
     return response.data
 }
 
@@ -29,6 +29,6 @@ export const changePassword = async (data: {
     oldPassword: string
     newPassword: string
 }) => {
-    const response = await axios.post('/auth/profile', data)
+    const response = await axios.put('/auth/password', data)
     return response.data
 }
