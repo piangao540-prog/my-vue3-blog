@@ -161,9 +161,9 @@ app.put('/api/auth/profile', (req, res) => {
     const { username, nickname, bio, avatar } = req.body
     db.query(
         'UPDATE users SET nickname=?,bio=?,avatar=? WHERE username=?',
-        [nickname, bio, avatar, username],(err,result) =>{
+        [nickname, bio, avatar, username], (err, result) => {
             if (err) return res.status(500).json({ error: err.message })
-            res.json({error:true})
+            res.json({ error: true })
         }
     )
 })
@@ -182,6 +182,39 @@ app.put('/api/auth/password', (req, res) => {
             res.json({ success: true })
         })
     })
+})
+
+// 收藏文章
+app.post('/api/articles/:id/favorite', (req, res) => {
+    const  username  = req.body.username
+    const articleId = req.params.id
+    db.query(
+        'INSERT IGNORE INTO favorites (username,article_id) VALUES (?,?)',
+        [username, articleId], (err, result) => {
+            if (err) return res.status(500).json({ error: err.message })
+            res.json({ favorited: result.affectedRows > 0 })
+        }
+    )
+})
+
+// 取消收藏
+app.delete('/api/articles/:id/favorite', (req, res) => {
+    const username = req.body.username
+    db.query('DELETE FROM favorites WHERE username=? AND article_id=?',
+        [username, req.params.id], (err, result) => {
+            if (err) return res.status(500).json({ error: err.message })
+            res.json({ success: true })
+        }
+    )
+})
+
+// 获取用户收藏文章列表
+app.get('/api/articles/favorites', (req, res) => {
+    db.query('SELECT article_id FROM favorites WHERE username=?',
+        [req.query.username], (err, results) => {
+            if (err) return res.status(500).json({ error: err.message })
+            res.json(results.map(r => r.article_id))
+        })
 })
 
 app.listen(3000, () => console.log('服务器运行在 http://localhost:3000'))
