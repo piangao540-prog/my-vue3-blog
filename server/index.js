@@ -35,6 +35,15 @@ app.get('/api/articles', (req, res) => {
     })
 })
 
+// 获取用户收藏文章列表（放在文章详情之前，防止Express 把 favorites 当成 :id 参数，匹配到文章详情路由了）
+app.get('/api/articles/favorites', (req, res) => {
+    db.query('SELECT article_id FROM favorites WHERE username=?',
+        [req.query.username], (err, results) => {
+            if (err) return res.status(500).json({ error: err.message })
+            res.json(results.map(r => r.article_id))
+        })
+})
+
 // 获取文章详情  ?占位符，防止 SQL 注入
 app.get('/api/articles/:id', (req, res) => {
     const id = req.params.id
@@ -186,7 +195,7 @@ app.put('/api/auth/password', (req, res) => {
 
 // 收藏文章
 app.post('/api/articles/:id/favorite', (req, res) => {
-    const  username  = req.body.username
+    const username = req.body.username
     const articleId = req.params.id
     db.query(
         'INSERT IGNORE INTO favorites (username,article_id) VALUES (?,?)',
@@ -208,13 +217,6 @@ app.delete('/api/articles/:id/favorite', (req, res) => {
     )
 })
 
-// 获取用户收藏文章列表
-app.get('/api/articles/favorites', (req, res) => {
-    db.query('SELECT article_id FROM favorites WHERE username=?',
-        [req.query.username], (err, results) => {
-            if (err) return res.status(500).json({ error: err.message })
-            res.json(results.map(r => r.article_id))
-        })
-})
+
 
 app.listen(3000, () => console.log('服务器运行在 http://localhost:3000'))

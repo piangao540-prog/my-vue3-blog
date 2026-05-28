@@ -33,8 +33,20 @@ export const incrementViews = async (id: number): Promise<void> => {
 
 
 // 切换收藏状态
-export const toggleLike = async (id: number): Promise<boolean> => {
-    return false
+export const toggleLike = async (id: number, username: string, isFavorited: boolean): Promise<boolean> => {
+    if (isFavorited) {
+        await axios.delete(`/articles/${id}/favorite`, { data: { username } })
+        return false
+    } else {
+        await axios.post(`/articles/${id}/favorite`, { username })
+        return true
+    }
+}
+
+
+export const getFavorites = async (username: string): Promise<number[]> => {
+    const response = await axios.get('/articles/favorites', { params: { username } })
+    return response.data
 }
 
 // 创建文章
@@ -63,7 +75,7 @@ export const updateArticle = async (id: number, article: {
 }
 
 // 删除文章
-export const deleteArticle = async (id:number):Promise<void> => {
+export const deleteArticle = async (id: number): Promise<void> => {
     await axios.delete(`/articles/${id}`)
 }
 

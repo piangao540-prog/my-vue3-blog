@@ -1,6 +1,9 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import * as articleApi from '@/api/articles'
+import { useUserStore } from './user'
+
+
 
 export interface Article {
     id: number
@@ -20,6 +23,7 @@ export interface Article {
 }
 
 export const useBlogStore = defineStore('blog', () => {
+    const userStore = useUserStore()
     const articles = ref<Article[]>([])
     const loading = ref(false)
     // 初始化加载文章
@@ -28,7 +32,7 @@ export const useBlogStore = defineStore('blog', () => {
         try {
             // 加载文章数据
             articles.value = (await articleApi.getArticles()).filter(a => a.status !== 'draft')
-            loadLike()    // 文章加载后再恢复收藏状态
+            await loadLike()    // 文章加载后再恢复收藏状态
         } catch (error) {
             console.error('加载文章失败:', error)
         } finally {
@@ -69,31 +73,22 @@ export const useBlogStore = defineStore('blog', () => {
     }
 
     //文章收藏功能
-    // 保存收藏状态到localStorage
-    const saveLike = () => {
-        const likedIds = articles.value.filter(a => a.like).map(a => a.id)
-        localStorage.setItem('liked_articles', JSON.stringify(likedIds))
-    }
 
     // 切换收藏功能
     const togglelike = async (articleId: number) => {
         const article = articles.value.find(a => a.id === articleId)
-        if (article) {
-            article.like = !article.like
-            saveLike()
+        if (article && userStore.userInfo?.username) {
+            article.like = await articleApi.toggleLike(articleId, userStore.userInfo.username, article.like)
         }
     }
 
     // 加载收藏
-    const loadLike = () => {
-        const saved = localStorage.getItem('liked_articles')
-        if (saved) {
-            const likeIds: number[] = JSON.parse(saved)
-            articles.value.forEach(article => {
-                article.like = likeIds.includes(article.id)
-            })
-
-        }
+    const loadLike = async () => {
+        if (!userStore.userInfo?.username) return
+        const likedIds = await articleApi.getFavorites(userStore.userInfo?.username)
+        articles.value.forEach(article => {
+            article.like = likedIds.includes(article.id)
+        })
     }
 
     // 删除文章
