@@ -102,7 +102,7 @@ onMounted(() => {
                 <h3>{{ article.title }}</h3>
                 <p class="article-summary">{{ article.summary }}</p>
                 <div class="article-meta">
-                  <span class="article-date">{{ article.createdAt }}</span>
+                  <span class="article-date">{{ article.createdAt.slice(0,10)}}</span>
                   <span class="article-views">
                     <el-icon>
                       <View />

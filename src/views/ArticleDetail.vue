@@ -14,7 +14,7 @@
             <el-icon>
               <Calendar />
             </el-icon>
-            {{ article.createdAt }}
+            {{ article.createdAt.slice(0,10) }}
           </span>
           <span class="meta-item">
             <el-icon>
@@ -67,6 +67,7 @@ import { Calendar, User, ArrowLeft } from '@element-plus/icons-vue'
 import CommentSection from '@/components/CommentSection.vue'
 import { useUserStore } from '@/stores/user'
 import type { Article } from '@/stores/blog'
+
 
 
 const userStore = useUserStore()
