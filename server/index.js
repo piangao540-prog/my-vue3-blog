@@ -177,6 +177,15 @@ app.get('/api/auth/me', (req, res) => {
         })
 })
 
+// 查询用户自己的评论
+app.get('/api/comments/user', (req, res) => {
+    db.query('SELECT * FROM comments WHERE author=? ORDER BY createdAt DESC',
+        [req.query.author], (err, result) => {
+            if (err) return res.status(500).json({ error: err.message })
+            res.json(result)
+        })
+})
+
 
 // 获取文章评论
 app.get('/api/comments/:articleId', (req, res) => {
@@ -201,6 +210,9 @@ app.post('/api/comments/:articleId', (req, res) => {
         })
 })
 
+
+
+
 // 删除评论
 app.delete('/api/comments/:id', (req, res) => {
     db.query('DELETE FROM comments WHERE id=?', [req.params.id],
@@ -210,6 +222,8 @@ app.delete('/api/comments/:id', (req, res) => {
         }
     )
 })
+
+
 
 
 // 更新用户信息

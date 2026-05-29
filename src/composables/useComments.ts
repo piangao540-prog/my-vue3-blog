@@ -23,13 +23,20 @@ export const formatTime = (dateStr: string): string => {
     return `${year}-${month}-${day} ${hours}:${minutes}`
 }
 
-export const useComments = (articleId:number) => {
+export const useComments = (articleId?: number) => {
     const userStore = useUserStore()
     const comments = ref<commentApi.Comment[]>([])
 
     // 加载评论
     const loadComments = async () => {
-        comments.value = await commentApi.getComments(articleId)
+        if (articleId) {
+            comments.value = await commentApi.getComments(articleId)
+        } else{
+            const nickname = userStore.userInfo?.nickname
+            if (nickname){
+                comments.value = await commentApi.getUserComments(nickname)
+            }
+            }
     }
 
     // 添加评论
@@ -38,10 +45,11 @@ export const useComments = (articleId:number) => {
             alert('请输入评论内容')
             return
         }
-
+        const id = articleId
+        if (!id) return
         const author = userStore.userInfo?.nickname || '匿名用户'
         const authorAvatar = userStore.userInfo?.avatar || userAvatar
-        await commentApi.addComment(articleId, content, author, authorAvatar)
+        await commentApi.addComment(id, content, author, authorAvatar)
         await loadComments()
     }
 
