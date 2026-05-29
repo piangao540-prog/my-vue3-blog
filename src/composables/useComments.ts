@@ -1,6 +1,7 @@
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useUserStore } from '@/stores/user'
 import userAvatar from '@/assets/images/converted_image.png'
+import * as commentApi from '@/api/comments'
 
 export interface Comment {
     id: number
@@ -22,40 +23,40 @@ export const formatTime = (dateStr: string): string => {
     return `${year}-${month}-${day} ${hours}:${minutes}`
 }
 
-export const useComments = () => {
+export const useComments = (articleId:number) => {
     const userStore = useUserStore()
-    const saved = localStorage.getItem('comments')
-    const comments = ref<Comment[]>(saved ? JSON.parse(saved) : [])
+    const comments = ref<commentApi.Comment[]>([])
 
-    // 保存评论到本地
-    const saveComment = () => {
-        localStorage.setItem('comments', JSON.stringify(comments.value))
+    // 加载评论
+    const loadComments = async () => {
+        comments.value = await commentApi.getComments(articleId)
     }
 
     // 添加评论
-    const addComment = (content: string) => {
+    const addComment = async (content: string) => {
         if (!content.trim()) {
             alert('请输入评论内容')
             return
         }
-        const comment: Comment = {
-            id: Date.now(),
-            content,
-            author: userStore.userInfo?.nickname || '匿名用户',
-            createdAt: new Date().toISOString(),
-            authorAvatar: userStore.userInfo?.avatar || userAvatar,
-        }
-        comments.value.unshift(comment)
-        saveComment()
+
+        const author = userStore.userInfo?.nickname || '匿名用户'
+        const authorAvatar = userStore.userInfo?.avatar || userAvatar
+        await commentApi.addComment(articleId, content, author, authorAvatar)
+        await loadComments()
     }
 
     // 删除评论
-    const deleteComment = (id: number) => {
-        comments.value = comments.value.filter((item) => item.id !== id)
-        saveComment()
+    const deleteComment = async (id: number) => {
+        await commentApi.deleteComment(id)
+        await loadComments()
     }
 
     const commentCount = computed(() => comments.value.length)
+
+    // 初始化加载
+    onMounted(() => {
+        loadComments()
+    })
 
     return {
         comments,

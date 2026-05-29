@@ -178,6 +178,39 @@ app.get('/api/auth/me', (req, res) => {
 })
 
 
+// 获取文章评论
+app.get('/api/comments/:articleId', (req, res) => {
+    db.query('SELECT * FROM comments WHERE article_id=? ORDER BY createdAt DESC',
+        [req.params.articleId], (err, result) => {
+            if (err) return res.status(500).json({ error: err.message })
+            res.json(result)
+        }
+    )
+})
+
+// 添加评论
+app.post('/api/comments/:articleId', (req, res) => {
+    const { content, author, authorAvatar } = req.body
+    if (!content || !author) return res.status(400).json({ error: '内容或作者不能为空' })
+    db.query(
+        'INSERT INTO comments (article_id, content, author, author_avatar) VALUES (?,?,?,?)',
+        [req.params.articleId, content, author, authorAvatar || null],
+        (err, result) => {
+            if (err) return res.status(500).json({ error: err.message })
+            res.json({ id: result.insertId, message: '评论成功' })
+        })
+})
+
+// 删除评论
+app.delete('/api/comments/:id', (req, res) => {
+    db.query('DELETE FROM comments WHERE id=?', [req.params.id],
+        (err, result) => {
+            if (err) return res.status(500).json({ error: err.message })
+            res.json({ success: true })
+        }
+    )
+})
+
 
 // 更新用户信息
 app.put('/api/auth/profile', (req, res) => {

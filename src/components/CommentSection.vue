@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { useComments } from '@/composables/useComments'
 
 const userStore = useUserStore()
-const { comments, addComment, deleteComment, commentCount, formatTime } = useComments()
+const route = useRoute()
+const { comments, addComment, deleteComment, commentCount, formatTime } = useComments(Number(route.params.id))
 
 
 const newComment = ref('')
