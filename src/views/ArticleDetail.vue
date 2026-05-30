@@ -29,7 +29,7 @@
           </div>
         </div>
       </header>
-      <div class="article-content" v-html="article.content"></div>
+      <div class="article-content" v-html="article.content.includes('<') ? article.content : marked(article.content)"></div>
       <footer class="article-footer">
         <el-divider />
         <div class="article-nav">
@@ -67,7 +67,7 @@ import { Calendar, User, ArrowLeft } from '@element-plus/icons-vue'
 import CommentSection from '@/components/CommentSection.vue'
 import { useUserStore } from '@/stores/user'
 import type { Article } from '@/stores/blog'
-
+import {marked} from 'marked'
 
 
 const userStore = useUserStore()
@@ -413,5 +413,33 @@ html.dark .login-prompt {
 html.dark .login-prompt p {
   color: #9ca3af;
 }
+
+.article-content h2 { font-size: 1.5rem; margin: 24px 0 12px; }
+.article-content h3 { font-size: 1.2rem; margin: 20px 0 10px; }
+.article-content code {
+  background: #f0f0f0;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+.article-content pre {
+  background: #1e1e1e;
+  color: #d4d4d4;
+  padding: 16px;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 16px 0;
+}
+.article-content table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 16px 0;
+}
+.article-content th, .article-content td {
+  border: 1px solid #ddd;
+  padding: 8px 12px;
+  text-align: left;
+}
+.article-content th { background: #f5f5f5; }
 
 </style>
