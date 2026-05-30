@@ -5,11 +5,12 @@ import { useRouter } from 'vue-router';
 import { ArrowLeft } from '@element-plus/icons-vue'
 import { getTagColor } from '@/composables/useTagColor'
 import { useSearchFilter } from '@/composables/useSearchFilter';
+import { useSearchStore } from '@/stores/search';
 
 const blogStore = useBlogStore()
 const router = useRouter()
 const {filteredArticles} = useSearchFilter()
-const selectedCategory = ref('')
+const searchStore = useSearchStore()
 
 // 获取所有分类
 const categories = computed(() => {
@@ -77,7 +78,7 @@ onMounted(() => {
     <h1>文章列表</h1>
     <!-- 分类选择 -->
     <div class="category-selected">
-      <el-select v-model="selectedCategory" placeholder="选择" clearable>
+      <el-select v-model="searchStore.selectedCategory" placeholder="选择" clearable>
         <el-option label="全部分类" value=""></el-option>
         <el-option v-for="category in categories" :key="category" :label="category" :value="category"></el-option>
       </el-select>
