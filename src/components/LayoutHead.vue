@@ -61,12 +61,12 @@ const activeMenu = computed(() => {
       </el-drawer>
     </div>
     <div class="header-middle">
-      <el-menu mode="horizontal" router :default-active="activeMenu" class="nav-menu">
-        <el-menu-item index="/">首页</el-menu-item>
-        <el-menu-item index="/articles">文章</el-menu-item>
-        <el-menu-item index="/archive">归档</el-menu-item>
-        <el-menu-item index="/about">关于</el-menu-item>
-      </el-menu>
+      <nav class="nav-capsule">
+        <router-link to="/" class="nav-item" :class="{ active: route.path === '/' }">首页</router-link>
+        <router-link to="/articles" class="nav-item" :class="{ active: route.path.startsWith('/articles') }">文章</router-link>
+        <router-link to="/archive" class="nav-item" :class="{ active: route.path === '/archive' }">归档</router-link>
+        <router-link to="/about" class="nav-item" :class="{ active: route.path === '/about' }">关于</router-link>
+      </nav>
     </div>
     <!-- 右侧：搜索框 ,登录按钮 -->
     <div class="header-right">
@@ -142,10 +142,36 @@ const activeMenu = computed(() => {
   justify-content: center;
 }
 
-.nav-menu {
-  border: none;
-  /* 去掉默认边框 */
+.nav-capsule {
+    display: flex;
+    gap: 50px;
+    background: #f3f4f6;
+    padding: 6px;
+    border-radius: 12px;
+    margin-left: 97px;
 }
+
+.nav-item {
+  padding: 8px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6b7280;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.nav-item:hover {
+  color: #374151;
+}
+
+.nav-item.active {
+  background: #ffffff;
+  color: #e86f83;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
 
 /* 搜索框容器 */
 .header-right {
@@ -253,4 +279,16 @@ html.dark .logo {
 html.dark .search-input {
   background: #333;
 }
+
+html.dark .nav-capsule {
+  background: #2a2a2a;
+}
+html.dark .nav-item {
+  color: #9ca3af;
+}
+html.dark .nav-item.active {
+  background: #3a3a3a;
+  color: #e86f83;
+}
+
 </style>
