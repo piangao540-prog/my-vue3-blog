@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref} from 'vue'
 import { useBlogStore } from '@/stores/blog'
 import { ElCard, ElTag, ElRow, ElCol } from 'element-plus'
 import { Document, View } from '@element-plus/icons-vue'
@@ -38,6 +38,16 @@ const articles = computed(() => {
   })
 })
 
+// 跟随鼠标移动
+const heroGlow = ref({x:20,y:50})
+const handleHeroMove = (e:MouseEvent) => {
+  const rect = (e.target as HTMLElement).getBoundingClientRect()
+  heroGlow.value = {
+    x:((e.clientX - rect.left) / rect.width) * 100,
+    y:((e.clientY - rect.top) / rect.height) * 100
+  }
+}
+
 // 加载文章
 onMounted(() => {
   blogStore.loadArticles()
@@ -46,7 +56,7 @@ onMounted(() => {
 
 <template>
   <div class="home-container">
-    <section class="hero-section">
+    <section class="hero-section" @mousemove="handleHeroMove">
       <div class="hero-content">
         <!-- 左边：标题和按钮 -->
         <div class="hero-left">
@@ -94,7 +104,14 @@ onMounted(() => {
             <el-button text @click="goToArticles">查看全部 →</el-button>
           </div>
           <TagFilter />
-          <div v-if="blogStore.loading">加载中...</div>
+          <div v-if="blogStore.loading" class="skeleton-list">
+            <el-skeleton v-for="n in 3" :key="n" animated>
+              <el-skeleton-item variant="h3" style="width: 60%; margin-bottom: 12px;"/>
+              <el-skeleton-item variant="text" style=" margin-bottom: 8px;"/>
+              <el-skeleton-item variant="text" style="width: 80%; margin-bottom: 8px;"/>
+              <el-skeleton-item variant="text" style="width: 60%;"/>
+            </el-skeleton>
+          </div>
           <el-card v-for="article in articles" :key="article.id" class="article-card" shadow="hover"
             @click="goToArticle(article.id)">
             <div class="article-content">
@@ -175,7 +192,7 @@ onMounted(() => {
   background-image:
     linear-gradient(rgba(255,255,255,0.07) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255,255,255,0.07) 1px, transparent 1px),
-    radial-gradient(ellipse at 20% 50%, rgba(100, 100, 255, 0.15) 0%, transparent 60%);
+    radial-gradient(ellipse at v-bind('heroGlow.x + "%"') v-bind('heroGlow.y + "%"'), rgba(232, 100, 255, 0.15) 0%, transparent 60%);
   background-size: 40px 40px, 40px 40px, 100% 100%;
   border-radius: 16px;
   padding: 40px;
@@ -308,7 +325,19 @@ onMounted(() => {
 .article-card {
   margin-bottom: 16px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: transform 0.2s, box-shadow 0.2s;
+  animation: slideUp 0.4s ease;
+
+}
+
+.article-card:hover{
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .article-card:hover {
@@ -550,6 +579,11 @@ onMounted(() => {
   color: #909399;
   /* 和日期同色 */
   font-size: 0.85rem;
+  transition: transform 0.2s;
+}
+
+.article-like:active {
+  transform: scale(1.2);
 }
 
 html.dark .recommended-item {

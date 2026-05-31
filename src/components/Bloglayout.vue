@@ -2,6 +2,7 @@
 import LayoutHead from './LayoutHead.vue'
 import LayoutFooter from './LayoutFooter.vue'
 import BackToTop from './BackToTop.vue'
+import component from 'element-plus/es/components/tree-select/src/tree-select-option.mjs';
 </script>
 
 <template>
@@ -9,7 +10,11 @@ import BackToTop from './BackToTop.vue'
     <LayoutHead />
 
     <main class="blog-main">
-      <router-view />
+      <router-view v-slot="{Component}">
+        <transition name="fade">
+          <component :is="Component" />
+        </transition>
+      </router-view>
     </main>
     <BackToTop />
 
@@ -30,5 +35,11 @@ import BackToTop from './BackToTop.vue'
   width: 100%;
   margin: 0 auto;
   padding: 20px;
+  min-height: calc(100vh - 160px);
+  position: relative;
+}
+
+.blog-main > div{
+  position:relative;
 }
 </style>
