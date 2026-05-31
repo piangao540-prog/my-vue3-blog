@@ -436,6 +436,58 @@ onMounted(() => {
   line-height: 1.4;
 }
 
+/* 入场动画 */
+.hero-section{
+  animation: fadeInDown 0.5s ease;
+}
+
+.hero-left{
+  animation: fadeInLeft 0.5s ease 0.1s both;
+}
+
+.hero-right{
+    animation: fadeInRight 0.5s ease 0.2s both;
+}
+
+.main--content{
+    animation: fadeInUp 0.5s ease 0.3s both;
+}
+
+
+.article-card {
+    animation: fadeInUp 0.4s ease backwards;
+}
+
+.article-card:nth-child(1) {animation-delay: 0.3s;}
+.article-card:nth-child(2) {animation-delay: 0.4s;}
+.article-card:nth-child(3) {animation-delay: 0.5s;}
+
+.sidebar-card {
+  animation: fadeInRight 0.4s ease backwards;
+}
+.sidebar-card:nth-child(1) { animation-delay: 0.4s; }
+.sidebar-card:nth-child(2) { animation-delay: 0.5s; }
+
+@keyframes fadeInUp {
+  form {opacity:0; transform: translateX(20px);}
+  to {opacity:1; transform: translateX(0);}
+}
+
+@keyframes fadeInDown {
+  from {opacity:0; transform: translateX(-20px);}
+  to {opacity:1; transform: translateX(0);}
+}
+
+@keyframes fadeInLeft {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fadeInRight {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
 /* 移动端适配 */
 @media (max-width: 768px) {
   /* 整体容器适配 */
