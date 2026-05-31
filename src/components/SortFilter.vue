@@ -41,13 +41,28 @@ const handleSortChange = (option: typeof sortOptions[number]) => {
 .sort-container {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  background: #d9f8ef;
+  padding: 4px 12px;
+  border: 1px solid #ffbdb1;
+  border-radius: 6px;
+  margin-top: 3px;
 }
 
 .sort-button {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  font-family: 'Noto Serif SC', serif;
+  font-size: 12px;
+  color: #555;
+  letter-spacing: 1px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 2px 8px;
+}
+
+.sort-button:hover {
+  background: #eee;
+  border-radius: 3px;
 }
 
 .active {
@@ -62,7 +77,9 @@ const handleSortChange = (option: typeof sortOptions[number]) => {
 }
 
 .order-toggle {
-  font-size: 12px;
-  color: #6b7280;
+  font-family: 'Noto Serif SC', serif;
+  font-size: 11px;
+  color: #888;
+  letter-spacing: 0.5px;
 }
 </style>

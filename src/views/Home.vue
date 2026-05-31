@@ -38,15 +38,6 @@ const articles = computed(() => {
   })
 })
 
-// 跟随鼠标移动
-const heroGlow = ref({x:20,y:50})
-const handleHeroMove = (e:MouseEvent) => {
-  const rect = (e.target as HTMLElement).getBoundingClientRect()
-  heroGlow.value = {
-    x:((e.clientX - rect.left) / rect.width) * 100,
-    y:((e.clientY - rect.top) / rect.height) * 100
-  }
-}
 
 // 加载文章
 onMounted(() => {
@@ -56,7 +47,7 @@ onMounted(() => {
 
 <template>
   <div class="home-container">
-    <section class="hero-section" @mousemove="handleHeroMove">
+    <section class="hero-section">
       <div class="hero-content">
         <!-- 左边：标题和按钮 -->
         <div class="hero-left">
@@ -188,21 +179,23 @@ onMounted(() => {
   max-width: 900px;
   height: 300px;
   margin: 0px auto;
-  background-color: #0a0a23;
-  background-image:
-    linear-gradient(rgba(255,255,255,0.07) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.07) 1px, transparent 1px),
-    radial-gradient(ellipse at v-bind('heroGlow.x + "%"') v-bind('heroGlow.y + "%"'), rgba(232, 100, 255, 0.15) 0%, transparent 60%);
-  background-size: 40px 40px, 40px 40px, 100% 100%;
+  background-image: url('https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=900');
+  background-size: cover;
+  background-position: center;
   border-radius: 16px;
   padding: 40px;
   color: white;
   position: relative;
   overflow: hidden;
   margin-bottom: 40px;
-  background-position: 0% 50%, 0% 50%, 20% 50%;
-  transition: background-position 0.3s;
+}
 
+.hero-section::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  pointer-events: none;
 }
 
 .hero-content {
@@ -269,11 +262,16 @@ onMounted(() => {
   background-color: #d95d72;
   border-color: #d95d72;
   color: #fff;
+  transform: scale(1.05);
 }
 
 .secondary-action {
   border-radius: 20px;
   padding: 8px 20px;
+}
+
+.secondary-action:hover {
+  transform: scale(1.05);
 }
 
 .hero-stats {
@@ -304,6 +302,20 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
+}
+
+.section-header .el-button--primary {
+  background: none;
+  border: none;
+  color: #555;
+  font-family: 'Noto Serif SC', serif;
+  font-size: 15px;
+  padding: 0;
+  letter-spacing: 0.5px;
+}
+.section-header .el-button--primary:hover {
+  color: #e86f83;
+  transform: scale(1.05);
 }
 
 .header-left {
