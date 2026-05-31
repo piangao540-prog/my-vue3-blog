@@ -7,24 +7,18 @@ const app = express()
 app.use(cors())
 app.use(express.json())
 
-const db = mysql.createConnection({
+const db = mysql.createPool({
     host: process.env.DB_HOST || 'localhost',
     port: process.env.DB_PORT || '3307',
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || 'you520.zb',
     database: process.env.DB_NAME || 'blog',
-    charset: 'utf8mb4'
+    charset: 'utf8mb4',
+    connectionLimit: 5,
+    ssl: process.env.VERCEL ? { rejectUnauthorized: true } : false
 })
 
 
-
-db.connect(err => {
-    if (err) {
-        console.log('数据库连接失败:', err)
-        return
-    }
-    console.log('MySQL已连接')
-})
 
 app.get('/api/articles', (req, res) => {
     db.query('SELECT * FROM articles ORDER BY createdAt DESC', (err, result) => {

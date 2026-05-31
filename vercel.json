@@ -1,4 +1,8 @@
 {
+    "rewrites": [
+        { "source": "/api/(.*)", "destination": "/api" },
+        { "source": "/(.*)", "destination": "/index.html" }
+    ],
     "functions": {
         "api/index.js": {
             "memory": 256,
