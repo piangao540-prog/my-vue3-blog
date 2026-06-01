@@ -175,6 +175,7 @@ app.get('/api/auth/me', (req, res) => {
 // Ai文章摘要
 app.post('/api/ai/summary', async (req, res) => {
     const { content, articleId } = req.body
+    // 先查缓存
     if (!content) return res.status(400).json({ error: '缺少文章内容' })
     if (articleId) {
         const [rows] = await db.promise().query('SELECT ai_summary FROM articles WHERE id=?', [articleId])
@@ -183,31 +184,51 @@ app.post('/api/ai/summary', async (req, res) => {
         }
     }
 
-    try {
-        const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY || 'sk-ce6b8c1a9f0643328764fe1839b62109'}`
-            },
-            body: JSON.stringify({
-                model: 'deepseek-v4-flash',
-                messages: [
-                    { role: 'system', content: '你是一个博客助手，请用一句话概括文章内容，不超过50字' },
-                    { role: 'user', content: content.slice(0, 2000) }
-                ]
-            })
-        })
+    res.setHeader('Content-Type', 'text/event-stream')
+    res.setHeader('Cache-Control', 'no-cache')
+    res.setHeader('Connection', 'keep-alive')
 
-        const data = await response.json()
-        const summary = data.choices[0].message.content
-        if (articleId) {
-            await db.promise().query('UPDATE articles SET ai_summary=? WHERE id=?', [summary,articleId])
+    const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY || 'sk-ce6b8c1a9f0643328764fe1839b62109'}`
+        },
+        body: JSON.stringify({
+            model: 'deepseek-v4-flash',
+            stream: true,
+            messages: [
+                { role: 'system', content: '你是一个博客助手，请用一句话概括文章内容，不超过50字' },
+                { role: 'user', content: content.slice(0, 2000) }
+            ]
+        })
+    })
+
+    let summary = ''
+    const reader = response.body.getReader()
+    const decoder = new TextDecoder()
+
+    while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        const chunk = decoder.decode(value)
+        const lines = chunk.split('\n').filter(a => a.startsWith('data:'))
+        for (const line of lines) {
+            if (line.includes('[DONE]')) continue
+            console.log(line)
+            const data = JSON.parse(line.slice(6))
+            const text = data.choices[0]?.delta?.content || ''
+            summary += text
+            res.write(`data: ${JSON.stringify({ text })}\n\n`)
         }
-        res.json({ summary })
-    } catch (err) {
-        res.status(500).json({ error: err.message })
     }
+
+    // 存缓存
+    if (articleId) {
+        await db.promise().query('UPDATE articles SET ai_summary=? WHERE id=?', [summary, articleId])
+    }
+    res.write('data: [DONE]\n\n')
+    res.end()
 })
 
 
