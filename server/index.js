@@ -172,6 +172,34 @@ app.get('/api/auth/me', (req, res) => {
         })
 })
 
+// Ai文章摘要
+app.post('/api/ai/summary', async (req, res) => {
+    const { content } = req.body
+    if (!content) return res.status(400).json({ error: '缺少文章内容' })
+    try {
+        const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY || 'sk-ce6b8c1a9f0643328764fe1839b62109'}`
+            },
+            body: JSON.stringify({
+                model: 'deepseek-v4-flash',
+                messages: [
+                    { role: 'system', content: '你是一个博客助手，请用一句话概括文章内容，不超过50字' },
+                    { role: 'user', content: content.slice(0, 2000) }
+                ]
+            })
+        })
+
+        const data = await response.json()
+        res.json({ summary: data.choices[0].message.content })
+    } catch (err) {
+        res.status(500).json({ error: err.message })
+    }
+})
+
+
 // 查询用户自己的评论
 app.get('/api/comments/user', (req, res) => {
     db.query('SELECT * FROM comments WHERE author=? ORDER BY createdAt DESC',
