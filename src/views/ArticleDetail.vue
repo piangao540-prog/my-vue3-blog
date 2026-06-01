@@ -30,6 +30,15 @@
         </div>
       </header>
       <div class="article-content" v-html="article.content.includes('<') ? article.content : marked(article.content)"></div>
+      <div class="ai-summary">
+        <el-button v-if="!aiSummary" link @click="getAiSummary" :loading="aiLoading">
+          ai文章摘要
+        </el-button>
+        <div v-else class="summary-card">
+          <span class="summary-label">Ai 摘要</span>
+          <p>{{ aiSummary }}</p>
+        </div>
+      </div>
       <footer class="article-footer">
         <el-divider />
         <div class="article-nav">
@@ -68,12 +77,30 @@ import CommentSection from '@/components/CommentSection.vue'
 import { useUserStore } from '@/stores/user'
 import type { Article } from '@/stores/blog'
 import {marked} from 'marked'
+import { getAiSummary as apiAiSummary} from '@/api/ai'
 
 
+const aiSummary = ref('')
+const aiLoading =  ref(false)
 const userStore = useUserStore()
 const route = useRoute()
 const router = useRouter()
 const blogStore = useBlogStore()
+
+
+// ai文章摘要
+const getAiSummary = async () => {
+  if(aiSummary.value || !article.value) return 
+  aiLoading.value = true
+  try{
+    aiSummary.value = await apiAiSummary(article.value.content)
+  }catch{
+    aiSummary.value = '生成失败'
+  }finally{
+    aiLoading.value = false
+  }
+}
+
 
 const article = ref<Article | null>(null)
 // 获取当前文章的索引
@@ -117,6 +144,8 @@ onMounted(async () => {
 // 监听路由参数变化（同一路由不同参数）
 watch(() => route.params.id, async (newId) => {
   if (newId) {
+    window.scrollTo(0,0)
+    aiSummary.value = ''
     const id = Number(newId)
     await loadArticle(id)
   }
@@ -441,5 +470,38 @@ html.dark .login-prompt p {
   text-align: left;
 }
 .article-content th { background: #f5f5f5; }
+
+.ai-summary { 
+  margin: 24px 0;
+  text-align: center; 
+}
+
+.ai-summary .el-button{
+  font-family: 'Noto Serif Sc',serif;
+  font-size: 14px;
+  color: #141212;
+  border: 1px dashed #e86f83;
+  border-radius: 8px;
+  padding: 10px 24px;
+  background: #fdf6ec;
+  letter-spacing: 1px;
+}
+
+
+
+.summary-card {
+  background: #f8f4ef;
+  border: 1px solid #e8ddd0;
+  border-radius: 8px;
+  padding: 16px;
+  font-size: 14px;
+  color: #555;
+}
+.summary-label { 
+  font-weight: 600; 
+  color: #f0b5bf; 
+  display: block; 
+  margin-bottom: 8px; 
+}
 
 </style>
