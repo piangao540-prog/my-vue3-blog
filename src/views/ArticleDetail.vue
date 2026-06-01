@@ -93,7 +93,7 @@ const getAiSummary = async () => {
   if(aiSummary.value || !article.value) return 
   aiLoading.value = true
   try{
-    aiSummary.value = await apiAiSummary(article.value.content)
+    aiSummary.value = await apiAiSummary(article.value.content,article.value.id)
   }catch{
     aiSummary.value = '生成失败'
   }finally{

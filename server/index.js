@@ -174,8 +174,15 @@ app.get('/api/auth/me', (req, res) => {
 
 // Ai文章摘要
 app.post('/api/ai/summary', async (req, res) => {
-    const { content } = req.body
+    const { content, articleId } = req.body
     if (!content) return res.status(400).json({ error: '缺少文章内容' })
+    if (articleId) {
+        const [rows] = await db.promise().query('SELECT ai_summary FROM articles WHERE id=?', [articleId])
+        if (rows[0]?.ai_summary) {
+            return res.json({ summary: rows[0].ai_summary })
+        }
+    }
+
     try {
         const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
             method: 'POST',
@@ -193,7 +200,11 @@ app.post('/api/ai/summary', async (req, res) => {
         })
 
         const data = await response.json()
-        res.json({ summary: data.choices[0].message.content })
+        const summary = data.choices[0].message.content
+        if (articleId) {
+            await db.promise().query('UPDATE articles SET ai_summary=? WHERE id=?', [summary,articleId])
+        }
+        res.json({ summary })
     } catch (err) {
         res.status(500).json({ error: err.message })
     }
