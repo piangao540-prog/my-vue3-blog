@@ -90,10 +90,16 @@ const blogStore = useBlogStore()
 
 // ai文章摘要
 const getAiSummary = async () => {
-  if(aiSummary.value || !article.value) return 
+  if(aiSummary.value || !article.value) return
   aiLoading.value = true
+  aiSummary.value = ''
   try{
-    aiSummary.value = await apiAiSummary(article.value.content,article.value.id)
+    const text = await apiAiSummary(article.value.content, article.value.id)
+    // 打字机效果
+    for (let i = 0; i < text.length; i++) {
+      aiSummary.value += text[i]
+      await new Promise(r => setTimeout(r, 30))
+    }
   }catch{
     aiSummary.value = '生成失败'
   }finally{
