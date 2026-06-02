@@ -94,12 +94,21 @@ const getAiSummary = async () => {
   aiLoading.value = true
   aiSummary.value = ''
   try{
-    const text = await apiAiSummary(article.value.content, article.value.id)
-    // 打字机效果
-    for (let i = 0; i < text.length; i++) {
-      aiSummary.value += text[i]
-      await new Promise(r => setTimeout(r, 30))
-    }
+    let lastText = ''
+    await apiAiSummary(article.value.content,article.value.id,
+      (text) => {const newChars = text.slice(lastText.length)
+      lastText = text
+      let i = 0
+      const timer = setInterval(() => {
+        if(i< newChars.length){
+          aiSummary.value += newChars[i]
+          i++
+        }else{
+          clearInterval(timer)
+        }
+      },30)
+      }
+    )
   }catch{
     aiSummary.value = '生成失败'
   }finally{

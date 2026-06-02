@@ -184,6 +184,11 @@ app.post('/api/ai/summary', async (req, res) => {
         }
     }
 
+    // 流式输出
+    res.setHeader('Content-Type', 'text/event-stream')
+    res.setHeader('Cache-Control', 'no-cache')
+    res.setHeader('Connection', 'keep-alive')
+
     const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -192,6 +197,7 @@ app.post('/api/ai/summary', async (req, res) => {
         },
         body: JSON.stringify({
             model: 'deepseek-v4-flash',
+            stream: true,
             messages: [
                 { role: 'system', content: '你是一个博客助手，请用一句话概括文章内容，不超过50字' },
                 { role: 'user', content: content.slice(0, 2000) }
@@ -199,15 +205,33 @@ app.post('/api/ai/summary', async (req, res) => {
         })
     })
 
-    const data = await response.json()
-    const summary = data.choices?.[0]?.message?.content || ''
+    let fullSummary = ''
+    const reader = response.body.getReader()
+    const decoder = new TextDecoder()
+
+    while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        const chunk = decoder.decode(value)
+        const lines = chunk.split('\n').filter(a => a.startsWith('data:') && !a.includes('[DONE]'))
+        for (const line of lines) {
+            try {
+                const data = JSON.parse(line.slice(6))
+                const text = data.choices?.[0]?.delta?.content || ''
+                if (text) {
+                    fullSummary += text
+                    res.write(`data: ${JSON.stringify({ text })}\n\n`)
+                }
+            } catch { }
+        }
+    }
 
     // 存缓存
     if (articleId) {
-        await db.promise().query('UPDATE articles SET ai_summary=? WHERE id=?', [summary, articleId])
+        await db.promise().query('UPDATE articles SET ai_summary=? WHERE id=?', [fullSummary, articleId])
     }
-
-    res.json({ summary })
+    res.write('data: [DONE]\n\n')
+    res.end()
 })
 
 
