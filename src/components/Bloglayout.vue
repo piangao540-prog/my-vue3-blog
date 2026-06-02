@@ -3,6 +3,14 @@ import LayoutHead from './LayoutHead.vue'
 import LayoutFooter from './LayoutFooter.vue'
 import BackToTop from './BackToTop.vue'
 import component from 'element-plus/es/components/tree-select/src/tree-select-option.mjs';
+import { trackPageView, setupErrorTacking } from '@/api/analytics';
+import { onMounted } from 'vue'
+
+
+onMounted(() => {
+  trackPageView(window.location.pathname)
+  setupErrorTacking()
+})
 </script>
 
 <template>

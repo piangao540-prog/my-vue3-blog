@@ -316,7 +316,7 @@ app.delete('/api/articles/:id/favorite', (req, res) => {
 app.post('/api/analytics', (req, res) => {
     const { page, event, data } = req.body
     db.query('INSERT INTO analytics (page,event,data) VALUES (?,?,?)',
-        [page, event, JOSN.stringify(data) || {}], (err) => {
+        [page, event, JSON.stringify(data || {})], (err) => {
             if (err) return res.status(500).json({ error: err.message })
             res.json({ success: true })
         }
