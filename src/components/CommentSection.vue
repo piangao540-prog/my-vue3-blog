@@ -38,7 +38,6 @@ const handleSubmit = () => {
                     <span class="comment-time">{{ formatTime(comment.createdAt) }}</span>
                 </div>
                 <p class="comment-content">{{ comment.content }}</p>
-                <button class="delete-btn" @click="deleteComment(comment.id)">删除</button>
             </div>
         </div>
     </div>

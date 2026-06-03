@@ -55,7 +55,7 @@
     </article>
     <!-- 评论区 -->
     <div v-if="userStore.isLoggedIn">
-      <CommentSection />
+      <CommentSection :key="String(route.params.id)"/>
     </div>
     <div v-else>
       <div class="login-prompt">

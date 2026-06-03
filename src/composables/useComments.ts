@@ -31,12 +31,11 @@ export const useComments = (articleId?: number) => {
     const loadComments = async () => {
         if (articleId) {
             comments.value = await commentApi.getComments(articleId)
-        } else{
-            const nickname = userStore.userInfo?.nickname
-            if (nickname){
-                comments.value = await commentApi.getUserComments(nickname)
-            }
-            }
+        } else {
+            const user = userStore.userInfo
+            if (!user) return
+            comments.value = await commentApi.getUserComments(user.nickname || user.username)
+        }
     }
 
     // 添加评论
@@ -47,7 +46,7 @@ export const useComments = (articleId?: number) => {
         }
         const id = articleId
         if (!id) return
-        const author = userStore.userInfo?.nickname || '匿名用户'
+        const author = userStore.userInfo?.nickname || userStore.userInfo?.username || '匿名用户'
         const authorAvatar = userStore.userInfo?.avatar || userAvatar
         await commentApi.addComment(id, content, author, authorAvatar)
         await loadComments()

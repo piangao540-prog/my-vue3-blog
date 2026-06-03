@@ -38,7 +38,7 @@
       <el-tab-pane label="我的收藏" name="likes">
         <div v-if="likedArticles.length === 0" class="empty-tip">暂无收藏</div>
         <ul v-else class="article-list">
-          <li v-for="article in likedArticles" :key="article.id" class="article-item" @click="goToArticle(article)">
+          <li v-for="article in likedArticles" :key="article.id" class="article-item" @click="() => goToArticle(article)">
             {{ article.title }}
           </li>
         </ul>
@@ -82,7 +82,8 @@ const likedArticles = computed(() => {
   return blogStore.articles.filter(a => a.like)
 })
 const myComments = computed(() => {
-  return comments.value.filter(a => a.author === userInfo.value?.nickname)
+  const name = userInfo.value?.nickname || userInfo.value?.username
+  return comments.value.filter(a => a.author === name)
 })
 
 // 方法
