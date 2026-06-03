@@ -11,6 +11,7 @@ import { useSort, type SortKey } from '@/composables/useSort'
 import { getTagColor } from '@/composables/useTagColor'
 import TagChart from '@/components/TagChart.vue'
 import ArticleCarousel from '@/components/ArticleCarousel.vue'
+import { getAnalyticsSummary } from '@/api/analytics'
 
 
 
@@ -38,6 +39,11 @@ const articles = computed(() => {
   })
 })
 
+
+// 热门推荐（基于访问量）
+const popularArticles = computed(() => {
+  return [...blogStore.articles].sort((a, b) => b.views - a.views).slice(0, 3)
+})
 
 // 加载文章
 onMounted(() => {
@@ -156,9 +162,10 @@ onMounted(() => {
               </div>
             </template>
             <div class="recommended-list">
-              <div v-for="article in blogStore.latestArticles.slice(0, 3)" :key="article.id" class="recommended-item"
+              <div v-for="article in popularArticles" :key="article.id" class="recommended-item"
                 @click="goToArticle(article.id)">
                 <span class="recommended-title">{{ article.title }}</span>
+                <span class="recommended-views">{{ article.views }} 阅读</span>
               </div>
             </div>
           </el-card>
@@ -179,7 +186,7 @@ onMounted(() => {
   max-width: 900px;
   height: 300px;
   margin: 0px auto;
-  background-image: url('https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=900');
+  background-image: url('@/assets/images/hero-bg.jpg');
   background-size: cover;
   background-position: center;
   border-radius: 16px;
@@ -444,8 +451,16 @@ onMounted(() => {
 
 .recommended-title {
   font-size: 0.95rem;
-  color: #409eff;
+  font-weight: 500;
+  color: #0d53df8f;
   line-height: 1.4;
+}
+
+.recommended-views {
+  font-size: 0.75rem;
+  color: #060606;
+  display: block;
+  margin-top: 2px;
 }
 
 /* 入场动画 */

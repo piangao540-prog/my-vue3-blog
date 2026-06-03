@@ -347,6 +347,20 @@ app.post('/api/analytics', (req, res) => {
     )
 })
 
+// 统计概括
+app.get('/api/analytics/summary', (req, res) => {
+    const sqlPages = "SELECT page,COUNT(*) AS count FROM analytics WHERE event='pageview' GROUP BY page ORDER BY count DESC LIMIT 10"
+    const sqlDaily = "SELECT DATE_FORMAT(createdAt, '%Y-%m-%d') AS day,COUNT(*) AS count FROM analytics WHERE event='pageview' GROUP BY day ORDER BY day DESC LIMIT 7"
+
+    db.query(sqlPages, (err, pages) => {
+        if (err) return res.status(500).json({ error: err.message })
+        db.query(sqlDaily, (err2, daily) => {
+            if (err2) return res.status(500).json({ error: err2.message })
+            res.json({ pages, daily })
+        })
+    })
+})
+
 
 
 if (!process.env.VERCEL) {

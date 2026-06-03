@@ -45,6 +45,25 @@
                     </el-table-column>
                 </el-table>
             </el-tab-pane>
+            <el-tab-pane label="数据统计" name="analytics">
+                <div v-if="!analytics.pages" class="empty-tip">暂无数据</div>
+                <div v-else>
+                    <h3>每日访问趋势</h3>
+                    <ul class="analytics-list daily">
+                        <li v-for="item in analytics.daily" :key="item.day" class="analytics-item">
+                            <span class="analytics-page">{{ item.day }}</span>
+                            <span class="analytics-count">{{ item.count }} 次</span>
+                        </li>
+                    </ul>
+                    <h3>热门页面</h3>
+                    <ul class="analytics-list">
+                        <li v-for="item in analytics.pages" :key="item.page" class="analytics-item">
+                            <span class="analytics-page">{{ displayPage(item.page) }}</span>
+                            <span class="analytics-count">{{ item.count }} 次访问</span>
+                        </li>
+                    </ul>
+                </div>
+            </el-tab-pane>
         </el-tabs>
 
     </div>
@@ -58,8 +77,9 @@ import { useRouter } from 'vue-router'
 import { ElTabs, ElTabPane, ElTable, ElTableColumn, ElButton } from 'element-plus'
 import { formatTime } from '@/composables/useComments'
 import { useUserStore } from '@/stores/user'
+import { getAnalyticsSummary } from '@/api/analytics'
 
-
+const analytics = ref<{ pages: any[], daily: any[] }>({ pages: [], daily: [] })
 const userStore = useUserStore()
 const articleManagerStore = useArticleManagerStore()
 const router = useRouter()
@@ -88,9 +108,26 @@ const handleDeleteDraft = async (id:number) => {
     }
 }
 
+// 页面路径转标题
+const displayPage = (page: string) => {
+    const m = page.match(/^\/articles\/(\d+)$/)
+    if (m) {
+        const article = blogStore.articles.find(a => a.id === Number(m[1]))
+        if (article) return article.title
+    }
+    const names: Record<string, string> = { '/': '首页', '/admin': '后台管理', '/profile': '个人中心', '/articles': '文章列表', '/archive': '归档', '/about': '关于' }
+    return names[page] || page
+}
+
+// 数据概括
+const loadAnalytics = async () => {
+    analytics.value = await getAnalyticsSummary()
+}
+
 onMounted(async () => {
     await blogStore.loadArticles()
     await articleManagerStore.loadDrafts()
+    await loadAnalytics()
 })
 </script>
 
@@ -104,4 +141,28 @@ onMounted(async () => {
 h1 {
   margin-bottom: 20px;
 }
+
+.empty-tip { 
+    color: #999; text-align: center; padding: 40px 0; 
+}
+
+.analytics-list { 
+    list-style: none; padding: 0;
+}
+
+.analytics-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.analytics-page { 
+    font-size: 14px; color: #333; 
+}
+
+.analytics-count { 
+    font-size: 14px; color: #e86f83; font-weight: 600; 
+}
+
 </style>

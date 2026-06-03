@@ -23,3 +23,9 @@ export const setupErrorTacking = () => {
         })
     }
 }
+
+// 统计概括
+export const getAnalyticsSummary = async () => {
+    const response = await axios.get('/analytics/summary')
+    return response.data
+}
