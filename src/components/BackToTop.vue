@@ -1,19 +1,23 @@
 <script setup lang="ts">
 import { ref ,onMounted,onUnmounted} from 'vue'
 import { Top } from '@element-plus/icons-vue'
+import {throttle} from '@/utils/throttle'
 
 const showBackToTop = ref(false)
 const handleScroll = () =>{
     showBackToTop.value = window.scrollY > 300
 }
+const throttledScroll = throttle(handleScroll,200)
+
 const scrollToTop = () =>{
     window.scrollTo({top:0,behavior:'smooth'})
 }
+
 onMounted(() =>{
-    window.addEventListener('scroll',handleScroll)
+    window.addEventListener('scroll',throttledScroll)
 })
 onUnmounted(() =>{
-    window.removeEventListener('scroll',handleScroll)
+    window.removeEventListener('scroll',throttledScroll)
 })
 </script>
 
