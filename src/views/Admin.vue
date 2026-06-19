@@ -3,47 +3,36 @@
         <h1>后台管理</h1>
         <el-tabs v-model="activeTab">
             <el-tab-pane label="已发布文章" name="published">
-                <el-table :data="publishedArticle" stripe>
-                    <el-table-column prop="title" label="标题" />
-                    <el-table-column prop="category" label="分类" width="120" />
-                    <el-table-column label="创建时间" width="140" >
-                        <template #default="{ row }">
-                            {{ formatTime(row.createdAt) }}
-                        </template>
-                    </el-table-column>
-                    <el-table-column label="字数" width="80">
-                    <template #default="{ row }">
+                <BaseTable :columns="publishedColumns" :data="publishedArticle" stripe>
+                    <template #createdAt="{ row }">
+                        {{ formatTime(row.createdAt) }}
+                    </template>
+
+                    <template #count="{ row }">
                         {{ articleManagerStore.calculateWordCount(row.content) || '-' }}
                     </template>
-                    </el-table-column>
-                    <el-table-column label="操作" width="160">
-                        <template #default="{row}" v-if="userStore.isAdmin">
-                            <el-button size="small" @click="editArticle(row.id)">编辑</el-button>
-                            <el-button size="small" type="danger" @click="handleDelete(row.id)">删除</el-button>
-                        </template>
-                    </el-table-column>
-                </el-table>
+                    <template #action="{row}" v-if="userStore.isAdmin">
+                        <el-button size="small" @click="editArticle(row.id)">编辑</el-button>
+                        <el-button size="small" type="danger" @click="handleDelete(row.id)">删除</el-button>
+                    </template>
+                </BaseTable>
             </el-tab-pane>
             <el-tab-pane label="草稿箱" name="draft">
-                <el-table :data="articleManagerStore.drafts" stripe>
-                    <el-table-column prop="title" label="标题" />
-                    <el-table-column label="最后修改" width="180">
-                    <template #default="{ row }">
+                <BaseTable :columns="draftColumns" :data="articleManagerStore.drafts" stripe>
+                    <template #updatedAt="{ row }">
                         {{ formatTime(row.updatedAt) }}
                     </template>
-                    </el-table-column>
-                    <el-table-column label="字数" width="80">
-                    <template #default="{ row }">
+
+                    <template #wordCount="{ row }">
                         {{ articleManagerStore.calculateWordCount(row.content) || '-' }}
                     </template>
-                    </el-table-column>
-                    <el-table-column label="操作" width="160">
-                        <template #default="{row}" v-if="userStore.isAdmin">
-                            <el-button size="small" @click="editArticle(row.id)">编辑</el-button>
-                            <el-button size="small" type="danger" @click="handleDeleteDraft(row.id)">删除</el-button>
-                        </template>
-                    </el-table-column>
-                </el-table>
+
+                    <template #work="{row}" v-if="userStore.isAdmin">
+                        <el-button size="small" @click="editArticle(row.id)">编辑</el-button>
+                        <el-button size="small" type="danger" @click="handleDeleteDraft(row.id)">删除</el-button>
+                    </template>
+
+                </BaseTable>
             </el-tab-pane>
             <el-tab-pane label="数据统计" name="analytics">
                 <div v-if="!analytics.pages" class="empty-tip">暂无数据</div>
@@ -74,16 +63,33 @@ import {computed,onMounted,ref} from 'vue'
 import { useArticleManagerStore } from '@/stores/articleManager'
 import { useBlogStore } from '@/stores/blog'
 import { useRouter } from 'vue-router'
-import { ElTabs, ElTabPane, ElTable, ElTableColumn, ElButton } from 'element-plus'
+import { ElTabs, ElTabPane, ElButton } from 'element-plus'
 import { formatTime } from '@/composables/useComments'
 import { useUserStore } from '@/stores/user'
 import { getAnalyticsSummary } from '@/api/analytics'
+import BaseTable from '@/components/BaseTable.vue'
+
 
 const analytics = ref<{ pages: any[], daily: any[] }>({ pages: [], daily: [] })
 const userStore = useUserStore()
 const articleManagerStore = useArticleManagerStore()
 const router = useRouter()
 const blogStore = useBlogStore()
+
+const publishedColumns = [
+    {prop:'title', label: '标题'},
+    {prop:'category', label:'分类', width:120},
+    {label:'字数',width:80, slot:'count'},
+    {label:'创建时间', width:140, slot:'createdAt'},
+    {label:'操作',width:160, slot:'action'}
+]
+
+const draftColumns = [
+    {prop:'title', label:'标题'},
+    {label:'最后修改', width:180, slot:'updatedAt'},
+    {label:'字数', width:80, slot:'wordCount'},
+    {label:'操作', width:160, slot:'work'}
+]
 
 const publishedArticle = computed(() => {
     return blogStore.articles.filter(a => !a.status || a.status === 'published')
