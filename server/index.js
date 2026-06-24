@@ -1,18 +1,18 @@
-
 const express = require('express')
 const mysql = require('mysql2')
 const cors = require('cors')
+require('dotenv').config()
 
 const app = express()
 app.use(cors())
 app.use(express.json())
 
 const db = mysql.createPool({
-    host: process.env.DB_HOST || 'localhost',
-    port: process.env.DB_PORT || '3307',
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || 'you520.zb',
-    database: process.env.DB_NAME || 'blog',
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
     charset: 'utf8mb4',
     connectionLimit: 5,
     ssl: process.env.VERCEL ? { rejectUnauthorized: true } : false
@@ -193,7 +193,7 @@ app.post('/api/ai/summary', async (req, res) => {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY || 'sk-ce6b8c1a9f0643328764fe1839b62109'}`
+            'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`
         },
         body: JSON.stringify({
             model: 'deepseek-v4-flash',
