@@ -81,6 +81,12 @@ export const useUserStore = defineStore('user', () => {
   const init = async () => {
     const currentUser = localStorage.getItem('currentUser')
     if (currentUser) {
+      // 先立即从缓存恢复（同步）
+      const cached = localStorage.getItem(`user_${currentUser}`)
+      if (cached) {
+        userInfo.value = JSON.parse(cached)
+      }
+      // 再异步验证
       try {
         const user = await apiGetMe(currentUser)
         userInfo.value = {

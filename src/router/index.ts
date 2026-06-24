@@ -42,18 +42,19 @@ const router = createRouter({
     path: '/profile',
     name: 'profile',
     component: () => import('@/views/Profile.vue'),
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true}
   },
   {
     path: '/editor',
     name: 'editor',
-    component: () => import('@/views/ArticleEditorView.vue')
+    component: () => import('@/views/ArticleEditorView.vue'),
+    meta: { requiresAuth: true, role: 'admin' }
   },
   {
     path: '/admin',
     name: 'admin',
     component: () => import('@/views/Admin.vue'),
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, role: 'admin'}
   }]
 })
 // 路由守卫
@@ -61,9 +62,13 @@ router.beforeEach((to, from, next) => {
   const userStore = useUserStore()
   if (to.meta.requiresAuth && !userStore.isLoggedIn) {
     next('/login')
-  } else {
-    next()
+    return
   }
+  if(to.meta.role && userStore.userInfo?.role !== to.meta.role){
+    next('/')
+    return
+  }
+  next()
 })
 
 export default router
