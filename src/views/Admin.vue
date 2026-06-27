@@ -35,10 +35,17 @@
                 </BaseTable>
             </el-tab-pane>
             <el-tab-pane label="数据统计" name="analytics">
-                <div ref="chartRef" style="width:100%;height:300px"></div>
-                <div ref="barRef" style="width: 100%;height: 300px;margin-top: 20px;"></div>
-                <div ref="pieRef" style="width: 100%;height: 300px;margin-top: 20px;"></div>
+                <div class="chart-card">
+                    <div ref="chartRef" style="width:100%;height:400px"></div>
+                </div>
+                <div class="chart-card" style="margin-top:20px">
+                    <div ref="barRef" style="width:100%;height:300px"></div>
+                </div>
+                <div class="chart-card" style="margin-top:20px">
+                    <div ref="pieRef" style="width:100%;height:300px"></div>
+                </div>
             </el-tab-pane>
+
         </el-tabs>
 
     </div>
@@ -56,7 +63,6 @@ import { getAnalyticsSummary } from '@/api/analytics'
 import BaseTable from '@/components/BaseTable.vue'
 // echarts图
 import * as echarts from 'echarts'
-
 
 
 const analytics = ref<{ pages: any[], daily: any[] }>({ pages: [], daily: [] })
@@ -87,11 +93,25 @@ const initChart = () => {
     const days =  analytics.value.daily.map(item => item.day).reverse()
     const counts = analytics.value.daily.map(item => item.count).reverse()
     const option = {
-        title: {text:'每日访问趋势'},
+        title: {text:'每日访问趋势', left:'center', top:10},
         tooltip: {trigger: 'axis'},
+        grid: { top:50, bottom:30 },
         xAxis: {data: days},
         yAxis: {name:'次数'},
-        series: [{type: 'line', data:counts}]
+        series: [{
+            type: 'line', 
+            data:counts,
+            smooth: true,
+            lineStyle: {width: 3},
+            symbol: 'circle',
+            symbolSize: 8,
+            areaStyle: {
+                color: new echarts.graphic.LinearGradient(0,0,0,1,[
+                    {offset: 0, color: 'rgba(64,158,255,0.3)'},
+                    {offset: 1, color: 'rgba(64,158,255,0.05)' }
+                ])
+            }
+        }]
     }
     chart.setOption(option)
 }
@@ -102,11 +122,20 @@ const initBarChart =  () => {
     const pages = analytics.value.pages.map(item => displayPage(item.page))
     const counts = analytics.value.pages.map(item => item.count)
     const option = {
-        title: {text:'热门页面'},
+        title: {text:'热门页面', left:'center', top:10},
         tooltip: {trigger: 'axis'},
-        xAxis: {data: pages},
+        grid: { top:50, bottom:50 },
+        xAxis: {data: pages, axisLabel:{interval:0}},
         yAxis: {name:'次数'},
-        series: [{type: 'bar' ,data: counts}]
+        series: [{
+            type: 'bar',
+            data: counts,
+            barWidth: '60%',
+            itemStyle: {
+                borderRadius: [4,4,0,0],
+                color: '#409EFF'
+            }
+        }]
     }
     barChart.setOption(option)
 }
@@ -119,11 +148,26 @@ const initpieChart = () =>{
         value: item.count
     }))
     const option = {
-        title: {text : '页面访问占比'},
-        toolbar: {trigger: 'item'},
+        title: {text:'页面访问占比', left:'center', top:10},
+        tooltip: { trigger: 'item', formatter: '{b}: {c}次 ({d}%)' },
+        legend: {
+            orient: 'vertical',
+            left: '65%',
+            top: 'middle'
+        },
         series: [{
             type: 'pie',
-            radius: ['30%',"60%"],
+            radius: ['40%', '65%'],
+            center: ['30%', '55%'],
+            label: {
+                show: true,
+                formatter: '{d}%',
+                position: 'inside',
+                fontSize: 13,
+                fontWeight: 'bold',
+                color: '#fff'
+            },
+            labelLine: { show: false },
             data
         }]
     }
@@ -214,5 +258,12 @@ onUnmounted(() => window.removeEventListener('resize', handleResize))
 
 h1 {
   margin-bottom: 20px;
+}
+
+.chart-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    padding: 10px;
 }
 </style>
