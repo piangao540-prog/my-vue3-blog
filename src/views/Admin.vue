@@ -36,23 +36,7 @@
             </el-tab-pane>
             <el-tab-pane label="数据统计" name="analytics">
                 <div ref="chartRef" style="width:100%;height:300px"></div>
-                <!-- <div v-if="!analytics.pages" class="empty-tip">暂无数据</div>
-                <div v-else>
-                    <h3>每日访问趋势</h3>
-                    <ul class="analytics-list daily">
-                        <li v-for="item in analytics.daily" :key="item.day" class="analytics-item">
-                            <span class="analytics-page">{{ item.day }}</span>
-                            <span class="analytics-count">{{ item.count }} 次</span>
-                        </li>
-                    </ul>
-                    <h3>热门页面</h3>
-                    <ul class="analytics-list">
-                        <li v-for="item in analytics.pages" :key="item.page" class="analytics-item">
-                            <span class="analytics-page">{{ displayPage(item.page) }}</span>
-                            <span class="analytics-count">{{ item.count }} 次访问</span>
-                        </li>
-                    </ul>
-                </div> -->
+                <div ref="barRef" style="width: 100%;height: 300px;margin-top: 20px;"></div>
             </el-tab-pane>
         </el-tabs>
 
@@ -60,7 +44,7 @@
 </template>
 
 <script lang="ts" setup>
-import {computed,onMounted,ref,watch,nextTick} from 'vue'
+import {computed,onMounted,onUnmounted,ref,watch,nextTick} from 'vue'
 import { useArticleManagerStore } from '@/stores/articleManager'
 import { useBlogStore } from '@/stores/blog'
 import { useRouter } from 'vue-router'
@@ -89,28 +73,45 @@ const loadAnalytics = async () => {
 // echarts图
 const chartRef = ref<HTMLDivElement | null>(null)
 let chart: echarts.ECharts | null = null
-
+const barRef = ref<HTMLDivElement | null>(null)
+let barChart: echarts.ECharts | null = null
+// 每日图
 const initChart = () => {
     if (!chartRef.value) return
     chart = echarts.init(chartRef.value)
     const days =  analytics.value.daily.map(item => item.day).reverse()
     const counts = analytics.value.daily.map(item => item.count).reverse()
     const option = {
+        title: {text:'每日访问趋势'},
+        tooltip: {trigger: 'axis'},
         xAxis: {data: days},
-        yAxis: {},
+        yAxis: {name:'次数'},
         series: [{type: 'line', data:counts}]
     }
     chart.setOption(option)
+}
+// 热门图
+const initBarChart =  () => {
+    if(!barRef.value || !analytics.value.pages) return
+    barChart = echarts.init(barRef.value)
+    const pages = analytics.value.pages.map(item => displayPage(item.page))
+    const counts = analytics.value.pages.map(item => item.count)
+    const option = {
+        title: {text:'热门页面'},
+        tooltip: {trigger: 'axis'},
+        xAxis: {data: pages},
+        yAxis: {name:'次数'},
+        series: [{type: 'bar' ,data: counts}]
+    }
+    barChart.setOption(option)
 }
 
 watch(activeTab,async (tab) => {
     if (tab === 'analytics') {
         await nextTick()
-        if (!chart) {
-            initChart()
-        } else {
-            chart.resize()
-        }
+        if (!chart) initChart()
+        if (!barChart) initBarChart()
+
     }
 })
 
@@ -169,6 +170,13 @@ onMounted(async () => {
     await articleManagerStore.loadDrafts()
     await loadAnalytics()
 })
+
+const handleResize = () => {
+    chart?.resize()
+    barChart?.resize()
+}
+onMounted(() => window.addEventListener('resize', handleResize))
+onUnmounted(() => window.removeEventListener('resize', handleResize))
 </script>
 
 <style scoped>
@@ -181,28 +189,4 @@ onMounted(async () => {
 h1 {
   margin-bottom: 20px;
 }
-
-.empty-tip { 
-    color: #999; text-align: center; padding: 40px 0; 
-}
-
-.analytics-list { 
-    list-style: none; padding: 0;
-}
-
-.analytics-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 10px 0;
-  border-bottom: 1px solid #eee;
-}
-
-.analytics-page { 
-    font-size: 14px; color: #333; 
-}
-
-.analytics-count { 
-    font-size: 14px; color: #e86f83; font-weight: 600; 
-}
-
 </style>
