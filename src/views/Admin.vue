@@ -35,7 +35,8 @@
                 </BaseTable>
             </el-tab-pane>
             <el-tab-pane label="数据统计" name="analytics">
-                <div v-if="!analytics.pages" class="empty-tip">暂无数据</div>
+                <div ref="chartRef" style="width:100%;height:300px"></div>
+                <!-- <div v-if="!analytics.pages" class="empty-tip">暂无数据</div>
                 <div v-else>
                     <h3>每日访问趋势</h3>
                     <ul class="analytics-list daily">
@@ -51,7 +52,7 @@
                             <span class="analytics-count">{{ item.count }} 次访问</span>
                         </li>
                     </ul>
-                </div>
+                </div> -->
             </el-tab-pane>
         </el-tabs>
 
@@ -59,7 +60,7 @@
 </template>
 
 <script lang="ts" setup>
-import {computed,onMounted,ref} from 'vue'
+import {computed,onMounted,ref,watch,nextTick} from 'vue'
 import { useArticleManagerStore } from '@/stores/articleManager'
 import { useBlogStore } from '@/stores/blog'
 import { useRouter } from 'vue-router'
@@ -68,6 +69,8 @@ import { formatTime } from '@/composables/useComments'
 import { useUserStore } from '@/stores/user'
 import { getAnalyticsSummary } from '@/api/analytics'
 import BaseTable from '@/components/BaseTable.vue'
+// echarts图
+import * as echarts from 'echarts'
 
 
 const analytics = ref<{ pages: any[], daily: any[] }>({ pages: [], daily: [] })
@@ -75,6 +78,41 @@ const userStore = useUserStore()
 const articleManagerStore = useArticleManagerStore()
 const router = useRouter()
 const blogStore = useBlogStore()
+const activeTab = ref('published')
+
+
+// 数据概括
+const loadAnalytics = async () => {
+    analytics.value = await getAnalyticsSummary()
+}
+
+// echarts图
+const chartRef = ref<HTMLDivElement | null>(null)
+let chart: echarts.ECharts | null = null
+
+const initChart = () => {
+    if (!chartRef.value) return
+    chart = echarts.init(chartRef.value)
+    const days =  analytics.value.daily.map(item => item.day).reverse()
+    const counts = analytics.value.daily.map(item => item.count).reverse()
+    const option = {
+        xAxis: {data: days},
+        yAxis: {},
+        series: [{type: 'line', data:counts}]
+    }
+    chart.setOption(option)
+}
+
+watch(activeTab,async (tab) => {
+    if (tab === 'analytics') {
+        await nextTick()
+        if (!chart) {
+            initChart()
+        } else {
+            chart.resize()
+        }
+    }
+})
 
 const publishedColumns = [
     {prop:'title', label: '标题'},
@@ -99,7 +137,7 @@ const editArticle = (id:number) =>{
     router.push(`/editor?id=${id}`)
 }
 
-const activeTab = ref('published')
+
 // 删除已发布文章
 const handleDelete = async (id:number) =>{
     if(confirm('确定要删除这篇文章吗')){
@@ -125,10 +163,6 @@ const displayPage = (page: string) => {
     return names[page] || page
 }
 
-// 数据概括
-const loadAnalytics = async () => {
-    analytics.value = await getAnalyticsSummary()
-}
 
 onMounted(async () => {
     await blogStore.loadArticles()
