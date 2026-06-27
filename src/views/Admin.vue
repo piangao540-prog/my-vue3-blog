@@ -37,6 +37,7 @@
             <el-tab-pane label="数据统计" name="analytics">
                 <div ref="chartRef" style="width:100%;height:300px"></div>
                 <div ref="barRef" style="width: 100%;height: 300px;margin-top: 20px;"></div>
+                <div ref="pieRef" style="width: 100%;height: 300px;margin-top: 20px;"></div>
             </el-tab-pane>
         </el-tabs>
 
@@ -57,6 +58,7 @@ import BaseTable from '@/components/BaseTable.vue'
 import * as echarts from 'echarts'
 
 
+
 const analytics = ref<{ pages: any[], daily: any[] }>({ pages: [], daily: [] })
 const userStore = useUserStore()
 const articleManagerStore = useArticleManagerStore()
@@ -75,6 +77,9 @@ const chartRef = ref<HTMLDivElement | null>(null)
 let chart: echarts.ECharts | null = null
 const barRef = ref<HTMLDivElement | null>(null)
 let barChart: echarts.ECharts | null = null
+const pieRef = ref<HTMLDivElement | null>(null)
+let pieChart: echarts.ECharts | null = null
+
 // 每日图
 const initChart = () => {
     if (!chartRef.value) return
@@ -105,13 +110,33 @@ const initBarChart =  () => {
     }
     barChart.setOption(option)
 }
+// 占比饼状图
+const initpieChart = () =>{
+    if(!pieRef.value || !analytics.value.pages) return
+    pieChart = echarts.init(pieRef.value)
+    const data = analytics.value.pages.map(item => ({
+        name: displayPage(item.page),
+        value: item.count
+    }))
+    const option = {
+        title: {text : '页面访问占比'},
+        toolbar: {trigger: 'item'},
+        series: [{
+            type: 'pie',
+            radius: ['30%',"60%"],
+            data
+        }]
+    }
+    pieChart.setOption(option)
+}
+
 
 watch(activeTab,async (tab) => {
     if (tab === 'analytics') {
         await nextTick()
         if (!chart) initChart()
         if (!barChart) initBarChart()
-
+        if (!pieChart) initpieChart()
     }
 })
 
@@ -174,6 +199,7 @@ onMounted(async () => {
 const handleResize = () => {
     chart?.resize()
     barChart?.resize()
+    pieChart?.resize()
 }
 onMounted(() => window.addEventListener('resize', handleResize))
 onUnmounted(() => window.removeEventListener('resize', handleResize))
