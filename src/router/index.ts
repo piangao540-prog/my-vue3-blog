@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import { ElMessage } from 'element-plus'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -65,6 +66,7 @@ router.beforeEach((to, from, next) => {
     return
   }
   if(to.meta.role && userStore.userInfo?.role !== to.meta.role){
+    ElMessage.warning('只有管理员才能访问')
     next('/')
     return
   }
