@@ -1,4 +1,6 @@
 import axios from 'axios'
+import { error } from 'console'
+import { config } from 'process'
 
 // 创建 Axios 实例
 const instance = axios.create({
@@ -8,6 +10,18 @@ const instance = axios.create({
     'Content-Type': 'application/json',
   },
 })
+
+// 请求拦截器
+instance.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token')
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+    return config
+  },
+  (error) => Promise.reject(error)
+)
 
 // 响应拦截器
 instance.interceptors.response.use(
