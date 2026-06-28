@@ -35,6 +35,26 @@
                 </BaseTable>
             </el-tab-pane>
             <el-tab-pane label="数据统计" name="analytics">
+                <div style="display: flex;gap: 20px;margin-bottom: 20px;">
+                    <el-card style="flex:1">
+                        <p style="font-size: 12px;color: #999;">总文章数</p>
+                        <p style="font-size: 24px;font-weight: bold;color: #409eff;">
+                            {{ blogStore.articles.length }}
+                        </p>
+                    </el-card>
+                    <el-card style="flex:1">
+                        <p style="font-size: 12px;color: #999;">草稿数</p>
+                        <p style="font-size: 24px;font-weight: bold;color: #e6a23c;">
+                            {{ articleManagerStore.drafts.length }}
+                        </p>
+                    </el-card>
+                    <el-card style="flex:1">
+                        <p style="font-size: 12px;color: #999;">总访问量</p>
+                        <p style="font-size: 24px;font-weight: bold;color: #67c23a;">
+                            {{ totalViews }}
+                        </p>
+                    </el-card>
+                </div>
                 <div v-loading="analyticsLoading" style="min-height: 200px;">
                     <div class="chart-card">
                         <div ref="chartRef" style="width:100%;height:400px"></div>
@@ -82,6 +102,10 @@ const loadAnalytics = async () => {
     analytics.value = await getAnalyticsSummary()
     analyticsLoading.value = false
 }
+
+const totalViews = computed(() => {
+    return blogStore.articles.reduce((sum,a) => sum + (a.views || 0),0)
+})
 
 // echarts图
 const chartRef = ref<HTMLDivElement | null>(null)
