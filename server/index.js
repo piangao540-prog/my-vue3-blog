@@ -380,6 +380,22 @@ app.get('/api/analytics/summary', (req, res) => {
 
 
 
+app.get('/api/tech-stack', (req, res) => {
+    res.json([
+        { name: 'Vue3' }, { name: 'TypeScript' }, { name: 'Express' },
+        { name: 'Echarts' }, { name: 'Pinia' }, { name: 'MySQL' }
+    ])
+})
+
+app.get('/api/contact-info', (req, res) => {
+    res.json([
+        { icon: 'User', text: 'GitHub', link: 'https://github.com/piangao540-prog' },
+        { icon: 'Message', text: 'Email', link: 'mailto:piangao540prog@qq.com' },
+        { icon: 'MapLocation', text: '城市', link: '#' }
+    ])
+})
+
+
 if (!process.env.VERCEL) {
     app.listen(3000, () => console.log('服务器运行在 http://localhost:3000'))
 }
