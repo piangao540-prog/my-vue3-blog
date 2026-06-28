@@ -6,17 +6,14 @@ import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 import viteCompression from 'vite-plugin-compression'
 
+import { cloudflare } from "@cloudflare/vite-plugin";
+
 export default defineConfig({
-  plugins: [
-    vue(),
-    viteCompression(),
-    AutoImport({
-      resolvers: [ElementPlusResolver()],
-    }),
-    Components({
-      resolvers: [ElementPlusResolver()],
-    })
-  ],
+  plugins: [vue(), viteCompression(), AutoImport({
+    resolvers: [ElementPlusResolver()],
+  }), Components({
+    resolvers: [ElementPlusResolver()],
+  }), cloudflare()],
   define: {                      
     'console.log': '(() => {})',
     'console.warn': '(() => {})',
