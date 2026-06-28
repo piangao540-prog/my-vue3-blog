@@ -11,6 +11,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AnalyticsCharts: typeof import('./src/components/AnalyticsCharts.vue')['default']
     ArticleCarousel: typeof import('./src/components/ArticleCarousel.vue')['default']
     ArticleEditor: typeof import('./src/components/ArticleEditor.vue')['default']
     BackToTop: typeof import('./src/components/BackToTop.vue')['default']
