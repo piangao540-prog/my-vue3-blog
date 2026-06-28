@@ -35,14 +35,16 @@
                 </BaseTable>
             </el-tab-pane>
             <el-tab-pane label="数据统计" name="analytics">
-                <div class="chart-card">
-                    <div ref="chartRef" style="width:100%;height:400px"></div>
-                </div>
-                <div class="chart-card" style="margin-top:20px">
-                    <div ref="barRef" style="width:100%;height:300px"></div>
-                </div>
-                <div class="chart-card" style="margin-top:20px">
-                    <div ref="pieRef" style="width:100%;height:300px"></div>
+                <div v-loading="analyticsLoading" style="min-height: 200px;">
+                    <div class="chart-card">
+                        <div ref="chartRef" style="width:100%;height:400px"></div>
+                    </div>
+                    <div class="chart-card" style="margin-top:20px">
+                        <div ref="barRef" style="width:100%;height:300px"></div>
+                    </div>
+                    <div class="chart-card" style="margin-top:20px">
+                        <div ref="pieRef" style="width:100%;height:300px"></div>
+                    </div>
                 </div>
             </el-tab-pane>
 
@@ -71,11 +73,14 @@ const articleManagerStore = useArticleManagerStore()
 const router = useRouter()
 const blogStore = useBlogStore()
 const activeTab = ref('published')
+const analyticsLoading = ref(false)
 
 
 // 数据概括
 const loadAnalytics = async () => {
+    analyticsLoading.value = true
     analytics.value = await getAnalyticsSummary()
+    analyticsLoading.value = false
 }
 
 // echarts图
@@ -176,6 +181,7 @@ const initpieChart = () =>{
     }
     pieChart.setOption(option)
 }
+
 
 
 watch(activeTab,async (tab) => {
