@@ -1,6 +1,8 @@
 const express = require('express')
 const mysql = require('mysql2')
 const cors = require('cors')
+const bcrypt = require('bcryptjs')
+const jwt = require('jsonwebtoken')
 require('dotenv').config()
 
 const app = express()
@@ -18,6 +20,7 @@ const db = mysql.createPool({
     ssl: process.env.VERCEL ? { rejectUnauthorized: true } : false
 })
 
+const JWT_SECRET = process.env.JWT_SECRET || 'blog-jwt-secret-key'
 
 
 app.get('/api/articles', (req, res) => {
@@ -112,44 +115,48 @@ app.delete('/api/articles/:id', (req, res) => {
 })
 
 // 注册
-app.post('/api/auth/register', (req, res) => {
+app.post('/api/auth/register', async (req, res) => {
     const { username, password } = req.body
-    db.query('SELECT id FROM users WHERE username=?', [username], (err, result) => {
-        if (err) return res.status(500).json({ error: err.message })
-        if (result.length > 0) {
+    try {
+        const [rows] = await db.promise().query('SELECT id FROM users WHERE username=?', [username])
+        if (rows.length > 0) {
             res.status(400).json({ error: '用户名已经存在' })
             return
         }
-        db.query(
+        const hashedPassword = await bcrypt.hash(password, 10)
+        await db.promise().query(
             'INSERT INTO users (username, password, role) VALUES (?,?,?)',
-            [username, password, 'user'],
-            (err, result) => {
-                if (err) {
-                    res.status(500).json({ error: err.message })
-                    return
-                }
-                res.json({ id: result.insertId, username, role: 'user' })
-            }
-
-        )
-    })
+            [username, hashedPassword, 'user'])
+        res.json({ message: '注册成功' })
+    } catch (err) {
+        res.status(500).json({ error: err.message })
+    }
 })
 
 // 登录
-app.post('/api/auth/login', (req, res) => {
+app.post('/api/auth/login', async (req, res) => {
     const { username, password } = req.body
-    db.query('SELECT * FROM users WHERE username=?', [username], (err, result) => {
-        if (err) return res.status(500).json({ error: err.message })
-        if (result.length === 0) {
+    try {
+        const [rows] = await db.promise().query('SELECT * FROM users WHERE username=?', [username])
+        if (rows.length === 0) {
             res.status(400).json({ error: '用户不存在' })
             return
         }
-        const user = result[0]
-        if (user.password !== password) {
+        const user = rows[0]
+        const isMatch = await bcrypt.compare(password, user.password)
+        if (!isMatch) {
             res.status(400).json({ error: '密码错误' })
             return
         }
+
+        const token = jwt.sign(
+            { username: user.username, role: user.role },
+            JWT_SECRET,
+            { expiresIn: '7d' }
+        )
+
         res.json({
+            token,
             id: user.id,
             username: user.username,
             nickname: user.nickname,
@@ -157,7 +164,10 @@ app.post('/api/auth/login', (req, res) => {
             avatar: user.avatar,
             role: user.role
         })
-    })
+    } catch (err) {
+        res.status(500).json({ error: err.message })
+    }
+
 })
 
 // 查询用户信息
