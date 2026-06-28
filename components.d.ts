@@ -47,7 +47,4 @@ declare module 'vue' {
     TagChart: typeof import('./src/components/TagChart.vue')['default']
     TagFilter: typeof import('./src/components/TagFilter.vue')['default']
   }
-  export interface GlobalDirectives {
-    vLoading: typeof import('element-plus/es')['ElLoadingDirective']
-  }
 }

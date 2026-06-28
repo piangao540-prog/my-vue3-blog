@@ -171,15 +171,22 @@ app.post('/api/auth/login', async (req, res) => {
 })
 
 // 查询用户信息
-app.get('/api/auth/me', (req, res) => {
-    const { username } = req.query
-    if (!username) return res.status(400).json({ error: '缺少用户名' })
-    db.query('SELECT id,username,nickname,bio,avatar,role FROM users WHERE username=?',
-        [username], (err, result) => {
-            if (err) return res.status(500).json({ error: err.message })
-            if (result.length === 0) return res.status(401).json({ error: err.message })
-            res.json(result[0])
-        })
+app.get('/api/auth/me', async (req, res) => {
+    const authHeader = req.headers.authorization
+    if (!authHeader) return res.status(401).json({ error: '未登陆' })
+
+    try {
+        const token = authHeader.split(' ')[1]
+        const decoded = jwt.verify(token, JWT_SECRET)
+        const [rows] = await db.promise().query(
+            'SELECT id,username,nickname,bio,avatar,role FROM users WHERE username=?',
+            [decoded.username]
+        )
+        if (rows.length === 0) return res.status(401).json({ error: '用户不存在' })
+        res.json(rows[0])
+    } catch {
+        res.status(401).json({ error: 'token无效' })
+    }
 })
 
 // Ai文章摘要
