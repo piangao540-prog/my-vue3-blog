@@ -13,8 +13,8 @@ export const login = async (username: string, password: string) => {
 }
 
 // 查询用户信息
-export const getMe = async (username: string) => {
-    const response = await axios.get('/auth/me', { params: { username } })
+export const getMe = async () => {
+    const response = await axios.get('/auth/me')
     return response.data
 }
 

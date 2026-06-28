@@ -19,7 +19,7 @@ export const useUserStore = defineStore('user', () => {
   const login = async (username: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
       const user = await apiLogin(username, password)
-      localStorage.setItem('currentUser', username)
+      localStorage.setItem('token', user.token)
       userInfo.value = {
         username: user.username,
         nickname: user.nickname,
@@ -27,7 +27,6 @@ export const useUserStore = defineStore('user', () => {
         avatar: user.avatar || defaultAvatar,
         role: user.role || 'user'
       }
-      localStorage.setItem(`user_${username}`, JSON.stringify(userInfo.value))
       return { success: true }
     } catch (error: any) {
       return { success: false, error: error.response?.data?.error || '登录失败' }
@@ -50,7 +49,7 @@ export const useUserStore = defineStore('user', () => {
   // 登出
   const loginOut = () => {
     userInfo.value = null
-    localStorage.removeItem('currentUser')
+    localStorage.removeItem('token')
   }
 
   // 更新用户信息
@@ -79,16 +78,11 @@ export const useUserStore = defineStore('user', () => {
 
   // 初始化
   const init = async () => {
-    const currentUser = localStorage.getItem('currentUser')
-    if (currentUser) {
-      // 先立即从缓存恢复（同步）
-      const cached = localStorage.getItem(`user_${currentUser}`)
-      if (cached) {
-        userInfo.value = JSON.parse(cached)
-      }
+    const token = localStorage.getItem('token')
+    if (token) {
       // 再异步验证
       try {
-        const user = await apiGetMe(currentUser)
+        const user = await apiGetMe()
         userInfo.value = {
           username: user.username,
           nickname: user.nickname,
@@ -98,7 +92,7 @@ export const useUserStore = defineStore('user', () => {
         }
       } catch {
         // 验证失败
-        localStorage.removeItem('currentUser')
+        localStorage.removeItem('token')
         userInfo.value = null
       }
     }
