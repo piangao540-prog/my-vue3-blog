@@ -3,6 +3,7 @@ const mysql = require('mysql2')
 const cors = require('cors')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
+const { error } = require('node:console')
 require('dotenv').config()
 
 const app = express()
@@ -308,25 +309,28 @@ app.put('/api/auth/profile', (req, res) => {
         'UPDATE users SET nickname=?,bio=?,avatar=? WHERE username=?',
         [nickname, bio, avatar, username], (err, result) => {
             if (err) return res.status(500).json({ error: err.message })
-            res.json({ error: true })
+            res.json({ success: true })
         }
     )
 })
 
 // 修改密码
-app.put('/api/auth/password', (req, res) => {
+app.put('/api/auth/password', async (req, res) => {
     const { username, oldPassword, newPassword } = req.body
-    db.query('SELECT password  FROM users WHERE username=?', [username], (err, result) => {
-        if (err) return res.status(500).json({ error: err.message })
-        if (result[0].password !== oldPassword) {
-            res.status(400).json({ error: '原密码错误' })
-            return
-        }
-        db.query('UPDATE users SET password=? WHERE username=?', [newPassword, username], (err, result) => {
-            if (err) return res.status(500).json({ error: err.message })
-            res.json({ success: true })
-        })
-    })
+    try {
+        const [rows] = await db.promise().query('SELECT password FROM users WHERE username=?',[username])
+        if (rows.length === 0) return res.status(400).json({ error: '用户不存在' })
+
+        const isMatch = await bcrypt.compare(oldPassword, rows[0].password)
+        if (!isMatch) return res.status(400).json({ error: '原密码错误' })
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10)
+        await db.promise().query('UPDATE users SET password=? WHERE username=?', [hashedPassword, username])
+
+        res.json({ success: true })
+    } catch (err) {
+        res.status(500).json({ error: err.message })
+    }
 })
 
 // 收藏文章

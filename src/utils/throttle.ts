@@ -4,7 +4,7 @@ export function throttle(fn: Function, delay: number) {
         const now = Date.now()
         if (lastTimer === null || now - lastTimer > delay) {
             lastTimer = now
-            return fn.apply(args)
+            return fn.apply(this, args)
         }
     }
 }

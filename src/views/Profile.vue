@@ -106,13 +106,15 @@ const saveBasicInfo = () => {
   alert('保存成功')
   basicForm.value = { nickname: '', bio: '' }
 }
-const changePassword = () => {
-  userStore.changePassword(
+const changePassword = async () => {
+  const success = await userStore.changePassword(
     passwordForm.value.oldPassword,
     passwordForm.value.newPassword
   )
-  alert('修改成功')
-  passwordForm.value = { oldPassword: '', newPassword: '' }
+  if (success) {
+    alert('修改成功')
+    passwordForm.value = { oldPassword: '', newPassword: '' }
+  }
 }
 
 onMounted(() => {
