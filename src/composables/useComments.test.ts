@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formatTime } from './useComments'
+import { formatTime } from '@/utils/formatTime'
 
 describe('formatTime', () => {
     it('把日期字符串转成 YYYY-MM-DD HH:mm 格式', () => {

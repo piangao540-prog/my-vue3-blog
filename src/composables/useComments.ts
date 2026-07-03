@@ -3,6 +3,7 @@ import { useUserStore } from '@/stores/user'
 import { ElMessage } from 'element-plus'
 import userAvatar from '@/assets/images/converted_image.png'
 import * as commentApi from '@/api/comments'
+import { formatTime } from '@/utils/formatTime'
 
 export interface Comment {
     id: number
@@ -13,17 +14,6 @@ export interface Comment {
 }
 
 // 格式化时间为标准格式 YYYY-MM-DD HH:MM
-export const formatTime = (dateStr: string): string => {
-    const date = new Date(dateStr)
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const day = String(date.getDate()).padStart(2, '0')
-    const hours = String(date.getHours()).padStart(2, '0')
-    const minutes = String(date.getMinutes()).padStart(2, '0')
-
-    return `${year}-${month}-${day} ${hours}:${minutes}`
-}
-
 export const useComments = (articleId?: number) => {
     const userStore = useUserStore()
     const comments = ref<commentApi.Comment[]>([])
