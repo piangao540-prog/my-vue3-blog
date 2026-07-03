@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ElMessage } from 'element-plus'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
@@ -11,7 +12,7 @@ const password = ref('')
 
 const handleLogin = async () => {
   if (!username.value || !password.value) {
-    alert('请填写完整')
+    ElMessage.warning('请填写完整')
     return
   }
 
@@ -20,10 +21,10 @@ const handleLogin = async () => {
   if (result.success) {
     router.push('/')
   }else if(result.error?.includes('不存在')){
-    alert(result.error || '用户不存在')
+    ElMessage.error(result.error || '用户不存在')
     router.push('/register')
   }else{
-    alert(result.error || '登陆失败')
+    ElMessage.error(result.error || '登陆失败')
   }
 }
 </script>

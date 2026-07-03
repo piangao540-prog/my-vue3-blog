@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ElMessage } from 'element-plus'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
@@ -12,19 +13,19 @@ const confirmPassword = ref('')
 
 const handleRegister = async () => {
   if (!username.value || !password.value || !confirmPassword.value) {
-    alert('请填写完整')
+    ElMessage.warning('请填写完整')
     return
   }
 
   if (password.value !== confirmPassword.value) {
-    alert('两次密码不一致')
+    ElMessage.warning('两次密码不一致')
     return
   }
 
   const success = await userStore.register(username.value, password.value)
 
   if (success) {
-    alert('注册成功！请登录')
+    ElMessage.success('注册成功！请登录')
     router.push('/login')
   }
 }

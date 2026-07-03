@@ -59,6 +59,7 @@
 </template>
 
 <script setup lang="ts">
+import { ElMessage } from 'element-plus'
 import { computed, ref, onMounted } from 'vue'
 import { useBlogStore, type Article } from '@/stores/blog'
 import { useUserStore } from '@/stores/user'
@@ -103,7 +104,7 @@ const goToArticle = (article: Article) => {
 // 保存信息
 const saveBasicInfo = () => {
   userStore.updateUserInfo(basicForm.value)
-  alert('保存成功')
+  ElMessage.success('保存成功')
   basicForm.value = { nickname: '', bio: '' }
 }
 const changePassword = async () => {
@@ -112,7 +113,7 @@ const changePassword = async () => {
     passwordForm.value.newPassword
   )
   if (success) {
-    alert('修改成功')
+    ElMessage.success('修改成功')
     passwordForm.value = { oldPassword: '', newPassword: '' }
   }
 }

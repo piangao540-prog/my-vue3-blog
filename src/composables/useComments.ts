@@ -1,5 +1,6 @@
 import { ref, computed, onMounted } from 'vue'
 import { useUserStore } from '@/stores/user'
+import { ElMessage } from 'element-plus'
 import userAvatar from '@/assets/images/converted_image.png'
 import * as commentApi from '@/api/comments'
 
@@ -41,7 +42,7 @@ export const useComments = (articleId?: number) => {
     // 添加评论
     const addComment = async (content: string) => {
         if (!content.trim()) {
-            alert('请输入评论内容')
+            ElMessage.warning('请输入评论内容')
             return
         }
         const id = articleId

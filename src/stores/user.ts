@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { ElMessage } from 'element-plus'
 import defaultAvatar from '@/assets/images/converted_image.png'
 import { register as apiRegister, login as apiLogin, updateProfile, changePassword as apiChangePassword } from '@/api/auth'
 import { getMe as apiGetMe } from '@/api/auth'
@@ -40,7 +41,7 @@ export const useUserStore = defineStore('user', () => {
       await apiRegister(username, password)
       return true
     } catch (error: any) {
-      alert(error.response?.data?.error || '注册失败')
+      ElMessage.error(error.response?.data?.error || '注册失败')
       return false
     }
 
@@ -71,7 +72,7 @@ export const useUserStore = defineStore('user', () => {
       })
       return true
     } catch (error: any) {
-      alert(error.response?.data?.error || '修改失败')
+      ElMessage.error(error.response?.data?.error || '修改失败')
       return false
     }
   }

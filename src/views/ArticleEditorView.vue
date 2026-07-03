@@ -7,6 +7,7 @@
 </template>
 
 <script lang="ts" setup>
+import { ElMessage } from 'element-plus'
 import {ref,onMounted} from 'vue'
 import ArticleEditor from '@/components/ArticleEditor.vue'
 import { useArticleManagerStore } from '@/stores/articleManager'
@@ -25,7 +26,7 @@ const initialContent = ref('')
 const handleSave = async (content:string ,title:string) => {
     const draft = await articleManagerStore.saveDraft({title,content})
     articleId.value = draft.id
-    alert('草稿已保存')
+    ElMessage.success('草稿已保存')
 }
 
 // 发布文章
@@ -33,18 +34,18 @@ const handlePublish = async (content: string, title: string) => {
     if (articleId.value) {
         const publishedArticle = await articleManagerStore.publishArticle(articleId.value)
         if (publishedArticle) {
-            alert('文章已发布')
+            ElMessage.success('文章已发布')
             articleId.value = undefined
         } else {
-            alert('发布失败')
+            ElMessage.error('发布失败')
         }
     } else {
         const draft = articleManagerStore.saveDraft({ content, title })
         const publishedArticle = await articleManagerStore.publishArticle((await draft).id)
         if (publishedArticle) {
-            alert('文章已发布')
+            ElMessage.success('文章已发布')
         } else {
-            alert('发布失败')
+            ElMessage.error('发布失败')
         }
     }
 }
