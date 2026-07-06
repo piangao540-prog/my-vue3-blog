@@ -252,6 +252,35 @@ app.post('/api/ai/summary', async (req, res) => {
     res.end()
 })
 
+// AI推荐tag标签
+app.post('/api/ai/tag', async (req, res) => {
+    const { content, title } = req.body
+    if (!content) return res.status(400).json({ error: '缺少文章内容' })
+
+    try {
+        const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`
+            },
+            body: JSON.stringify({
+                model: 'deepseek-v4-flash',
+                messages: [
+                    { role: 'system', content: '你是一个博客标签推荐助手，根据标题和内容推荐3-5个中文标签，用逗号分隔，只返回标签' },
+                    { role: 'user', content: `标题：${title}\n内容：${content.slice(0, 2000)}` }
+                ]
+            })
+        })
+
+        const data = await response.json()
+        const tagStr = data.choices?.[0]?.message?.content || ''
+        const tags = tagStr.split(/[,，、]/).map(t => t.trim()).filter(Boolean)
+        res.json({ tags })
+    } catch (err) {
+        res.status(500).json({ error: err.message })
+    }
+})
 
 // 查询用户自己的评论
 app.get('/api/comments/user', (req, res) => {

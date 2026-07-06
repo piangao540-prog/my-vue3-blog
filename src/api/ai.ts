@@ -42,3 +42,14 @@ export const getAiSummary = async (
 
 
 }
+
+export const getAiTags = async (content:string,title?:string):Promise<string[]> =>{
+    const base = window.location.hostname === 'locahost' ? 'http://localhost:3000':''
+    const response = await fetch(`{base}/api/ai/tag`,{
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({content,title})
+    })
+    const data = await response.json()
+    return data.tags || []
+}
