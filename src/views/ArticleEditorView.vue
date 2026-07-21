@@ -23,14 +23,14 @@ const initialTitle = ref('')
 const initialContent = ref('')
 
 
-const handleSave = async (content:string ,title:string) => {
-    const draft = await articleManagerStore.saveDraft({title,content})
+const handleSave = async (content:string ,title:string,tags:string[]) => {
+    const draft = await articleManagerStore.saveDraft({title,content,tags})
     articleId.value = draft.id
     ElMessage.success('草稿已保存')
 }
 
 // 发布文章
-const handlePublish = async (content: string, title: string) => {
+const handlePublish = async (content: string, title: string, tags: string[]) => {
     if (articleId.value) {
         const publishedArticle = await articleManagerStore.publishArticle(articleId.value)
         if (publishedArticle) {
@@ -40,7 +40,7 @@ const handlePublish = async (content: string, title: string) => {
             ElMessage.error('发布失败')
         }
     } else {
-        const draft = articleManagerStore.saveDraft({ content, title })
+        const draft = articleManagerStore.saveDraft({ content, title, tags })
         const publishedArticle = await articleManagerStore.publishArticle((await draft).id)
         if (publishedArticle) {
             ElMessage.success('文章已发布')
