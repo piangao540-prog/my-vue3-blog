@@ -4,6 +4,8 @@ const cors = require('cors')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const { error } = require('node:console')
+const {extractKeywords, searchArticles} = require('./services/rag')
+const { json } = require('node:stream/consumers')
 require('dotenv').config()
 
 const app = express()
@@ -279,6 +281,47 @@ app.post('/api/ai/tag', async (req, res) => {
         res.json({ tags })
     } catch (err) {
         res.status(500).json({ error: err.message })
+    }
+})
+
+// Ai智能问答助手
+app.post('/api/ai/chat', async (req,res) => {
+    const {question} = req.body
+    if(!question) return res.status(400).json({error:'缺少问题'})
+    
+    const keyword = extractKeywords(question)
+    const [article] = await db.promise().query('SELECT * FROM articles WHERE status !=?',['draft'])
+    const matched = searchArticles(article,keyword)
+    const context = matched.map(a =>
+        `文章标题：${a.title}\n文章内容：${(a.content || '').slice(0, 800)}`
+    ).join('\n---\n')
+
+    if(matched.length === 0){
+        return res.json({answer: '该问题暂未在博客中收入相关内容'})
+    }
+
+    try{
+        const response = await fetch('https://api.deepseek.com/v1/chat/completions',{
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`
+            },
+            body: JSON.stringify({
+                model: 'deepseek-v4-flash',
+                messages: [
+                    { role: 'system', content: '你是一个博客助手，基于以下文章内容回答问题。如果内容不足以回答，就说"该问题暂未在博客中收录相关内容"。回答末尾注明引用的文章标题。'},
+                    { role: 'user', content:`以下是我的博客文章内容：\n${context}\n\n用户的问题是：${question}`}
+                ]
+            })
+        })
+
+        const data = await response.json()
+        const answer = data.choices?.[0]?.message?.content || ''
+        res.json({ answer })
+
+    }catch(err){
+        res.status(500).json({error:err.message})
     }
 })
 
