@@ -35,7 +35,7 @@ export const getAiSummary = async (
                 const text = data.text || ''
                 fullSummary += text
                 onText(fullSummary)
-            } catch {}
+            } catch { }
         }
     }
     return fullSummary
@@ -43,13 +43,24 @@ export const getAiSummary = async (
 
 }
 
-export const getAiTags = async (content:string,title?:string):Promise<string[]> =>{
-    const base = window.location.hostname === 'localhost' ? 'http://localhost:3000':''
-    const response = await fetch(`${base}/api/ai/tag`,{
+export const getAiTags = async (content: string, title?: string): Promise<string[]> => {
+    const base = window.location.hostname === 'localhost' ? 'http://localhost:3000' : ''
+    const response = await fetch(`${base}/api/ai/tag`, {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({content,title})
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content, title })
     })
     const data = await response.json()
     return data.tags || []
+}
+
+export const getChat = async (question: string): Promise<string> => {
+    const base = window.location.hostname === 'localhost' ? 'http://localhost:3000' : ''
+    const response = await fetch(`${base}/api/ai/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question })
+    })
+    const data = await response.json()
+    return data.answer || '暂未获得到回答'
 }

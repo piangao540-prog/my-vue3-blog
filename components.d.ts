@@ -41,6 +41,7 @@ declare module 'vue' {
     ElTag: typeof import('element-plus/es')['ElTag']
     LayoutFooter: typeof import('./src/components/LayoutFooter.vue')['default']
     LayoutHead: typeof import('./src/components/LayoutHead.vue')['default']
+    RagChatWidget: typeof import('./src/components/RagChatWidget.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     SortFilter: typeof import('./src/components/SortFilter.vue')['default']
