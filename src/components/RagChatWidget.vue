@@ -7,10 +7,11 @@
             <span>AI助手</span>
             <button @click="clearChat">清空</button>
         </div>
-        <div class="chat-body">
+        <div ref="chatBody" class="chat-body">
             <div v-for="(msg, i) in messages" :key="i" :class="msg.role">
                 {{ msg.content }}
             </div>
+            <div v-if="loading" class="typing">AI 正在输入...</div>
         </div>
         <div class="chat-footer">
             <input v-model="input" @keyup.enter="send" placeholder="请输入问题..."/>
@@ -21,13 +22,14 @@
 
 
 <script setup lang="ts">
-import {ref} from 'vue'
+import {ref,watch} from 'vue'
 import {getChat as chat} from '@/api/ai'
 
 const show = ref(false)
 const input = ref('')
 const loading = ref(false)
 const messages = ref<{role:string;content:string}[]>([])
+const chatBody = ref<HTMLElement | null>(null)
 
 // 发送消息
 const send = async() => {
@@ -37,15 +39,29 @@ const send = async() => {
     messages.value.push({role:'user',content:text})
     input.value = ''
     loading.value = true
+
+    // 空消息占位
+    messages.value.push({role:'assistant',content:''})
+    const history = messages.value.slice(0,-2)
+
     try{
-        const answer = await chat(text)
-        messages.value.push({role:'assistant',content:answer})
+        await chat(text,history,(partial) => {
+            messages.value[messages.value.length - 1].content = partial
+        })
     }catch{
-        messages.value.push({role:'assistant',content: '请求失败，请重新尝试'})
+        messages.value[messages.value.length - 1].content = '请求失败，请重新尝试'
     } finally{
         loading.value = false
     }
 }
+
+watch(messages,() => {
+    setTimeout(() => {
+        if(chatBody.value){
+            chatBody.value.scrollTop = chatBody.value.scrollHeight
+        }
+    },50)
+},{deep:true})
 
 const clearChat = () => {
     messages.value = []
@@ -145,6 +161,27 @@ const clearChat = () => {
     color: white;
     cursor: pointer;
 }
+
+.typing {
+    align-self: flex-start;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: #f0f2f5;
+    color: #999;
+    font-size: 13px;
+}
+
+.typing::after {
+    content: '...';
+    animation: dots 1.5s steps(3, end) infinite;
+}
+
+@keyframes dots {
+    0% { content: '.'; }
+    33% { content: '..'; }
+    66% { content: '...'; }
+}
+
 
 @media (max-width: 480px) {
     .chat-dialog {

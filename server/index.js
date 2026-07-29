@@ -5,8 +5,9 @@ const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const { error } = require('node:console')
 const {extractKeywords, searchArticles} = require('./services/rag')
-const { json } = require('node:stream/consumers')
 require('dotenv').config()
+const { json } = require('node:stream/consumers')
+const { search } = require('./services/vector-store')
 
 const app = express()
 app.use(cors())
@@ -286,21 +287,23 @@ app.post('/api/ai/tag', async (req, res) => {
 
 // Ai智能问答助手
 app.post('/api/ai/chat', async (req,res) => {
-    const {question} = req.body
+    const {question,history} = req.body
     if(!question) return res.status(400).json({error:'缺少问题'})
     
-    const keyword = extractKeywords(question)
-    const [article] = await db.promise().query('SELECT * FROM articles WHERE status !=?',['draft'])
-    const matched = searchArticles(article,keyword)
-    const context = matched.map(a =>
+    const results = await search(question)
+    const context = results.map(a =>
         `文章标题：${a.title}\n文章内容：${(a.content || '').slice(0, 800)}`
     ).join('\n---\n')
 
-    if(matched.length === 0){
+    if (results.length === 0){
         return res.json({answer: '该问题暂未在博客中收入相关内容'})
     }
 
     try{
+        res.setHeader('Content-Type', 'text/event-stream')
+        res.setHeader('Cache-Control', 'no-cache')
+        res.setHeader('Connection', 'keep-alive')
+
         const response = await fetch('https://api.deepseek.com/v1/chat/completions',{
             method: 'POST',
             headers: {
@@ -309,16 +312,38 @@ app.post('/api/ai/chat', async (req,res) => {
             },
             body: JSON.stringify({
                 model: 'deepseek-v4-flash',
+                stream: true,
                 messages: [
                     { role: 'system', content: '你是一个博客助手，基于以下文章内容回答问题。如果内容不足以回答，就说"该问题暂未在博客中收录相关内容"。回答末尾注明引用的文章标题。'},
+                    ...(history || []),
                     { role: 'user', content:`以下是我的博客文章内容：\n${context}\n\n用户的问题是：${question}`}
                 ]
             })
         })
 
-        const data = await response.json()
-        const answer = data.choices?.[0]?.message?.content || ''
-        res.json({ answer })
+        let fullSummary = ''
+        const reader = response.body.getReader()
+        const decoder = new TextDecoder()
+
+        while (true) {
+            const { done, value } = await reader.read()
+            if (done) break
+            const chunk = decoder.decode(value)
+            const lines = chunk.split('\n').filter(a => a.startsWith('data:') && !a.includes('[DONE]'))
+            for (const line of lines) {
+                try {
+                    const data = JSON.parse(line.slice(6))
+                    const text = data.choices?.[0]?.delta?.content || ''
+                    if (text) {
+                        fullSummary += text
+                        res.write(`data: ${JSON.stringify({ text })}\n\n`)
+                    }
+                } catch { }
+            }
+        }
+
+        res.write('data: [DONE]\n\n')
+        res.end()
 
     }catch(err){
         res.status(500).json({error:err.message})
