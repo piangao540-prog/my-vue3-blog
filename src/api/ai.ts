@@ -54,12 +54,18 @@ export const getAiTags = async (content: string, title?: string): Promise<string
     return data.tags || []
 }
 
-export const getChat = async (question: string,history:{role:string;content: string}[], onText: (text: string) => void): Promise<string> => {
+export const getChat = async (
+    question: string,
+    history:{role:string;content: string}[], 
+    signal: AbortSignal,
+    onText: (text: string) => void
+    ): Promise<string> => {
     const base = window.location.hostname === 'localhost' ? 'http://localhost:3000' : ''
     const response = await fetch(`${base}/api/ai/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question,history })
+        body: JSON.stringify({ question,history }),
+        signal
     })
 
     let fullAnswer = ''

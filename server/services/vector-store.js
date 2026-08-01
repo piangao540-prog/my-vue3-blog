@@ -56,7 +56,7 @@ async function buildVectorStore(articles) {
 }
 
 // 搜索
-async function search(query, topK = 3) {
+async function search(query, topK = 3, threshold = 0.3) {
     const data = JSON.parse(fs.readFileSync(STORE_PATH, 'utf-8'))
     const queryVec = await getEmbedding(query)
 
@@ -65,7 +65,9 @@ async function search(query, topK = 3) {
         score: cosineSimilarity(queryVec, record.vector)
     }))
     scored.sort((a, b) => b.score - a.score)
-    return scored.slice(0, topK)
+    const top = scored.slice(0, topK)
+    console.log('搜索结果分数:', top.map(r => r.score.toFixed(3)))
+    return top.filter(r => r.score >= threshold)
 }
 
 module.exports = { buildVectorStore, search, chunkArticle }

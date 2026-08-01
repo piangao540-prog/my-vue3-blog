@@ -15,6 +15,7 @@
         </div>
         <div class="chat-footer">
             <input v-model="input" @keyup.enter="send" placeholder="请输入问题..."/>
+            <button v-if="loading" @click="stopGeneration" style="color: red;">停止</button>
             <button @click="send">发送</button>
         </div>
     </div>
@@ -30,6 +31,7 @@ const input = ref('')
 const loading = ref(false)
 const messages = ref<{role:string;content:string}[]>([])
 const chatBody = ref<HTMLElement | null>(null)
+let abortController : AbortController | null = null
 
 // 发送消息
 const send = async() => {
@@ -44,14 +46,18 @@ const send = async() => {
     messages.value.push({role:'assistant',content:''})
     const history = messages.value.slice(0,-2)
 
+    abortController = new AbortController()
+
     try{
-        await chat(text,history,(partial) => {
+        await chat(text,history,abortController.signal,(partial) => {
             messages.value[messages.value.length - 1].content = partial
         })
-    }catch{
+    }catch(e){
+        if(e instanceof DOMException && e.name === 'AbortError') return
         messages.value[messages.value.length - 1].content = '请求失败，请重新尝试'
     } finally{
         loading.value = false
+        abortController = null
     }
 }
 
@@ -65,6 +71,12 @@ watch(messages,() => {
 
 const clearChat = () => {
     messages.value = []
+}
+
+const stopGeneration = () => {
+    abortController?.abort()
+    abortController = null
+    loading.value = false
 }
 </script>
 
