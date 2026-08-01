@@ -5,6 +5,7 @@ const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const { error } = require('node:console')
 const {extractKeywords, searchArticles} = require('./services/rag')
+const promptBuilder = require('./services/promptBuilder')
 require('dotenv').config()
 const { json } = require('node:stream/consumers')
 const { search } = require('./services/vector-store')
@@ -210,6 +211,9 @@ app.post('/api/ai/summary', async (req, res) => {
     res.setHeader('Cache-Control', 'no-cache')
     res.setHeader('Connection', 'keep-alive')
 
+    // 用模板生成 messages 和参数
+    const { messages, params } = promptBuilder.build('summary', { content })
+
     const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -219,10 +223,8 @@ app.post('/api/ai/summary', async (req, res) => {
         body: JSON.stringify({
             model: 'deepseek-v4-flash',
             stream: true,
-            messages: [
-                { role: 'system', content: '你是一个博客助手，请用一句话概括文章内容，不超过50字' },
-                { role: 'user', content: content.slice(0, 2000) }
-            ]
+            ...params,
+            messages,
         })
     })
 
@@ -304,6 +306,12 @@ app.post('/api/ai/chat', async (req,res) => {
         res.setHeader('Cache-Control', 'no-cache')
         res.setHeader('Connection', 'keep-alive')
 
+        const { messages, params } = promptBuilder.build('blog-qa', {
+            context,
+            question,
+            history
+        })
+
         const response = await fetch('https://api.deepseek.com/v1/chat/completions',{
             method: 'POST',
             headers: {
@@ -313,11 +321,8 @@ app.post('/api/ai/chat', async (req,res) => {
             body: JSON.stringify({
                 model: 'deepseek-v4-flash',
                 stream: true,
-                messages: [
-                    { role: 'system', content: '你是一个博客助手，基于以下文章内容回答问题。如果内容不足以回答，就说"该问题暂未在博客中收录相关内容"。回答末尾注明引用的文章标题。'},
-                    ...(history || []),
-                    { role: 'user', content:`以下是我的博客文章内容：\n${context}\n\n用户的问题是：${question}`}
-                ]
+                ...params,
+                messages
             })
         })
 
