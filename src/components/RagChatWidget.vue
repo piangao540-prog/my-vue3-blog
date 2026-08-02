@@ -9,7 +9,7 @@
         </div>
         <div ref="chatBody" class="chat-body">
             <div v-for="(msg, i) in messages" :key="i" :class="msg.role">
-                {{ msg.content }}
+                <span v-html="renderMarkdown(msg.content)"></span>
             </div>
             <div v-if="loading" class="typing">AI 正在输入...</div>
         </div>
@@ -25,6 +25,8 @@
 <script setup lang="ts">
 import {ref,watch} from 'vue'
 import {getChat as chat} from '@/api/ai'
+import { marked } from 'marked'
+import hljs from 'highlight.js'
 
 const show = ref(false)
 const input = ref('')
@@ -32,6 +34,17 @@ const loading = ref(false)
 const messages = ref<{role:string;content:string}[]>([])
 const chatBody = ref<HTMLElement | null>(null)
 let abortController : AbortController | null = null
+
+// 开启代码高亮
+const renderer = new marked.Renderer()
+renderer.code = ({text,lang}:{text:string;lang?:string}) => {
+    const language = lang && hljs.getLanguage(lang) ? lang : 'plaintext'
+    const highlighted = hljs.highlight(text,{language}).value
+    return `<pre><code class="hljs language-${language}">${highlighted}</code></pre>`
+}
+
+marked.use({renderer})
+
 
 // 发送消息
 const send = async() => {
@@ -77,6 +90,16 @@ const stopGeneration = () => {
     abortController?.abort()
     abortController = null
     loading.value = false
+}
+
+// markdown转换为HTML
+const renderMarkdown = (content:string) => {
+    const openCount = (content.match(/```/g) || []).length
+    let safe = content
+    if(openCount % 2 !== 0){
+        safe = content + '\n```'
+    }
+    return marked.parse(safe)
 }
 </script>
 
@@ -187,6 +210,29 @@ const stopGeneration = () => {
     content: '...';
     animation: dots 1.5s steps(3, end) infinite;
 }
+
+.assistant pre {
+    background: #f8f8f8;
+    padding: 12px;
+    border-radius: 6px;
+    overflow-x: auto;
+    max-width: 100%;
+}
+
+.assistant code {
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 13px;
+}
+
+.assistant p {
+    margin: 6px 0;
+}
+
+.assistant ul, .assistant ol {
+    padding-left: 20px;
+    margin: 6px 0;
+}
+
 
 @keyframes dots {
     0% { content: '.'; }
