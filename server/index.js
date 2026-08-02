@@ -4,7 +4,7 @@ const cors = require('cors')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const { error } = require('node:console')
-const {extractKeywords, searchArticles} = require('./services/rag')
+const { extractKeywords, searchArticles } = require('./services/rag')
 const promptBuilder = require('./services/promptBuilder')
 require('dotenv').config()
 const { json } = require('node:stream/consumers')
@@ -288,20 +288,20 @@ app.post('/api/ai/tag', async (req, res) => {
 })
 
 // Ai智能问答助手
-app.post('/api/ai/chat', async (req,res) => {
-    const {question,history} = req.body
-    if(!question) return res.status(400).json({error:'缺少问题'})
-    
+app.post('/api/ai/chat', async (req, res) => {
+    const { question, history } = req.body
+    if (!question) return res.status(400).json({ error: '缺少问题' })
+
     const results = await search(question)
     const context = results.map(a =>
         `文章标题：${a.title}\n文章内容：${(a.content || '').slice(0, 800)}`
     ).join('\n---\n')
 
-    if (results.length === 0){
-        return res.json({answer: '该问题暂未在博客中收入相关内容'})
+    if (results.length === 0) {
+        return res.json({ answer: '该问题暂未在博客中收入相关内容' })
     }
 
-    try{
+    try {
         res.setHeader('Content-Type', 'text/event-stream')
         res.setHeader('Cache-Control', 'no-cache')
         res.setHeader('Connection', 'keep-alive')
@@ -312,7 +312,7 @@ app.post('/api/ai/chat', async (req,res) => {
             history
         })
 
-        const response = await fetch('https://api.deepseek.com/v1/chat/completions',{
+        const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -350,8 +350,8 @@ app.post('/api/ai/chat', async (req,res) => {
         res.write('data: [DONE]\n\n')
         res.end()
 
-    }catch(err){
-        res.status(500).json({error:err.message})
+    } catch (err) {
+        res.status(500).json({ error: err.message })
     }
 })
 
@@ -420,7 +420,7 @@ app.put('/api/auth/profile', (req, res) => {
 app.put('/api/auth/password', async (req, res) => {
     const { username, oldPassword, newPassword } = req.body
     try {
-        const [rows] = await db.promise().query('SELECT password FROM users WHERE username=?',[username])
+        const [rows] = await db.promise().query('SELECT password FROM users WHERE username=?', [username])
         if (rows.length === 0) return res.status(400).json({ error: '用户不存在' })
 
         const isMatch = await bcrypt.compare(oldPassword, rows[0].password)
@@ -485,7 +485,7 @@ app.get('/api/analytics/summary', (req, res) => {
 })
 
 
-
+// 获取技术栈
 app.get('/api/tech-stack', (req, res) => {
     res.json([
         { name: 'Vue3' }, { name: 'TypeScript' }, { name: 'Express' },
@@ -493,6 +493,7 @@ app.get('/api/tech-stack', (req, res) => {
     ])
 })
 
+// 获取个人信息
 app.get('/api/contact-info', (req, res) => {
     res.json([
         { icon: 'User', text: 'GitHub', link: 'https://github.com/piangao540-prog' },
@@ -500,6 +501,86 @@ app.get('/api/contact-info', (req, res) => {
         { icon: 'MapLocation', text: '城市', link: '#' }
     ])
 })
+
+// Function Calling 
+app.post('/api/ai/tool-demo', async (req, res) => {
+    const { question } = req.body
+    if (!question) return res.status(400).json({ error: '缺少问题' })
+
+    try {
+        // 第 1 轮：带 tools 请求 DeepSeek
+        const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`
+            },
+            body: JSON.stringify({
+                model: 'deepseek-v4-flash',
+                messages: [
+                    { role: 'system', content: '你是一个博客助手，可以调用工具搜索文章' },
+                    { role: 'user', content: question }
+                ],
+                tools: [{
+                    type: 'function',
+                    function: {
+                        name: 'search_articles',
+                        description: '在博客中搜索相关文章',
+                        parameters: {
+                            type: 'object',
+                            properties: {
+                                keyword: { type: 'string', description: '搜索关键词' }
+                            },
+                            required: ['keyword']
+                        }
+                    }
+                }]
+            })
+        })
+
+        const data = await response.json()
+        const toolCall = data.choices?.[0]?.message?.tool_calls?.[0]
+
+        //没有工具调用，直接返回Ai的回答
+        if (!toolCall) {
+            return res.json({ answer: data.choices?.[0]?.message?.content })
+        }
+        // 有工具调用，解析参数并执行
+        const args = JSON.parse(toolCall.function.arguments)
+        const [rows] = await db.promise().query(
+            'SELECT id, title, content FROM articles WHERE title LIKE ? OR content LIKE ?',
+            [`%${args.keyword}%`, `%${args.keyword}%`]
+        )
+
+        const searchResult = rows.slice(0, 3).map(a =>
+            `标题：${a.title}\n内容：${(a.content || '').slice(0, 300)}`
+        ).join('\n---\n')
+
+        // 第 2 轮请求：把 tool 结果发回 AI
+        const secondResponse = await fetch('https://api.deepseek.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`
+            },
+            body: JSON.stringify({
+                model: 'deepseek-v4-flash',
+                messages: [
+                    { role: 'system', content: '你是一个博客助手，可以调用工具搜索文章' },
+                    { role: 'user', content: question },
+                    data.choices[0].message,                          // AI 的 tool_calls
+                    { role: 'tool', tool_call_id: toolCall.id, content: searchResult }  // 工具结果
+                ]
+            })
+        })
+        const secondData = await secondResponse.json()
+        res.json({ answer: secondData.choices?.[0]?.message?.content })
+
+    } catch (err) {
+        res.status(500).json({ error: err.message })
+    }
+})
+
 
 
 if (!process.env.VERCEL) {
