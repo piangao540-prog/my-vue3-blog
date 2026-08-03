@@ -5,10 +5,26 @@
     <div v-if="show" class="chat-dialog">
         <div class="chat-header">
             <span>AI助手</span>
-            <button @click="clearChat">清空</button>
+            <div class="header-actions">
+                <button @click="createSession">+ 新对话</button>
+                <button @click="clearChat">清空</button>
+            </div>
+        </div>
+        <!-- 会话列表（可折叠） -->
+        <div class="session-list" v-if="sessions.length > 1">
+            <div
+                v-for="session in sessions"
+                :key="session.id"
+                class="session-item"
+                :class="{ active: session.id === currentSessionId }"
+                @click="switchSession(session.id)"
+            >
+                <span class="session-title">{{ session.title }}</span>
+                <button class="session-delete" @click.stop="deleteSession(session.id)">×</button>
+            </div>
         </div>
         <div ref="chatBody" class="chat-body">
-            <div v-for="(msg, i) in messages" :key="i" :class="msg.role">
+            <div v-for="(msg, i) in currentMessages" :key="i" :class="msg.role">
                 <span v-html="renderMarkdown(msg.content)"></span>
             </div>
             <div v-if="loading" class="typing">AI 正在输入...</div>
@@ -22,18 +38,31 @@
 </template>
 
 
+
 <script setup lang="ts">
-import {ref,watch} from 'vue'
-import {getChat as chat} from '@/api/ai'
+import { ref, watch, onMounted } from 'vue'
+import { getChat as chat } from '@/api/ai'
 import { marked } from 'marked'
 import hljs from 'highlight.js'
+import { useChatSessions } from '@/composables/useChatSessions'
 
 const show = ref(false)
 const input = ref('')
 const loading = ref(false)
-const messages = ref<{role:string;content:string}[]>([])
 const chatBody = ref<HTMLElement | null>(null)
 let abortController : AbortController | null = null
+
+// 会话管理
+const {
+    sessions,
+    currentSessionId,
+    currentMessages,
+    loadSessions,
+    createSession,
+    switchSession,
+    deleteSession,
+    addMessage
+} = useChatSessions()
 
 // 开启代码高亮
 const renderer = new marked.Renderer()
@@ -47,34 +76,42 @@ marked.use({renderer})
 
 
 // 发送消息
+// 发送消息
 const send = async() => {
     const text = input.value.trim()
     if(!text || loading.value) return 
 
-    messages.value.push({role:'user',content:text})
+    // 如果没有会话，先建一个
+    if (!currentSessionId.value) {
+        createSession()
+    }
+
+    addMessage('user', text)
     input.value = ''
     loading.value = true
 
-    // 空消息占位
-    messages.value.push({role:'assistant',content:''})
-    const history = messages.value.slice(0,-2)
+    // 空消息占位（assistant）
+    addMessage('assistant', '')
+    const history = currentMessages.value.slice(0, -2)
 
     abortController = new AbortController()
 
     try{
-        await chat(text,history,abortController.signal,(partial) => {
-            messages.value[messages.value.length - 1].content = partial
+        await chat(text, history, abortController.signal, (partial) => {
+            // 更新最后一条消息
+            currentMessages.value[currentMessages.value.length - 1].content = partial
         })
     }catch(e){
         if(e instanceof DOMException && e.name === 'AbortError') return
-        messages.value[messages.value.length - 1].content = '请求失败，请重新尝试'
+        currentMessages.value[currentMessages.value.length - 1].content = '请求失败，请重新尝试'
     } finally{
         loading.value = false
         abortController = null
     }
 }
 
-watch(messages,() => {
+
+watch(currentMessages,() => {
     setTimeout(() => {
         if(chatBody.value){
             chatBody.value.scrollTop = chatBody.value.scrollHeight
@@ -83,7 +120,9 @@ watch(messages,() => {
 },{deep:true})
 
 const clearChat = () => {
-    messages.value = []
+    if (currentSessionId.value) {
+        deleteSession(currentSessionId.value)
+    }
 }
 
 const stopGeneration = () => {
@@ -101,6 +140,8 @@ const renderMarkdown = (content:string) => {
     }
     return marked.parse(safe)
 }
+
+onMounted(() => loadSessions())
 </script>
 
 
