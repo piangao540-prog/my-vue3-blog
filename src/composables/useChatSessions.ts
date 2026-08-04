@@ -88,6 +88,7 @@ export const useChatSessions = () => {
         currentSessionId,
         currentMessages,
         loadSessions,
+        saveSessions,
         createSession,
         switchSession,
         deleteSession,

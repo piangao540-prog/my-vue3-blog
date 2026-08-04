@@ -1,28 +1,35 @@
 <template>
     <!-- 浮动的按钮 -->
-    <button class="chat-float-btn" @click="show = !show">AI</button>
+    <button class="chat-float-btn" @click="show = !show">
+        <el-icon :size="20"><ChatDotRound/></el-icon>
+    </button>
     <!-- 聊天对话框 -->
     <div v-if="show" class="chat-dialog">
         <div class="chat-header">
-            <span>AI助手</span>
+            <span class="header-title">AI助手</span>
             <div class="header-actions">
-                <button @click="createSession">+ 新对话</button>
-                <button @click="clearChat">清空</button>
+                <el-button size="small" type="primary" :icon="Plus" @click="createSession">新对话</el-button>
+                <el-button size="small" :icon="Delete" @click="clearChat">清空</el-button>
             </div>
         </div>
         <!-- 会话列表（可折叠） -->
-        <div class="session-list" v-if="sessions.length > 1">
-            <div
-                v-for="session in sessions"
-                :key="session.id"
-                class="session-item"
-                :class="{ active: session.id === currentSessionId }"
-                @click="switchSession(session.id)"
-            >
-                <span class="session-title">{{ session.title }}</span>
-                <button class="session-delete" @click.stop="deleteSession(session.id)">×</button>
+        <el-scrollbar class="session-scroll" v-if="sessions.length > 1">
+            <div class="session-list">
+                <div
+                    v-for="session in sessions"
+                    :key="session.id"
+                    class="session-item"
+                    :class="{ active: session.id === currentSessionId }"
+                    @click="switchSession(session.id)"
+                    >
+                    <el-icon class="session-icon"><Document /></el-icon>
+                    <span class="session-title">{{ session.title }}</span>
+                    <el-icon class="session-delete" @click.stop="deleteSession(session.id)">
+                        <Close />
+                    </el-icon>
+                </div>
             </div>
-        </div>
+        </el-scrollbar>
         <div ref="chatBody" class="chat-body">
             <div v-for="(msg, i) in currentMessages" :key="i" :class="msg.role">
                 <span v-html="renderMarkdown(msg.content)"></span>
@@ -30,9 +37,14 @@
             <div v-if="loading" class="typing">AI 正在输入...</div>
         </div>
         <div class="chat-footer">
-            <input v-model="input" @keyup.enter="send" placeholder="请输入问题..."/>
-            <button v-if="loading" @click="stopGeneration" style="color: red;">停止</button>
-            <button @click="send">发送</button>
+            <el-input
+                v-model="input"
+                placeholder="请输入问题..."
+                @keyup.enter="send"
+                :disabled="loading"
+            />
+            <el-button v-if="loading" type="danger" @click="stopGeneration">停止</el-button>
+            <el-button v-else type="primary" @click="send">发送</el-button>
         </div>
     </div>
 </template>
@@ -45,6 +57,7 @@ import { getChat as chat } from '@/api/ai'
 import { marked } from 'marked'
 import hljs from 'highlight.js'
 import { useChatSessions } from '@/composables/useChatSessions'
+import { ChatDotRound, Delete, Plus, Document, Close } from '@element-plus/icons-vue'
 
 const show = ref(false)
 const input = ref('')
@@ -58,6 +71,7 @@ const {
     currentSessionId,
     currentMessages,
     loadSessions,
+    saveSessions,
     createSession,
     switchSession,
     deleteSession,
@@ -74,12 +88,10 @@ renderer.code = ({text,lang}:{text:string;lang?:string}) => {
 
 marked.use({renderer})
 
-
-// 发送消息
 // 发送消息
 const send = async() => {
     const text = input.value.trim()
-    if(!text || loading.value) return 
+    if(!text || loading.value) return
 
     // 如果没有会话，先建一个
     if (!currentSessionId.value) {
@@ -101,9 +113,12 @@ const send = async() => {
             // 更新最后一条消息
             currentMessages.value[currentMessages.value.length - 1].content = partial
         })
+        // 流式结束，保存最终答案
+        saveSessions()
     }catch(e){
         if(e instanceof DOMException && e.name === 'AbortError') return
         currentMessages.value[currentMessages.value.length - 1].content = '请求失败，请重新尝试'
+        saveSessions()
     } finally{
         loading.value = false
         abortController = null
@@ -193,6 +208,63 @@ onMounted(() => loadSessions())
     flex-direction: column;
     gap: 8px;
 }
+
+/* 会话列表 */
+.session-scroll {
+    max-height: 200px;
+    border-bottom: 1px solid #eee;
+    background: #fafafa;
+}
+
+.session-list {
+    padding: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.session-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.session-item:hover {
+    background: #f0f2f5;
+}
+
+.session-item.active {
+    background: #e6f0ff;
+}
+
+.session-icon {
+    flex-shrink: 0;
+    color: #666;
+}
+
+.session-title {
+    flex: 1;
+    font-size: 13px;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.session-delete {
+    flex-shrink: 0;
+    color: #ccc;
+    cursor: pointer;
+}
+
+.session-delete:hover {
+    color: #f56c6c;
+}
+
 
 .user, .assistant {
     max-width: 80%;
