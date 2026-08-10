@@ -87,14 +87,14 @@ const markdownRenderer = {
 }
 marked.use({ renderer: markdownRenderer })
 // IntersectionObserver 懒加载:图片进入视口附近才把 data-src 换成 src
-let lazyObserver = null
+let lazyObserver: IntersectionObserver | null = null
 const initLazyImages = async () => {
     await nextTick()
     lazyObserver?.disconnect()
     lazyObserver = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {
             if (entry.isIntersecting) {
-                const img = entry.target
+                const img = entry.target as HTMLImageElement
                 const src = img.dataset.src
                 if (src) {
                     img.src = src
