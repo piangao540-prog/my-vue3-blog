@@ -5,6 +5,8 @@
             <el-input v-model="title" placeholder="请输入文章标题" class="title-input">
             </el-input>
             <div class="toolbar-actions">
+                <el-button @click="triggerUpload" :loading="uploading">插入图片</el-button>
+                <input ref="fileInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif" style="display: none" @change="handleFileChange" />
                 <el-button type="primary" @click="handleSave">
                     保存草稿
                 </el-button>
@@ -48,6 +50,7 @@ import {ref, watch} from 'vue'
 import { ElButton,ElInput, ElMessage } from 'element-plus'
 import { useArticleManagerStore } from '@/stores/articleManager'
 import {getAiTags} from '@/api/ai'
+import {uploadImage} from '@/api/upload'
 import VMdEditor from '@kangc/v-md-editor'
 import '@kangc/v-md-editor/lib/style/base-editor.css'
 import githubTheme from '@kangc/v-md-editor/lib/theme/github.js'
@@ -93,6 +96,79 @@ watch(() => props.initialTags, (newVal) => {
 })
 
 // 保存草稿
+
+// 图片上传:选图 → canvas 压缩 → 传后端 → 插入 Markdown
+const uploading = ref(false)
+const fileInput = ref<HTMLInputElement | null>(null)
+
+const triggerUpload = () => {
+    fileInput.value?.click()
+}
+
+const compressImage = (file: File, maxSize = 900, quality = 0.75) => {
+    return new Promise<{ data: string; mime: string }>((resolve, reject) => {
+        const img = new Image()
+        const objectUrl = URL.createObjectURL(file)
+        img.onload = () => {
+            const scale = Math.min(1, maxSize / Math.max(img.width, img.height))
+            const canvas = document.createElement('canvas')
+            canvas.width = Math.max(1, Math.round(img.width * scale))
+            canvas.height = Math.max(1, Math.round(img.height * scale))
+            const ctx = canvas.getContext('2d')
+            if (!ctx) {
+                URL.revokeObjectURL(objectUrl)
+                reject(new Error('浏览器不支持 canvas'))
+                return
+            }
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+            URL.revokeObjectURL(objectUrl)
+            // PNG 保留透明,其他转 JPEG 压缩
+            const outputType = file.type === 'image/png' ? 'image/png' : 'image/jpeg'
+            const dataUrl = canvas.toDataURL(outputType, outputType === 'image/jpeg' ? quality : undefined)
+            resolve({
+                data: dataUrl.split(',')[1],
+                mime: dataUrl.split(';')[0].split(':')[1]
+            })
+        }
+        img.onerror = () => {
+            URL.revokeObjectURL(objectUrl)
+            reject(new Error('图片加载失败'))
+        }
+        img.src = objectUrl
+    })
+}
+
+const handleFileChange = async (event: Event) => {
+    const input = event.target as HTMLInputElement
+    const file = input.files?.[0]
+    input.value = ''
+    if (!file) return
+
+    const allowed = ['image/png', 'image/jpeg', 'image/webp', 'image/gif']
+    if (!allowed.includes(file.type)) {
+        ElMessage.error('不支持的图片类型')
+        return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+        ElMessage.error('图片超过 5MB')
+        return
+    }
+
+    uploading.value = true
+    try {
+        const { data, mime } = await compressImage(file)
+        if (data.length > 2000000) {
+            throw new Error('图片压缩后仍过大,请换一张小图')
+        }
+        const url = await uploadImage(data, mime)
+        content.value += `\n![图片](${url})\n`
+        ElMessage.success('图片已插入')
+    } catch (err: any) {
+        ElMessage.error(err?.message || '上传失败,请重试')
+    } finally {
+        uploading.value = false
+    }
+}
 const handleSave = () => {
     emit('save',content.value,title.value,tags.value)
 }

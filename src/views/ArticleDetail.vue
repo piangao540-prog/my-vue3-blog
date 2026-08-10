@@ -29,7 +29,7 @@
           </div>
         </div>
       </header>
-      <div class="article-content" v-html="article.content.includes('<') ? article.content : marked(article.content)"></div>
+      <div class="article-content" v-html="article.content.trimStart().startsWith('<') ? article.content : marked(article.content)"></div>
       <div class="ai-summary">
         <el-button v-if="!aiSummary" link @click="getAiSummary" :loading="aiLoading">
           ai文章摘要
@@ -69,7 +69,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useBlogStore } from '@/stores/blog'
 import { Calendar, User, ArrowLeft } from '@element-plus/icons-vue'
@@ -77,6 +77,36 @@ import CommentSection from '@/components/CommentSection.vue'
 import { useUserStore } from '@/stores/user'
 import type { Article } from '@/stores/blog'
 import {marked} from 'marked'
+// 给 Markdown 图片加原生懒加载:进入视口浏览器才请求
+const markdownRenderer = {
+    // marked v5+ 渲染器接收的是 token 对象,不是位置参数
+    image({ href, title, tokens }) {
+        const text = tokens.map((t) => t.text).join('')
+        return `<img data-src="${href}" alt="${text}" />`
+    }
+}
+marked.use({ renderer: markdownRenderer })
+// IntersectionObserver 懒加载:图片进入视口附近才把 data-src 换成 src
+let lazyObserver = null
+const initLazyImages = async () => {
+    await nextTick()
+    lazyObserver?.disconnect()
+    lazyObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+                const img = entry.target
+                const src = img.dataset.src
+                if (src) {
+                    img.src = src
+                    delete img.dataset.src
+                }
+                lazyObserver?.unobserve(img)
+            }
+        })
+    }, { rootMargin: '100px 0px' })
+    document.querySelectorAll('.article-content img[data-src]').forEach((img) => lazyObserver?.observe(img))
+}
+onBeforeUnmount(() => lazyObserver?.disconnect())
 import { getAiSummary as apiAiSummary} from '@/api/ai'
 
 
@@ -154,6 +184,7 @@ const loadArticle = async (id: number) => {
 onMounted(async () => {
   const id = Number(route.params.id)
   await loadArticle(id)
+    initLazyImages()
 })
 
 // 监听路由参数变化（同一路由不同参数）
@@ -163,6 +194,7 @@ watch(() => route.params.id, async (newId) => {
     aiSummary.value = ''
     const id = Number(newId)
     await loadArticle(id)
+    initLazyImages()
   }
 })
 
@@ -269,6 +301,29 @@ watch(() => route.params.id, async (newId) => {
   color: #666;
 }
 
+.article-content :deep(img[data-src]) {
+  min-height: 120px;
+  background: #f0f2f5;
+}
+.article-content :deep(.image-gallery) {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin: 16px 0;
+}
+.article-content :deep(.image-gallery img) {
+  width: 100%;
+  height: auto;
+  margin: 0;
+  border-radius: 8px;
+}
+.article-content :deep(img) {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 16px auto;
+  border-radius: 8px;
+}
 .article-footer {
   margin-top: 40px;
 }
@@ -393,7 +448,30 @@ watch(() => route.params.id, async (newId) => {
     padding-left: 20px;
   }
   /* 文章导航 */
-    .article-footer {
+    .article-content :deep(img[data-src]) {
+  min-height: 120px;
+  background: #f0f2f5;
+}
+.article-content :deep(.image-gallery) {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin: 16px 0;
+}
+.article-content :deep(.image-gallery img) {
+  width: 100%;
+  height: auto;
+  margin: 0;
+  border-radius: 8px;
+}
+.article-content :deep(img) {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 16px auto;
+  border-radius: 8px;
+}
+.article-footer {
     margin-top: 30px;
   }
   
