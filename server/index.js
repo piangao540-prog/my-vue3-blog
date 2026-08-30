@@ -9,6 +9,7 @@ const promptBuilder = require('./services/promptBuilder')
 require('dotenv').config()
 const { json } = require('node:stream/consumers')
 const { search } = require('./services/vector-store')
+const { initSchema } = require('./services/schema')
 
 const app = express()
 app.use(cors())
@@ -25,16 +26,27 @@ const db = mysql.createPool({
     ssl: process.env.VERCEL ? { rejectUnauthorized: true } : false
 })
 
+initSchema(db)
+
 const JWT_SECRET = process.env.JWT_SECRET || 'blog-jwt-secret-key'
 
 // 鉴权中间件
-function auth(req, res, next) {
+async function auth(req, res, next) {
     const authHeader = req.headers.authorization
     if (!authHeader) return res.status(401).json({ error: '未登录' })
 
     try {
         const token = authHeader.split(' ')[1]
-        req.user = jwt.verify(token, JWT_SECRET)
+        const payload = jwt.verify(token, JWT_SECRET)
+        if(!payload.id){
+            const [rows] = await db.promise().query(
+                'SELECT id FROM users WHERE username=?',
+                [payload.username]
+            )
+            if(rows.length === 0) return res.status(401).json({error: 'token无效'})
+            payload.id = rows[0].id
+        }
+        req.user = payload
         next()
     } catch {
         res.status(401).json({ error: 'token无效' })
@@ -168,7 +180,7 @@ app.post('/api/auth/login', async (req, res) => {
         }
 
         const token = jwt.sign(
-            { username: user.username, role: user.role },
+            { username: user.username, role: user.role, id: user.id },
             JWT_SECRET,
             { expiresIn: '7d' }
         )
