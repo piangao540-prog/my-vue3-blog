@@ -38,12 +38,12 @@ async function auth(req, res, next) {
     try {
         const token = authHeader.split(' ')[1]
         const payload = jwt.verify(token, JWT_SECRET)
-        if(!payload.id){
+        if (!payload.id) {
             const [rows] = await db.promise().query(
                 'SELECT id FROM users WHERE username=?',
                 [payload.username]
             )
-            if(rows.length === 0) return res.status(401).json({error: 'token无效'})
+            if (rows.length === 0) return res.status(401).json({ error: 'token无效' })
             payload.id = rows[0].id
         }
         req.user = payload
@@ -199,7 +199,6 @@ app.post('/api/auth/login', async (req, res) => {
     }
 
 })
-
 
 
 // 查询用户信息
@@ -368,6 +367,77 @@ app.post('/api/ai/chat', async (req, res) => {
         res.write('data: [DONE]\n\n')
         res.end()
 
+    } catch (err) {
+        res.status(500).json({ error: err.message })
+    }
+})
+
+// 智能体：会话列表
+app.get('/api/chat/sessions', auth, async (req, res) => {
+    try {
+        const [rows] = await db.promise().query(
+            `SELECT s.id, s.title, s.createdAt, s.updatedAt, COUNT(m.id) AS messageCount
+            FROM chat_sessions s LEFT JOIN chat_messages m ON m.session_id = s.id
+            WHERE s.user_id = ? GROUP BY s.id ORDER BY s.updatedAt DESC`,
+            [req.user.id]
+        )
+        res.json(rows)
+    } catch (err) {
+        res.status(500).json({ error: err.message })
+    }
+})
+
+// 智能体：新建会话
+app.post('/api/chat/sessions', auth, async (req, res) => {
+    try {
+        const title = req.body.title || '新对话'
+        const [result] = await db.promise().query(
+            'INSERT INTO chat_sessions (user_id, title) VALUES (?,?)',
+            [req.user.id, title]
+        )
+        const [rows] = await db.promise().query(
+            'SELECT id, title, createdAt, updatedAt FROM chat_sessions WHERE id = ?',
+            [result.insertId]
+        )
+        res.json(rows[0])
+    } catch (err) {
+        res.status(500).json({ error: err.message })
+    }
+})
+
+// 智能体：会话消息列表
+app.get('/api/chat/sessions/:id/messages', auth, async (req, res) => {
+    try {
+        const sessionId = Number(req.params.id)
+        const [sessions] = await db.promise().query(
+            'SELECT id FROM chat_sessions WHERE id = ? AND user_id = ?',
+            [sessions, req.user.id]
+        )
+        if (sessions.length === 0) return res.status(500).json({ error: '会话不存在' })
+
+        const [messages] = await db.promise().query(
+            'SELECT id, content, sources, createdAt FROM chat_messions WHERE session_id = ?',
+            [sessionId]
+        )
+        res.json(message)
+    } catch (err) {
+        res.status(500).json({ error: err.message })
+    }
+})
+
+// 智能体：删除会话
+app.delete('/api/chat/sessions/:id', auth, async (req, res) => {
+    try {
+        const sessionId = Number(req.params.id)
+        const [sessions] = await db.promise().query(
+            'SELECT id FROM chat_sessions WHERE id = ? AND user_id = ?',
+            [sessionId, req.user.id]
+        )
+        if (sessions.length === 0) return res.status(404).json({ error: '会话不存在' })
+
+        await db.promise().query('DELETE FROM chat_messages WHERE session_id = ?', [sessionId])
+        await db.promise().query('DELETE FROM chat_sessions WHERE id = ?', [sessionId])
+        res.json({ success: true })
     } catch (err) {
         res.status(500).json({ error: err.message })
     }
