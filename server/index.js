@@ -10,6 +10,7 @@ require('dotenv').config()
 const { json } = require('node:stream/consumers')
 const { search } = require('./services/vector-store')
 const { initSchema } = require('./services/schema')
+const { pa } = require('element-plus/es/locale/index.mjs')
 
 const app = express()
 app.use(cors())
@@ -50,6 +51,24 @@ async function auth(req, res, next) {
         next()
     } catch {
         res.status(401).json({ error: 'token无效' })
+    }
+}
+
+// 可选登录：用于使用智能体
+async function getOptionalUser(req) {
+    const authHeader = req.headers.authorization
+    if(!authHeader) return null
+    try{
+        const token = authHeader.split(' ')[1]
+        const payload = jwt.verify(token, JWT_SECRET)
+        if(!payload.id){
+            const [rows] = await db.promise().query('SELECT id FROM users WHERE username=?', [payload.username])
+            if(rows.length === 0) return null
+            payload.id = rows[0].id
+        }
+        return payload
+    }catch (err){
+        return null
     }
 }
 
