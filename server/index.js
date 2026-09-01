@@ -10,7 +10,8 @@ require('dotenv').config()
 const { json } = require('node:stream/consumers')
 const { search } = require('./services/vector-store')
 const { initSchema } = require('./services/schema')
-const { pa } = require('element-plus/es/locale/index.mjs')
+const { title } = require('node:process')
+const { asyncWrapProviders } = require('node:async_hooks')
 
 const app = express()
 app.use(cors())
@@ -57,17 +58,17 @@ async function auth(req, res, next) {
 // 可选登录：用于使用智能体
 async function getOptionalUser(req) {
     const authHeader = req.headers.authorization
-    if(!authHeader) return null
-    try{
+    if (!authHeader) return null
+    try {
         const token = authHeader.split(' ')[1]
         const payload = jwt.verify(token, JWT_SECRET)
-        if(!payload.id){
+        if (!payload.id) {
             const [rows] = await db.promise().query('SELECT id FROM users WHERE username=?', [payload.username])
-            if(rows.length === 0) return null
+            if (rows.length === 0) return null
             payload.id = rows[0].id
         }
         return payload
-    }catch (err){
+    } catch (err) {
         return null
     }
 }
@@ -325,22 +326,60 @@ app.post('/api/ai/tag', async (req, res) => {
 
 // Ai智能问答助手
 app.post('/api/ai/chat', async (req, res) => {
-    const { question, history } = req.body
+    const { question, history, sessionId } = req.body
     if (!question) return res.status(400).json({ error: '缺少问题' })
+
+    // 登录用户，判断会话
+    const user = await getOptionalUser(req)
+    let sessionIdNum = null
+    if (user && sessionId) {
+        const [rows] = await db.promise().query(
+            'SELECT id FROM chat_sessions WHERE id=? AND user_id=?',
+            [Number(sessionId), user.id]
+        )
+        if (rows.length > 0)  sessionIdNum = Number(sessionId)
+    }
+    if (user && !sessionIdNum) {
+        const [result] = await db.promise().query(
+            'INSERT INTO chat_sessions (user_id, title) VALUES (?,?)',
+            [user.id, String(question).slice(0, 20)]
+        )
+        sessionIdNum = result.insertId
+    }
+
 
     const results = await search(question)
     const context = results.map(a =>
         `文章标题：${a.title}\n文章内容：${(a.content || '').slice(0, 800)}`
     ).join('\n---\n')
+    const sources = results.map(a => ({articleId: a.articleId, title: a.title}))
 
     if (results.length === 0) {
-        return res.json({ answer: '该问题暂未在博客中收入相关内容' })
-    }
+        const answer = '该问题暂未在博客中收入相关内容'
+        if (user && sessionIdNum) {
+            try {
+                await db.promise().query(
+                    'INSERT INTO chat_messages (session_id, user_id, role, content, sources) VALUES (?,?,?,?,?)',
+                    [sessionIdNum, user.id, 'user', question, null]
+                )
+                await db.promise().query(
+                    'INSERT INTO chat_messages (session_id, user_id, role, content, sources) VALUES (?,?,?,?,?)',
+                    [sessionIdNum, user.id, 'assistant', answer, null]
+                )
+            } catch (err) {
+                console.error('保存对话失败:', err.message)
+            }
+        }
+        return res.json({ answer, sessionId: sessionIdNum || undefined })
+    }  
 
     try {
         res.setHeader('Content-Type', 'text/event-stream')
         res.setHeader('Cache-Control', 'no-cache')
         res.setHeader('Connection', 'keep-alive')
+        if(user){
+            res.write(`data: ${JSON.stringify({ sessionId: sessionIdNum})}\n\n`)
+        }
 
         const { messages, params } = promptBuilder.build('blog-qa', {
             context,
@@ -362,7 +401,7 @@ app.post('/api/ai/chat', async (req, res) => {
             })
         })
 
-        let fullSummary = ''
+        let fullAnswer = ''
         const reader = response.body.getReader()
         const decoder = new TextDecoder()
 
@@ -376,10 +415,26 @@ app.post('/api/ai/chat', async (req, res) => {
                     const data = JSON.parse(line.slice(6))
                     const text = data.choices?.[0]?.delta?.content || ''
                     if (text) {
-                        fullSummary += text
+                        fullAnswer += text
                         res.write(`data: ${JSON.stringify({ text })}\n\n`)
                     }
                 } catch { }
+            }
+        }
+
+        // 登录用户：流式结束后把这一问一答写进数据库
+        if (user && sessionIdNum) {
+            try {
+                await db.promise().query(
+                    'INSERT INTO chat_messages (session_id, user_id, role, content, sources) VALUES (?,?,?,?,?)',
+                    [sessionIdNum, user.id, 'user', question, null]
+                )
+                await db.promise().query(
+                    'INSERT INTO chat_messages (session_id, user_id, role, content, sources) VALUES (?,?,?,?,?)',
+                    [sessionIdNum, user.id, 'assistant', fullAnswer, sources.length ? JSON.stringify(sources) : null]
+                )
+            } catch (err) {
+                console.error('保存对话失败:', err.message)
             }
         }
 
