@@ -56,15 +56,22 @@ export const getAiTags = async (content: string, title?: string): Promise<string
 
 export const getChat = async (
     question: string,
-    history:{role:string;content: string}[], 
+    history: { role: string; content: string }[],
+    sessionId: number | null,
     signal: AbortSignal,
-    onText: (text: string) => void
-    ): Promise<string> => {
+    onText: (text: string) => void,
+    onMeta?: (meta: { sessionId?: number }) => void
+): Promise<string> => {
     const base = window.location.hostname === 'localhost' ? 'http://localhost:3000' : ''
+
+    const token = localStorage.getItem('token')
     const response = await fetch(`${base}/api/ai/chat`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question,history }),
+        headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ question, history, sessionId }),
         signal
     })
 
@@ -72,6 +79,7 @@ export const getChat = async (
     const ct = response.headers.get('content-type') || ''
     if (ct.includes('application/json')) {
         const data = await response.json()
+        if (data.sessionId) onMeta?.({ sessionId: data.sessionId })
         onText(data.answer || '该问题暂未在博客中收录相关内容')
         return data.answer || ''
     }
@@ -89,6 +97,7 @@ export const getChat = async (
             if (!line.startsWith('data:') || line.includes('[DONE]')) continue
             try {
                 const data = JSON.parse(line.slice(6))
+                if (data.sessionId) onMeta?.({ sessionId: data.sessionId })
                 const text = data.text || ''
                 fullAnswer += text
                 onText(fullAnswer)
