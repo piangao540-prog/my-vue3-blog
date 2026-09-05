@@ -485,15 +485,18 @@ app.get('/api/chat/sessions/:id/messages', auth, async (req, res) => {
         const sessionId = Number(req.params.id)
         const [sessions] = await db.promise().query(
             'SELECT id FROM chat_sessions WHERE id = ? AND user_id = ?',
-            [sessions, req.user.id]
+            [sessionId, req.user.id]
         )
-        if (sessions.length === 0) return res.status(500).json({ error: '会话不存在' })
+        if (sessions.length === 0) return res.status(404).json({ error: '会话不存在' })
 
         const [messages] = await db.promise().query(
-            'SELECT id, content, sources, createdAt FROM chat_messions WHERE session_id = ?',
+            'SELECT id, role, content, sources, createdAt FROM chat_messages WHERE session_id = ? ORDER BY id ASC',
             [sessionId]
         )
-        res.json(message)
+        res.json(messages.map(m => ({
+            ...m,
+            sources: m.sources ? (typeof m.sources === 'string' ? JSON.parse(m.sources) : m.sources) : null
+        })))
     } catch (err) {
         res.status(500).json({ error: err.message })
     }

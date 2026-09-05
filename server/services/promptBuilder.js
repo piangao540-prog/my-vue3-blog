@@ -54,7 +54,7 @@ ${vars.context}
         ],
         params: {
             temperature: 0.7,
-            max_tokens: 1024
+            max_tokens: 4096
         }
     }
 })
@@ -82,7 +82,7 @@ promptBuilder.register('summary', (vars) => {
         ],
         params: {
             temperature: 0.3,
-            max_tokens: 100
+            max_tokens: 4096
         }
     }
 })

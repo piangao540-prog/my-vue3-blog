@@ -8,7 +8,7 @@
         <div class="chat-header">
             <span class="header-title">AI助手</span>
             <div class="header-actions">
-                <el-button size="small" type="primary" :icon="Plus" @click="createSession">新对话</el-button>
+                <el-button size="small" type="primary" :icon="Plus" @click="handleCreateSession">新对话</el-button>
                 <el-button size="small" :icon="Delete" @click="clearChat">清空</el-button>
             </div>
         </div>
@@ -88,14 +88,18 @@ renderer.code = ({text,lang}:{text:string;lang?:string}) => {
 
 marked.use({renderer})
 
+// 新建会话（等待服务端创建完成）
+const handleCreateSession = async () =>{
+    await createSession()
+}
+
 // 发送消息
 const send = async() => {
     const text = input.value.trim()
     if(!text || loading.value) return
 
-    // 如果没有会话，先建一个
     if (!currentSessionId.value) {
-        createSession()
+        await createSession()
     }
 
     addMessage('user', text)
@@ -109,9 +113,14 @@ const send = async() => {
     abortController = new AbortController()
 
     try{
-        await chat(text, history, abortController.signal, (partial) => {
+        const sessionId = currentSessionId.value ? Number(currentSessionId.value) : null
+        await chat(text, history, sessionId, abortController.signal, (partial) => {
             // 更新最后一条消息
             currentMessages.value[currentMessages.value.length - 1].content = partial
+        },(meta) => {
+            if(meta.sessionId && currentSessionId.value !== String(meta.sessionId)){
+                currentSessionId.value = String(meta.sessionId)
+            }
         })
         // 流式结束，保存最终答案
         saveSessions()

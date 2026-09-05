@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue'
+import { ref, computed, watch} from 'vue'
 import { useUserStore } from '@/stores/user'
 import * as chatApi from '@/api/chat'
 
@@ -147,6 +147,11 @@ export const useChatSessions = () => {
             await loadMessages(id)
         }
     }
+
+    // 登录状态变化时重新加载：登录后换成数据库数据，退出后换回本地数据
+    watch(isServerMode,() =>{
+        loadSessions()
+    })
 
     return {
         sessions,
