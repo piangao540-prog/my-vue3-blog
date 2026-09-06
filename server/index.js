@@ -10,8 +10,7 @@ require('dotenv').config()
 const { json } = require('node:stream/consumers')
 const { search } = require('./services/vector-store')
 const { initSchema } = require('./services/schema')
-const { title } = require('node:process')
-const { asyncWrapProviders } = require('node:async_hooks')
+const { mergeMemories, parseMemoryJson } = require('./services/memory')
 
 const app = express()
 app.use(cors())
@@ -70,6 +69,47 @@ async function getOptionalUser(req) {
         return payload
     } catch (err) {
         return null
+    }
+}
+
+// 从对话中提炼记忆（回答完成后调用，失败不影响聊天本身）
+async function extractMemories(userId, question, answer, sourceMessageId) {
+    const { messages, params } = promptBuilder.build('memory-extract', {
+        question: String(question || '').slice(0, 2000),
+        answer: String(answer || '').slice(0, 2000)
+    })
+    const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`
+        },
+        body: JSON.stringify({ model: 'deepseek-v4-flash', ...params, messages })
+    })
+    const data = await response.json()
+    const incoming = parseMemoryJson(data.choices?.[0]?.message?.content)
+    if (incoming.length === 0) return
+
+    const [existing] = await db.promise().query(
+        'SELECT id, category, content, weight, status FROM memories WHERE user_id=? AND status="active"',
+        [userId]
+    )
+    const { insert, update } = mergeMemories(existing, incoming)
+    for (const item of insert) {
+        await db.promise().query(
+            'INSERT INTO memories (user_id, category, content, weight, source_message_id) VALUES (?,?,?,?,?)',
+            [userId, item.category, item.content, item.weight, sourceMessageId || null]
+        )
+    }
+    for (const item of update) {
+        await db.promise().query(
+            'INSERT INTO memory_revisions (memory_id, old_content, new_content) VALUES (?,?,?)',
+            [item.id, item.oldContent, item.newContent]
+        )
+        await db.promise().query(
+            'UPDATE memories SET content=?, weight=?, source_message_id=?, updatedAt=NOW() WHERE id=?',
+            [item.newContent, item.weight, sourceMessageId || null, item.id]
+        )
     }
 }
 
@@ -370,6 +410,7 @@ app.post('/api/ai/chat', async (req, res) => {
                 console.error('保存对话失败:', err.message)
             }
         }
+        await extractMemories(user.id, question, answer, null).catch(() => {})
         return res.json({ answer, sessionId: sessionIdNum || undefined })
     }  
 
@@ -429,10 +470,11 @@ app.post('/api/ai/chat', async (req, res) => {
                     'INSERT INTO chat_messages (session_id, user_id, role, content, sources) VALUES (?,?,?,?,?)',
                     [sessionIdNum, user.id, 'user', question, null]
                 )
-                await db.promise().query(
+                const [msgResult] = await db.promise().query(
                     'INSERT INTO chat_messages (session_id, user_id, role, content, sources) VALUES (?,?,?,?,?)',
                     [sessionIdNum, user.id, 'assistant', fullAnswer, sources.length ? JSON.stringify(sources) : null]
                 )
+                await extractMemories(user.id, question, fullAnswer, msgResult.insertId).catch(() => {})
             } catch (err) {
                 console.error('保存对话失败:', err.message)
             }
