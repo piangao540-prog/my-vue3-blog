@@ -87,4 +87,35 @@ promptBuilder.register('summary', (vars) => {
     }
 })
 
+// 记忆模块：从文章中提取记忆
+promptBuilder.register('memory-extract',(vars) => {
+    return {
+        messages: [
+            {
+                role:'system',
+                content: `# 任务
+                从对话中提取值得长期记住的用户信息，输出JSON数组。
+                # 分类（只能使用以下五类）
+                - 基础属性：作息习惯、喜好偏好、忌口、日常行为模式
+                - 生活状态：阶段性目标、烦恼、压力、计划、已完成事项、为完成述求
+                - 情绪特征：容易焦虑的场景、开心的触发点、抗压能力、情绪表达方式
+                - 专属经历：个人过往经历、重要事件、在意的人和事、私密述求
+                # 输出格式
+                [{ "category": "生活状态", "content": "正在准备秋招，目标是前端开发岗位", "weight": 0.8 }]
+                - weight 表示重要程度，0~1 之间的小数
+                - 没有值得记住的信息时输出[]
+                - 只输出 JSON 数组，不要输出其他文字`    
+            },
+            {
+                role: 'user',
+                content: `用户说：${ vars.question }\n助手回答：${ vars.answer }`
+            }
+        ],
+        params: {
+                temperature: 0.2,
+                max_tokens: 4096
+        }
+    }
+})
+
 module.exports = promptBuilder
