@@ -394,7 +394,18 @@ app.post('/api/ai/chat', async (req, res) => {
     ).join('\n---\n')
     const sources = results.map(a => ({articleId: a.articleId, title: a.title}))
 
-    if (results.length === 0) {
+    // 登录用户：加载已有记忆，注入到对话
+    let memoryLines = []
+    if (user) {
+        const [memRows] = await db.promise().query(
+            'SELECT category, content FROM memories WHERE user_id=? AND status="active" ORDER BY weight DESC, updatedAt DESC LIMIT 15',
+            [user.id]
+        )
+        memoryLines = memRows.map(r => `[${r.category}] ${r.content}`)
+    }
+
+    // 没搜到文章且没有记忆可依据时，才返回固定话术
+    if (results.length === 0 && memoryLines.length === 0) {
         const answer = '该问题暂未在博客中收入相关内容'
         if (user && sessionIdNum) {
             try {
@@ -410,7 +421,9 @@ app.post('/api/ai/chat', async (req, res) => {
                 console.error('保存对话失败:', err.message)
             }
         }
-        await extractMemories(user.id, question, answer, null).catch(() => {})
+        if (user) {
+            await extractMemories(user.id, question, answer, null).catch(() => {})
+        }
         return res.json({ answer, sessionId: sessionIdNum || undefined })
     }  
 
@@ -422,10 +435,13 @@ app.post('/api/ai/chat', async (req, res) => {
             res.write(`data: ${JSON.stringify({ sessionId: sessionIdNum})}\n\n`)
         }
 
-        const { messages, params } = promptBuilder.build('blog-qa', {
+        const template = user ? 'agent-chat' : 'blog-qa'
+        const { messages, params } = promptBuilder.build(template, {
             context,
             question,
-            history
+            history,
+            memories: memoryLines,
+            username: user ? user.username : ''
         })
 
         const response = await fetch('https://api.deepseek.com/v1/chat/completions', {

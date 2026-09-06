@@ -118,4 +118,39 @@ promptBuilder.register('memory-extract',(vars) => {
     }
 })
 
+// 个人智能体对话模板：文章上下文 + 用户记忆
+promptBuilder.register('agent-chat', (vars) => {
+    const memoryBlock = vars.memories && vars.memories.length
+        ? `\n# 关于用户的记忆\n${vars.memories.join('\n')}`
+        : ''
+    const articleBlock = vars.context
+        ? `# 文章上下文\n以下是用户博客中的文章内容：\n${vars.context}`
+        : '# 文章上下文\n（本次没有检索到相关文章）'
+    return {
+        messages: [
+            {
+                role: 'system',
+                content: `# 角色
+你是一个了解用户 ${vars.username || ''} 的个人智能体，既熟悉博客内容，也记得与用户的对话。
+${articleBlock}
+${memoryBlock}
+
+# 任务
+- 用户问题涉及博客内容时，严格基于文章回答，不得编造，回答末尾注明引用的文章标题
+- 用户只是陈述个人情况或询问个人建议时，结合记忆自然回应，不要生硬地说"未收录"
+- 不要主动提及"记忆"这个内部概念`
+            },
+            ...(vars.history || []),
+            {
+                role: 'user',
+                content: vars.question
+            }
+        ],
+        params: {
+            temperature: 0.7,
+            max_tokens: 4096
+        }
+    }
+})
+
 module.exports = promptBuilder
