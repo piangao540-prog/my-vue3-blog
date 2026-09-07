@@ -57,6 +57,7 @@ const activeMenu = computed(() => {
           <el-menu-item index="/articles">文章</el-menu-item>
           <el-menu-item index="/archive">归档</el-menu-item>
           <el-menu-item index="/about">关于</el-menu-item>
+          <el-menu-item index="/memory">记忆</el-menu-item>
         </el-menu>
       </el-drawer>
     </div>
@@ -66,6 +67,7 @@ const activeMenu = computed(() => {
         <router-link to="/articles" class="nav-item" :class="{ active: route.path.startsWith('/articles') }">文章</router-link>
         <router-link to="/archive" class="nav-item" :class="{ active: route.path === '/archive' }">归档</router-link>
         <router-link to="/about" class="nav-item" :class="{ active: route.path === '/about' }">关于</router-link>
+        <router-link to="/memory" class="nav-item" :class="{ active: route.path === '/memory' }">记忆</router-link>
       </nav>
     </div>
     <!-- 右侧：搜索框 ,登录按钮 -->

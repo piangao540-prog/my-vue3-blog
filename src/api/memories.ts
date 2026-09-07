@@ -1,0 +1,41 @@
+import axios from './axios'
+
+export interface MemoryItem {
+    id: number
+    category: string
+    content: string
+    weight: number | string
+    source_message_id: number | null
+    createdAt: string
+    updatedAt: string
+}
+
+// 获取当前用户的记忆列表
+export const getMemories = async (): Promise<MemoryItem[]> => {
+    const { data } = await axios.get('/memories')
+    return data
+}
+
+// 手动新增一条记忆
+export const createMemory = async (payload: {
+    category: string
+    content: string
+    weight: number
+}): Promise<MemoryItem> => {
+    const { data } = await axios.post('/memories', payload)
+    return data
+}
+
+// 编辑一条记忆
+export const updateMemory = async (
+    id: number,
+    payload: { category?: string; content?: string; weight?: number }
+): Promise<MemoryItem> => {
+    const { data } = await axios.put(`/memories/${id}`, payload)
+    return data
+}
+
+// 删除一条记忆（后端软删除）
+export const deleteMemory = async (id: number): Promise<void> => {
+    await axios.delete(`/memories/${id}`)
+}

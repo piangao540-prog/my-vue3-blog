@@ -40,6 +40,11 @@ const router = createRouter({
     component: () => import('@/views/About.vue')
   },
   {
+    path: '/memory',
+    name: 'memory',
+    component: () => import('@/views/Memory.vue')
+  },
+  {
     path: '/profile',
     name: 'profile',
     component: () => import('@/views/Profile.vue'),
