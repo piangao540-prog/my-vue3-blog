@@ -10,7 +10,7 @@ require('dotenv').config()
 const { json } = require('node:stream/consumers')
 const { search } = require('./services/vector-store')
 const { initSchema } = require('./services/schema')
-const { mergeMemories, parseMemoryJson } = require('./services/memory')
+const { mergeMemories, parseMemoryJson, MEMORY_CATEGORIES } = require('./services/memory')
 
 const app = express()
 app.use(cors())
@@ -572,6 +572,92 @@ app.delete('/api/chat/sessions/:id', auth, async (req, res) => {
 
         await db.promise().query('DELETE FROM chat_messages WHERE session_id = ?', [sessionId])
         await db.promise().query('DELETE FROM chat_sessions WHERE id = ?', [sessionId])
+        res.json({ success: true })
+    } catch (err) {
+        res.status(500).json({ error: err.message })
+    }
+})
+
+// ===== 智能体：记忆管理（仅登录用户） =====
+app.get('/api/memories', auth, async (req, res) => {
+    try {
+        const [rows] = await db.promise().query(
+            `SELECT id, category, content, weight, source_message_id, createdAt, updatedAt
+             FROM memories WHERE user_id=? AND status='active'
+             ORDER BY FIELD(category, '基础属性','思维认知','生活状态','情绪特征','专属经历'), updatedAt DESC`,
+            [req.user.id]
+        )
+        res.json(rows)
+    } catch (err) {
+        res.status(500).json({ error: err.message })
+    }
+})
+
+// 手动新增记忆
+app.post('/api/memories', auth, async (req, res) => {
+    try {
+        const { category, content, weight } = req.body || {}
+        const cat = MEMORY_CATEGORIES.includes(category) ? category : null
+        if (!cat || !content || !String(content).trim()) {
+            return res.status(400).json({ error: '分类或内容无效' })
+        }
+        const [result] = await db.promise().query(
+            'INSERT INTO memories (user_id, category, content, weight) VALUES (?,?,?,?)',
+            [req.user.id, cat, String(content).trim(), Math.min(1, Math.max(0, Number(weight) || 0.5))]
+        )
+        const [rows] = await db.promise().query(
+            'SELECT id, category, content, weight, createdAt, updatedAt FROM memories WHERE id=?',
+            [result.insertId]
+        )
+        res.json(rows[0])
+    } catch (err) {
+        res.status(500).json({ error: err.message })
+    }
+})
+
+// 编辑记忆
+app.put('/api/memories/:id', auth, async (req, res) => {
+    try {
+        const memoryId = Number(req.params.id)
+        const [rows] = await db.promise().query(
+            'SELECT * FROM memories WHERE id=? AND user_id=? AND status="active"',
+            [memoryId, req.user.id]
+        )
+        if (rows.length === 0) return res.status(404).json({ error: '记忆不存在' })
+        const old = rows[0]
+        const { category, content, weight } = req.body || {}
+        const nextCategory = category && MEMORY_CATEGORIES.includes(category) ? category : old.category
+        const nextContent = content !== undefined && String(content).trim() ? String(content).trim() : old.content
+        const nextWeight = weight !== undefined ? Math.min(1, Math.max(0, Number(weight) || old.weight)) : old.weight
+        if (String(nextContent).trim() !== String(old.content).trim()) {
+            await db.promise().query(
+                'INSERT INTO memory_revisions (memory_id, old_content, new_content) VALUES (?,?,?)',
+                [memoryId, old.content, nextContent]
+            )
+        }
+        await db.promise().query(
+            'UPDATE memories SET category=?, content=?, weight=? WHERE id=?',
+            [nextCategory, nextContent, nextWeight, memoryId]
+        )
+        const [updated] = await db.promise().query(
+            'SELECT id, category, content, weight, createdAt, updatedAt FROM memories WHERE id=?',
+            [memoryId]
+        )
+        res.json(updated[0])
+    } catch (err) {
+        res.status(500).json({ error: err.message })
+    }
+})
+
+// 删除记忆
+app.delete('/api/memories/:id', auth, async (req, res) => {
+    try {
+        const memoryId = Number(req.params.id)
+        const [result] = await db.promise().query(
+            'UPDATE memories SET status="deleted" WHERE id=? AND user_id=?',
+            [memoryId, req.user.id]
+        )
+        if (result.affectedRows === 0) return res.status(404).json({ error: '记忆不存在' })
         res.json({ success: true })
     } catch (err) {
         res.status(500).json({ error: err.message })
