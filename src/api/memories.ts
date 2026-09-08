@@ -50,3 +50,8 @@ export const getReview = async (
     })
     return data
 }
+
+// 一键重置记忆库（后端软删除记忆，保留原始对话）
+export const resetMemories = async (): Promise<void> => {
+    await axios.post('/memory/reset')
+}

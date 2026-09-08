@@ -46,6 +46,21 @@
                 <el-empty v-else description="选择时间段，生成一份关于你自己的复盘" />
             </div>
 
+            <div class="review-section">
+                <h3 class="cat-title">数据管理</h3>
+                <div class="review-toolbar">
+                    <el-button @click="handleExport('json')">导出 JSON</el-button>
+                    <el-button @click="handleExport('markdown')">导出 Markdown</el-button>
+                    <el-button type="danger" @click="handleReset">重置记忆库</el-button>
+                </div>
+                <el-alert
+                    type="warning"
+                    :closable="false"
+                    show-icon
+                    title="重置只清除提炼的记忆，原始对话记录会保留"
+                />
+            </div>
+
             <el-dialog v-model="dialogVisible" :title="editingId ? '编辑记忆' : '手动添加记忆'" width="480px">
                 <el-form label-width="80px">
                     <el-form-item label="分类">
@@ -78,7 +93,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Edit, Delete } from '@element-plus/icons-vue'
 import { marked } from 'marked'
 import hljs from 'highlight.js'
@@ -90,8 +105,10 @@ import {
     updateMemory,
     deleteMemory,
     getReview,
+    resetMemories,
     type MemoryItem
 } from '@/api/memories'
+import { exportChats } from '@/api/chat'
 
 const CATEGORIES = ['基础属性', '思维认知', '生活状态', '情绪特征', '专属经历']
 
@@ -213,6 +230,33 @@ const renderMarkdown = (content: string) => {
     let safe = content
     if (openCount % 2 !== 0) safe = content + '\n```'
     return marked.parse(safe)
+}
+
+// ===== 数据管理 =====
+const handleExport = async (format: 'json' | 'markdown') => {
+    try {
+        await exportChats(format)
+    } catch {
+        ElMessage.error('导出失败')
+    }
+}
+
+const handleReset = async () => {
+    try {
+        await ElMessageBox.confirm('确定要清空全部记忆吗？原始对话记录会保留。', '重置确认', {
+            type: 'warning'
+        })
+    } catch {
+        return
+    }
+    try {
+        await resetMemories()
+        ElMessage.success('记忆库已重置')
+        memories.value = []
+        review.value = ''
+    } catch {
+        ElMessage.error('重置失败')
+    }
 }
 
 onMounted(() => {

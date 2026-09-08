@@ -761,6 +761,70 @@ app.get('/api/memory/review', auth, async (req, res) => {
     }
 })
 
+// ===== 智能体：导出与重置 =====
+app.get('/api/chat/export', auth, async (req, res) => {
+    try {
+        const { format = 'json' } = req.query
+        const [sessions] = await db.promise().query(
+            'SELECT id, title, createdAt, updatedAt FROM chat_sessions WHERE user_id=? ORDER BY id ASC',
+            [req.user.id]
+        )
+        const [messages] = await db.promise().query(
+            'SELECT session_id, role, content, sources, createdAt FROM chat_messages WHERE user_id=? ORDER BY id ASC',
+            [req.user.id]
+        )
+        const [memories] = await db.promise().query(
+            'SELECT id, category, content, weight, createdAt, updatedAt FROM memories WHERE user_id=? AND status="active" ORDER BY id ASC',
+            [req.user.id]
+        )
+        const bySession = sessions.map(s => ({
+            ...s,
+            messages: messages
+                .filter(m => m.session_id === s.id)
+                .map(m => ({
+                    role: m.role,
+                    content: m.content,
+                    sources: m.sources ? (typeof m.sources === 'string' ? JSON.parse(m.sources) : m.sources) : null,
+                    createdAt: m.createdAt
+                }))
+        }))
+        const ts = new Date().toISOString().replace(/[:.]/g, '-')
+
+        if (format === 'markdown') {
+            let md = `# 个人记忆导出\n\n导出时间：${new Date().toISOString()}\n\n## 记忆库\n\n`
+            md += memories.length
+                ? memories.map(m => `- [${m.category}] ${m.content}（权重 ${m.weight}）`).join('\n')
+                : '（暂无记忆）'
+            md += '\n\n## 对话记录\n\n'
+            for (const s of bySession) {
+                md += `### ${s.title}（${s.createdAt}）\n\n`
+                for (const m of s.messages) {
+                    md += `**${m.role === 'user' ? '用户' : '助手'}**：${m.content}\n\n`
+                }
+            }
+            res.setHeader('Content-Type', 'text/markdown; charset=utf-8')
+            res.setHeader('Content-Disposition', `attachment; filename="memory-${ts}.md"`)
+            return res.send(md)
+        }
+
+        res.setHeader('Content-Type', 'application/json; charset=utf-8')
+        res.setHeader('Content-Disposition', `attachment; filename="memory-${ts}.json"`)
+        res.send(JSON.stringify({ exportedAt: new Date().toISOString(), sessions: bySession, memories }, null, 2))
+    } catch (err) {
+        res.status(500).json({ error: err.message })
+    }
+})
+
+// 一键重置记忆库（软删除记忆，原始对话日志保留）
+app.post('/api/memory/reset', auth, async (req, res) => {
+    try {
+        await db.promise().query('UPDATE memories SET status="deleted" WHERE user_id=?', [req.user.id])
+        res.json({ success: true })
+    } catch (err) {
+        res.status(500).json({ error: err.message })
+    }
+})
+
 // 查询用户自己的评论
 app.get('/api/comments/user', (req, res) => {
     db.query('SELECT * FROM comments WHERE author=? ORDER BY createdAt DESC',
