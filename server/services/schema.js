@@ -36,6 +36,14 @@ const statements = [
         old_content TEXT,
         new_content TEXT,
         createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+    `CREATE TABLE IF NOT EXISTS memory_reviews (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        period VARCHAR(20) NOT NULL,
+        content MEDIUMTEXT,
+        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY uk_user_period (user_id, period)
     ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
 ]
 

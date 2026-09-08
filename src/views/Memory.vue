@@ -29,6 +29,23 @@
                 </template>
             </div>
 
+            <div class="review-section">
+                <h3 class="cat-title">复盘</h3>
+                <div class="review-toolbar">
+                    <el-select v-model="period" style="width: 160px">
+                        <el-option label="最近 7 天" value="week" />
+                        <el-option label="最近 30 天" value="month" />
+                        <el-option label="最近一年" value="year" />
+                        <el-option label="全部时间" value="all" />
+                    </el-select>
+                    <el-button type="primary" :loading="reviewing" @click="generateReview()">生成复盘</el-button>
+                    <el-button v-if="review" :loading="reviewing" @click="generateReview(true)">重新生成</el-button>
+                </div>
+                <div v-if="reviewing" class="review-content review-loading">AI 正在分析你的对话数据...</div>
+                <div v-else-if="review" class="review-content" v-html="renderMarkdown(review)"></div>
+                <el-empty v-else description="选择时间段，生成一份关于你自己的复盘" />
+            </div>
+
             <el-dialog v-model="dialogVisible" :title="editingId ? '编辑记忆' : '手动添加记忆'" width="480px">
                 <el-form label-width="80px">
                     <el-form-item label="分类">
@@ -63,6 +80,8 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Plus, Edit, Delete } from '@element-plus/icons-vue'
+import { marked } from 'marked'
+import hljs from 'highlight.js'
 import { useUserStore } from '@/stores/user'
 import { formatTime } from '@/utils/formatTime'
 import {
@@ -70,6 +89,7 @@ import {
     createMemory,
     updateMemory,
     deleteMemory,
+    getReview,
     type MemoryItem
 } from '@/api/memories'
 
@@ -158,6 +178,43 @@ const removeMemory = async (m: MemoryItem) => {
     }
 }
 
+// ===== 复盘 =====
+const period = ref('week')
+const reviewing = ref(false)
+const review = ref('')
+
+// 生成复盘：force=false 优先用缓存，true 强制重新生成
+const generateReview = async (force = false) => {
+    reviewing.value = true
+    try {
+        const data = await getReview(period.value, force)
+        review.value = data.content
+        if (data.cached) {
+            ElMessage.info('返回的是 30 分钟内的缓存结果')
+        }
+    } catch {
+        ElMessage.error('生成复盘失败')
+    } finally {
+        reviewing.value = false
+    }
+}
+
+// markdown 渲染（和聊天组件同款）
+const renderer = new marked.Renderer()
+renderer.code = ({ text, lang }: { text: string; lang?: string }) => {
+    const language = lang && hljs.getLanguage(lang) ? lang : 'plaintext'
+    const highlighted = hljs.highlight(text, { language }).value
+    return `<pre><code class="hljs language-${language}">${highlighted}</code></pre>`
+}
+marked.use({ renderer })
+
+const renderMarkdown = (content: string) => {
+    const openCount = (content.match(/```/g) || []).length
+    let safe = content
+    if (openCount % 2 !== 0) safe = content + '\n```'
+    return marked.parse(safe)
+}
+
 onMounted(() => {
     if (userStore.isLoggedIn) {
         loadMemories()
@@ -229,5 +286,49 @@ onMounted(() => {
 
 .login-tip {
     padding-top: 60px;
+}
+
+.review-section {
+    margin-top: 40px;
+}
+
+.review-toolbar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.review-content {
+    background: #fafafa;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 16px 20px;
+    line-height: 1.7;
+    font-size: 14px;
+}
+
+.review-loading {
+    color: #999;
+}
+
+.review-content h1,
+.review-content h2,
+.review-content h3 {
+    margin: 12px 0 8px;
+}
+
+.review-content p {
+    margin: 8px 0;
+}
+
+.review-content ul,
+.review-content ol {
+    padding-left: 22px;
+    margin: 8px 0;
+}
+
+html.dark .review-content {
+    background: #1f1f1f;
+    border-color: #333;
 }
 </style>

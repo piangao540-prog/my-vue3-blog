@@ -664,6 +664,103 @@ app.delete('/api/memories/:id', auth, async (req, res) => {
     }
 })
 
+// ===== 智能体：深度认知（复盘） =====
+app.get('/api/memory/review', auth, async (req, res) => {
+    try {
+        const { period = 'week', refresh } = req.query
+        const validPeriods = ['week', 'month', 'year', 'all']
+        if (!validPeriods.includes(period)) return res.status(400).json({ error: 'period 参数无效' })
+        const periodLabel = { week: '最近 7 天', month: '最近 30 天', year: '最近一年', all: '全部时间' }[period]
+        const days = { week: 7, month: 30, year: 365 }[period]
+
+        // 30 分钟内的缓存直接返回，避免重复调用模型
+        if (!refresh) {
+            const [cached] = await db.promise().query(
+                'SELECT content FROM memory_reviews WHERE user_id=? AND period=? AND createdAt > NOW() - INTERVAL 30 MINUTE',
+                [req.user.id, period]
+            )
+            if (cached.length && cached[0].content) {
+                return res.json({ period, content: cached[0].content, cached: true })
+            }
+        }
+
+        const msgParams = [req.user.id]
+        let msgWhere = 'user_id=?'
+        if (days) {
+            msgWhere += ' AND createdAt >= DATE_SUB(NOW(), INTERVAL ? DAY)'
+            msgParams.push(days)
+        }
+
+        // 聚合统计：消息总量 / 活跃日 TOP7 / 活跃时段 TOP3 / 近期用户原话
+        const [totalRows] = await db.promise().query(
+            `SELECT COUNT(*) AS total FROM chat_messages WHERE ${msgWhere}`,
+            msgParams
+        )
+        const [dayRows] = await db.promise().query(
+            `SELECT DATE(createdAt) AS day, COUNT(*) AS count FROM chat_messages WHERE ${msgWhere} GROUP BY day ORDER BY count DESC LIMIT 7`,
+            msgParams
+        )
+        const [hourRows] = await db.promise().query(
+            `SELECT HOUR(createdAt) AS hour, COUNT(*) AS count FROM chat_messages WHERE ${msgWhere} GROUP BY hour ORDER BY count DESC LIMIT 3`,
+            msgParams
+        )
+        const [sampleRows] = await db.promise().query(
+            `SELECT content FROM chat_messages WHERE ${msgWhere} AND role="user" AND content <> "" ORDER BY id DESC LIMIT 20`,
+            msgParams
+        )
+
+        // 记忆分类分布
+        const memParams = [req.user.id]
+        let memWhere = 'user_id=?'
+        if (days) {
+            memWhere += ' AND createdAt >= DATE_SUB(NOW(), INTERVAL ? DAY)'
+            memParams.push(days)
+        }
+        const [catRows] = await db.promise().query(
+            `SELECT category, COUNT(*) AS count FROM memories WHERE ${memWhere} AND status="active" GROUP BY category`,
+            memParams
+        )
+
+        const stats = [
+            `总消息数：${totalRows[0]?.total || 0}`,
+            `最近活跃日 TOP7：${dayRows.map(r => `${r.day}(${r.count}条)`).join('、') || '无数据'}`,
+            `活跃时段 TOP3：${hourRows.map(r => `${r.hour}时(${r.count}条)`).join('、') || '无数据'}`,
+            `记忆分类分布：${catRows.map(r => `${r.category}(${r.count}条)`).join('、') || '无记忆'}`
+        ].join('\n')
+        const samples = sampleRows.map(r => r.content).join('\n') || '（暂无用户消息）'
+
+        // 调模型生成复盘
+        const { messages, params: llmParams } = promptBuilder.build('review', {
+            periodLabel,
+            stats,
+            samples
+        })
+        const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`
+            },
+            body: JSON.stringify({
+                model: 'deepseek-v4-flash',
+                ...llmParams,
+                messages
+            })
+        })
+        const data = await response.json()
+        const content = data.choices?.[0]?.message?.content || '复盘生成失败，请稍后重试'
+
+        // 写入缓存（同 user + period 重复时更新）
+        await db.promise().query(
+            'INSERT INTO memory_reviews (user_id, period, content) VALUES (?,?,?) ON DUPLICATE KEY UPDATE content=VALUES(content), createdAt=NOW()',
+            [req.user.id, period, content]
+        )
+        res.json({ period, content, cached: false })
+    } catch (err) {
+        res.status(500).json({ error: err.message })
+    }
+})
+
 // 查询用户自己的评论
 app.get('/api/comments/user', (req, res) => {
     db.query('SELECT * FROM comments WHERE author=? ORDER BY createdAt DESC',

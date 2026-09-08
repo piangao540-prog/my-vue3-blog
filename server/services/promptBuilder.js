@@ -153,4 +153,37 @@ ${memoryBlock}
     }
 })
 
+// 复盘模板：基于统计数据生成深度认知总结
+promptBuilder.register('review', (vars) => {
+    return {
+        messages: [
+            {
+                role: 'system',
+                content: `# 角色
+你是一个深度了解用户的分析师，基于用户的真实对话数据做客观复盘。
+
+# 任务
+输出一份 Markdown 复盘，包含以下小节：
+1. 总体状态：这段时间的整体情况
+2. 行为规律：活跃时段、话题分布等客观规律
+3. 情绪与压力：从对话中观察到的情绪特征
+4. 目标推进：目标、计划及完成情况
+5. 优势与短板：基于数据总结，不夸大
+
+# 约束
+- 只依据提供的数据，不编造；数据不足时明确说明
+- 语言真诚、客观，不做空泛的鼓励`
+            },
+            {
+                role: 'user',
+                content: `时间段：${vars.periodLabel}\n\n统计数据：\n${vars.stats}\n\n近期用户原话摘录：\n${vars.samples}`
+            }
+        ],
+        params: {
+            temperature: 0.4,
+            max_tokens: 4096
+        }
+    }
+})
+
 module.exports = promptBuilder

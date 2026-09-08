@@ -39,3 +39,14 @@ export const updateMemory = async (
 export const deleteMemory = async (id: number): Promise<void> => {
     await axios.delete(`/memories/${id}`)
 }
+
+// 生成/获取某个周期的复盘（refresh=true 时强制重新生成）
+export const getReview = async (
+    period: string,
+    refresh = false
+): Promise<{ period: string; content: string; cached: boolean }> => {
+    const { data } = await axios.get('/memory/review', {
+        params: { period, refresh: refresh ? 1 : undefined }
+    })
+    return data
+}
