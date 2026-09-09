@@ -60,7 +60,8 @@ export const getChat = async (
     sessionId: number | null,
     signal: AbortSignal,
     onText: (text: string) => void,
-    onMeta?: (meta: { sessionId?: number }) => void
+    onMeta?: (meta: { sessionId?: number }) => void,
+    onThinking?: () => void
 ): Promise<string> => {
     const base = window.location.hostname === 'localhost' ? 'http://localhost:3000' : ''
 
@@ -98,6 +99,10 @@ export const getChat = async (
             try {
                 const data = JSON.parse(line.slice(6))
                 if (data.sessionId) onMeta?.({ sessionId: data.sessionId })
+                if(data.type === 'thinking'){
+                    onThinking?.()
+                    continue
+                }
                 const text = data.text || ''
                 fullAnswer += text
                 onText(fullAnswer)

@@ -377,7 +377,7 @@ app.post('/api/ai/chat', async (req, res) => {
             'SELECT id FROM chat_sessions WHERE id=? AND user_id=?',
             [Number(sessionId), user.id]
         )
-        if (rows.length > 0)  sessionIdNum = Number(sessionId)
+        if (rows.length > 0) sessionIdNum = Number(sessionId)
     }
     if (user && !sessionIdNum) {
         const [result] = await db.promise().query(
@@ -392,7 +392,7 @@ app.post('/api/ai/chat', async (req, res) => {
     const context = results.map(a =>
         `文章标题：${a.title}\n文章内容：${(a.content || '').slice(0, 800)}`
     ).join('\n---\n')
-    const sources = results.map(a => ({articleId: a.articleId, title: a.title}))
+    const sources = results.map(a => ({ articleId: a.articleId, title: a.title }))
 
     // 登录用户：加载已有记忆，注入到对话
     let memoryLines = []
@@ -422,17 +422,17 @@ app.post('/api/ai/chat', async (req, res) => {
             }
         }
         if (user) {
-            await extractMemories(user.id, question, answer, null).catch(() => {})
+            await extractMemories(user.id, question, answer, null).catch(() => { })
         }
         return res.json({ answer, sessionId: sessionIdNum || undefined })
-    }  
+    }
 
     try {
         res.setHeader('Content-Type', 'text/event-stream')
         res.setHeader('Cache-Control', 'no-cache')
         res.setHeader('Connection', 'keep-alive')
-        if(user){
-            res.write(`data: ${JSON.stringify({ sessionId: sessionIdNum})}\n\n`)
+        if (user) {
+            res.write(`data: ${JSON.stringify({ sessionId: sessionIdNum })}\n\n`)
         }
 
         const template = user ? 'agent-chat' : 'blog-qa'
@@ -462,6 +462,7 @@ app.post('/api/ai/chat', async (req, res) => {
         const reader = response.body.getReader()
         const decoder = new TextDecoder()
 
+        let reasoningStarted = false
         while (true) {
             const { done, value } = await reader.read()
             if (done) break
@@ -470,7 +471,12 @@ app.post('/api/ai/chat', async (req, res) => {
             for (const line of lines) {
                 try {
                     const data = JSON.parse(line.slice(6))
-                    const text = data.choices?.[0]?.delta?.content || ''
+                    const delta = data.choices?.[0]?.delta || {}
+                    if (delta.reasoning_content && !reasoningStarted){
+                        reasoningStarted = true
+                        res.write(`data: ${JSON.stringify({type: 'thinking'})}\n\n`)
+                    }
+                    const text = delta.content || ''
                     if (text) {
                         fullAnswer += text
                         res.write(`data: ${JSON.stringify({ text })}\n\n`)
@@ -490,7 +496,7 @@ app.post('/api/ai/chat', async (req, res) => {
                     'INSERT INTO chat_messages (session_id, user_id, role, content, sources) VALUES (?,?,?,?,?)',
                     [sessionIdNum, user.id, 'assistant', fullAnswer, sources.length ? JSON.stringify(sources) : null]
                 )
-                await extractMemories(user.id, question, fullAnswer, msgResult.insertId).catch(() => {})
+                await extractMemories(user.id, question, fullAnswer, msgResult.insertId).catch(() => { })
             } catch (err) {
                 console.error('保存对话失败:', err.message)
             }

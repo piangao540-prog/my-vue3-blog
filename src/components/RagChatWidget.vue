@@ -34,7 +34,7 @@
             <div v-for="(msg, i) in currentMessages" :key="i" :class="msg.role">
                 <span v-html="renderMarkdown(msg.content)"></span>
             </div>
-            <div v-if="loading" class="typing">AI 正在输入...</div>
+            <div v-if="loading && status === 'thinking'" class="typing">AI 正在思考...</div>
         </div>
         <div class="chat-footer">
             <el-input
@@ -62,6 +62,7 @@ import { ChatDotRound, Delete, Plus, Document, Close } from '@element-plus/icons
 const show = ref(false)
 const input = ref('')
 const loading = ref(false)
+const status = ref<'idle' | 'thinking' | 'answering' | 'done' | 'error' | 'stopped'>('idle')
 const chatBody = ref<HTMLElement | null>(null)
 let abortController : AbortController | null = null
 
@@ -86,6 +87,7 @@ const flushStreamText = () => {
 
 // 收到流式片段：只更新缓冲，并确保每帧最多排一次刷新
 const applyStreamText = (partial:string) => {
+    status.value = 'answering'
     streamText = partial
     if(rafId === null){
         rafId = requestAnimationFrame(() => {
@@ -149,8 +151,11 @@ const send = async() => {
             if(meta.sessionId && currentSessionId.value !== String(meta.sessionId)){
                 currentSessionId.value = String(meta.sessionId)
             }
+        },() => {
+            status.value = 'thinking'
         })
         flushStreamText()
+        status.value = 'done'
         // 流式结束，保存最终答案
         saveSessions()
         }catch(e){
@@ -163,6 +168,7 @@ const send = async() => {
                 cancelAnimationFrame(rafId)
                 rafId = null
             }
+            status.value = 'error'
             currentMessages.value[currentMessages.value.length - 1].content = '请求失败，请重新尝试'
             saveSessions()
         } finally{
