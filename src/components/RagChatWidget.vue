@@ -65,6 +65,36 @@ const loading = ref(false)
 const chatBody = ref<HTMLElement | null>(null)
 let abortController : AbortController | null = null
 
+// 流式文本缓冲
+let streamText = ''
+let rafId: number | null = null
+
+// 将缓冲内容写进最后一条assistant消息
+const writeAssistant = () =>{
+    const last = currentMessages.value[currentMessages.value.length - 1]
+    if(last) last.content = streamText
+}
+
+// 立即冲刷
+const flushStreamText = () => {
+    if(rafId !== null) {
+        cancelAnimationFrame(rafId)
+        rafId = null
+    }
+    writeAssistant()
+}
+
+// 收到流式片段：只更新缓冲，并确保每帧最多排一次刷新
+const applyStreamText = (partial:string) => {
+    streamText = partial
+    if(rafId === null){
+        rafId = requestAnimationFrame(() => {
+            rafId = null
+            writeAssistant()
+        })
+    }
+}
+
 // 会话管理
 const {
     sessions,
@@ -114,28 +144,42 @@ const send = async() => {
 
     try{
         const sessionId = currentSessionId.value ? Number(currentSessionId.value) : null
-        await chat(text, history, sessionId, abortController.signal, (partial) => {
-            // 更新最后一条消息
-            currentMessages.value[currentMessages.value.length - 1].content = partial
-        },(meta) => {
+        streamText = ''
+        await chat(text, history, sessionId, abortController.signal, applyStreamText, (meta) => {
             if(meta.sessionId && currentSessionId.value !== String(meta.sessionId)){
                 currentSessionId.value = String(meta.sessionId)
             }
         })
+        flushStreamText()
         // 流式结束，保存最终答案
         saveSessions()
-    }catch(e){
-        if(e instanceof DOMException && e.name === 'AbortError') return
-        currentMessages.value[currentMessages.value.length - 1].content = '请求失败，请重新尝试'
-        saveSessions()
-    } finally{
+        }catch(e){
+            if(e instanceof DOMException && e.name === 'AbortError') {
+                // 用户主动停止：把已收到的部分内容展示出来
+                flushStreamText()
+                return
+            }
+            if (rafId !== null) {
+                cancelAnimationFrame(rafId)
+                rafId = null
+            }
+            currentMessages.value[currentMessages.value.length - 1].content = '请求失败，请重新尝试'
+            saveSessions()
+        } finally{
         loading.value = false
         abortController = null
     }
 }
 
+// 判断是否贴近底部
+const isNearBottom = () => {
+    const el = chatBody.value
+    if(!el) return false
+    return el.scrollHeight - el.scrollTop - el.clientHeight < 60
+}
 
 watch(currentMessages,() => {
+    if(!isNearBottom()) return 
     setTimeout(() => {
         if(chatBody.value){
             chatBody.value.scrollTop = chatBody.value.scrollHeight
@@ -216,6 +260,7 @@ onMounted(() => loadSessions())
     display: flex;
     flex-direction: column;
     gap: 8px;
+    overflow-anchor: none;
 }
 
 /* 会话列表 */
