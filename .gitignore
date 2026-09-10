@@ -31,3 +31,8 @@ src/**/*.js
 
 # 个人面试/求职准备文档（不提交到仓库）
 docs/
+
+# AI code agent / codegraph runtime files
+.agents/
+.claude/
+.codegraph/
