@@ -1,7 +1,7 @@
 # 个人博客
 
 基于 Vue3 + Express + MySQL 的全栈博客。  
-[在线体验](https://piangao-vue3-blog.vercel.app)
+[在线体验](https://www.piangao-blog.icu/)
 
 ## 技术栈
 
