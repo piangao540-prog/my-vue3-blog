@@ -1,6 +1,4 @@
 import axios from 'axios'
-import { error } from 'console'
-import { config } from 'process'
 
 // 创建 Axios 实例
 const instance = axios.create({
