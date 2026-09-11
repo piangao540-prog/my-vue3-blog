@@ -148,6 +148,13 @@ const getAiSummary = async () => {
 
 
 const article = ref<Article | null>(null)
+
+watch(article,(val) => {
+  if(val?.title){
+    document.title = `${val.title} | PianGao 的博客`
+  }
+},{immediate:true})
+
 // 获取当前文章的索引
 const currentIndex = computed(() => {
   if (!article.value) return -1
@@ -171,12 +178,19 @@ const goToArticle = async (id: number) => {
 
 // 获取文章数据
 const loadArticle = async (id: number) => {
-  const data = await blogStore.getArticleById(id)
-  article.value = data || null
+  try{
+      const data = await blogStore.getArticleById(id)
+      article.value = data || null
 
-  // 阅读量统计
-  if (article.value) {
-    blogStore.addViews(article.value.id)
+      // 阅读量统计
+      if (article.value) {
+        blogStore.addViews(article.value.id)
+      }else{
+        router.replace({name: 'not-found'})
+      }
+  }catch{
+    article.value = null
+    router.replace({name: 'not-found'})
   }
 }
 
