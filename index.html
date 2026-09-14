@@ -3,10 +3,21 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/image_354172502724670.png" />
-    <!-- 自托管的 Noto Serif SC（可变字体，101 个 unicode-range 子集）。
-         放在 public/ 里而不是从 fonts.googleapis.com 引，国内访问才不会被卡住。 -->
-    <link rel="stylesheet" href="/fonts/noto-serif-sc.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- 自托管的 Noto Serif SC（可变字体，101 个 unicode-range 子集）。
+         一个中文页面会命中约 17 个子集、合计约 1.25MB。若在首屏同步加载，
+         这些请求会和 /api 抢带宽，在弱网下足以把接口拖到 10 秒超时。
+         所以等 load 之后再插入，让接口先跑完。
+         font-display: swap 保证这期间先用系统字体显示，不会白屏。 -->
+    <script>
+      window.addEventListener('load', function () {
+        var link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = '/fonts/noto-serif-sc.css'
+        document.head.appendChild(link)
+      })
+    </script>
 
     <title>PianGao 的博客 | 前端技术笔记</title>
     <meta
