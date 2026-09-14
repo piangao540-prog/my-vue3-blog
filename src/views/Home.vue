@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, defineAsyncComponent, onMounted } from 'vue'
 import { useBlogStore } from '@/stores/blog'
 import { ElCard, ElTag, ElRow, ElCol } from 'element-plus'
 import { Document, View } from '@element-plus/icons-vue'
@@ -9,8 +9,9 @@ import { useSearchFilter } from '@/composables/useSearchFilter'
 import SortFilter from '@/components/SortFilter.vue'
 import { useSort, type SortKey } from '@/composables/useSort'
 import { getTagColor } from '@/composables/useTagColor'
-import TagChart from '@/components/TagChart.vue'
 import ArticleCarousel from '@/components/ArticleCarousel.vue'
+
+const TagChart = defineAsyncComponent(() => import('@/components/TagChart.vue'))
 
 const blogStore = useBlogStore()
 
