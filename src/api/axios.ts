@@ -25,6 +25,12 @@ instance.interceptors.request.use(
 instance.interceptors.response.use(
   (response) => response,
   (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token')
+      if (!location.pathname.startsWith('/login')) {
+        location.href = '/login'
+      }
+    }
     console.error('API Error:', error)
     return Promise.reject(error)
   }
