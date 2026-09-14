@@ -580,8 +580,9 @@ onMounted(() => {
   }
 
   .main-content {
-    max-width: 860px;
-    margin-left: 28px !important;
+    max-width: 1112px;
+    margin-left: auto;
+    margin-right: auto;
   }
 }
 
