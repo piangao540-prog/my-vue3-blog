@@ -570,6 +570,21 @@ onMounted(() => {
   }
 }
 
+/* 平板适配：必须排在 768 断点之前。
+   两个断点在手机上会同时命中，而这里用了 !important，
+   如果排在后面，它的 margin-left 会盖掉手机端的 margin-left: 0，
+   导致首页整体右移并向右溢出。 */
+@media (max-width: 1024px) {
+  .hero-section {
+    max-width: 814px;
+  }
+
+  .main-content {
+    max-width: 860px;
+    margin-left: 28px !important;
+  }
+}
+
 /* 移动端适配 */
 @media (max-width: 768px) {
   /* 整体容器适配 */
@@ -678,17 +693,6 @@ onMounted(() => {
 
   .header-left {
     width: 100%;
-  }
-}
-
-@media (max-width: 1024px) {
-  .hero-section {
-    max-width: 814px;
-  }
-
-  .main-content {
-    max-width: 860px;
-    margin-left: 28px !important;
   }
 }
 
