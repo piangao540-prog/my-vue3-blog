@@ -8,5 +8,8 @@ auto-imports.d.ts
 *.tsbuildinfo
 data
 
+# 从 Google Fonts 抓取并改写路径生成的 @font-face 样式（101 条 unicode-range 规则）
+public/fonts
+
 #本地个人笔记（未进版本库）
 docs
