@@ -1,0 +1,12 @@
+#构建产物与依赖
+dist
+node_modules
+
+#自动生成的文件
+components.d.ts
+auto-imports.d.ts
+*.tsbuildinfo
+data
+
+#本地个人笔记（未进版本库）
+docs
