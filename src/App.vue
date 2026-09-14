@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import Bloglayout from './components/Bloglayout.vue';
+import BlogLayout from './components/BlogLayout.vue';
 </script>
 
 <template>
-  <Bloglayout />
+  <BlogLayout />
 </template>
 
 <style scoped></style>

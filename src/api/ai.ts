@@ -35,7 +35,7 @@ export const getAiSummary = async (
                 const text = data.text || ''
                 fullSummary += text
                 onText(fullSummary)
-            } catch { }
+            } catch { /* 流式响应的单个分片不完整时跳过该分片，不中断整段总结 */ }
         }
     }
     return fullSummary
@@ -106,7 +106,7 @@ export const getChat = async (
                 const text = data.text || ''
                 fullAnswer += text
                 onText(fullAnswer)
-            } catch { }
+            } catch { /* 流式响应的单个分片不完整时跳过该分片，不中断整段回答 */ }
         }
     }
     return fullAnswer

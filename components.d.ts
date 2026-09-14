@@ -16,7 +16,7 @@ declare module 'vue' {
     ArticleEditor: typeof import('./src/components/ArticleEditor.vue')['default']
     BackToTop: typeof import('./src/components/BackToTop.vue')['default']
     BaseTable: typeof import('./src/components/BaseTable.vue')['default']
-    Bloglayout: typeof import('./src/components/Bloglayout.vue')['default']
+    BlogLayout: typeof import('./src/components/BlogLayout.vue')['default']
     CommentSection: typeof import('./src/components/CommentSection.vue')['default']
     ElAlert: typeof import('element-plus/es')['ElAlert']
     ElAvatar: typeof import('element-plus/es')['ElAvatar']

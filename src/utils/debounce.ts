@@ -1,6 +1,9 @@
-export function debounce(func: Function, delay: number): Function {
+export function debounce<TArgs extends unknown[]>(
+    func: (...args: TArgs) => void,
+    delay: number,
+) {
     let timer: ReturnType<typeof setTimeout> | null
-    return function (...args: any[]) {
+    return function (...args: TArgs) {
         if (timer) {
             clearTimeout(timer)
         }

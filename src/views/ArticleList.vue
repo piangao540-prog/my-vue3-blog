@@ -37,10 +37,6 @@ const start = computed(() => {
 const end = computed(() => {
   return start.value + pageSize.value - 1
 })
-// 计算文章列表
-const paginatedArticles = computed(() => {
-  return filteredArticles.value.slice(start.value, end.value)
-})
 // 切换页面
 const gotoPage = (page: number) => {
   if (page >= 1 && page <= totalPages.value) {

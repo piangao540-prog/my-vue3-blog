@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref} from 'vue'
+import { computed, onMounted} from 'vue'
 import { useBlogStore } from '@/stores/blog'
 import { ElCard, ElTag, ElRow, ElCol } from 'element-plus'
 import { Document, View } from '@element-plus/icons-vue'
@@ -11,9 +11,6 @@ import { useSort, type SortKey } from '@/composables/useSort'
 import { getTagColor } from '@/composables/useTagColor'
 import TagChart from '@/components/TagChart.vue'
 import ArticleCarousel from '@/components/ArticleCarousel.vue'
-import { getAnalyticsSummary } from '@/api/analytics'
-
-
 
 const blogStore = useBlogStore()
 

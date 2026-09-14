@@ -6,7 +6,7 @@ interface Columns{
     slot?: string
 }
 
-const props = defineProps<{columns:Columns[],data:any[]}>()
+defineProps<{columns:Columns[],data:any[]}>()
 
 
 </script>

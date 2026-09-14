@@ -208,10 +208,6 @@ const addSuggestedTag = (tag:string) => {
         tags.value.push(tag)
     }
 }
-
-const removeTag = (i:number) => {
-    tags.value.splice(i,1)
-}
 </script>
 
 <style scoped>

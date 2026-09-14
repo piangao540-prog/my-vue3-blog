@@ -80,7 +80,7 @@ import {marked} from 'marked'
 // 给 Markdown 图片加原生懒加载:进入视口浏览器才请求
 const markdownRenderer = {
     // marked v5+ 渲染器接收的是 token 对象,不是位置参数
-    image({ href, title, tokens }) {
+    image({ href, tokens }) {
         const text = tokens.map((t) => t.text).join('')
         return `<img data-src="${href}" alt="${text}" />`
     }

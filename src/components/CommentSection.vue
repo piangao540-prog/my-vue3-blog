@@ -6,7 +6,7 @@ import { useComments } from '@/composables/useComments'
 
 const userStore = useUserStore()
 const route = useRoute()
-const { comments, addComment, deleteComment, commentCount, formatTime } = useComments(Number(route.params.id))
+const { comments, addComment, commentCount, formatTime } = useComments(Number(route.params.id))
 
 
 const newComment = ref('')
