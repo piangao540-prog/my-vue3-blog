@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted} from 'vue'
+import { ref, computed, onMounted, watch} from 'vue'
 import { useBlogStore } from '../stores/blog'
 import { useRouter } from 'vue-router';
 import { ArrowLeft } from '@element-plus/icons-vue'
@@ -47,6 +47,10 @@ const gotoPage = (page: number) => {
     currentPage.value = page
   }
 }
+// 筛选条件变化时回到第一页：否则页码可能停在"第 4 页"，而筛选后只剩 1 页，列表会整个空掉
+watch(filteredArticles, () => {
+  currentPage.value = 1
+})
 const nextPage = () => {
   gotoPage(currentPage.value + 1)
 }
@@ -84,17 +88,27 @@ onMounted(() => {
       </el-select>
     </div>
     <br>
-    <el-card v-for="article in filteredArticles.slice(start,end)" :key="article.id" class="article-card" shadow="hover"
-      @click="goToArticle(article.id)">
-      <h2>{{ article.title }}</h2>
-      <p class="summary">{{ article.summary }}</p>
+    <div v-if="blogStore.loading" class="skeleton-list">
+      <el-skeleton v-for="n in 3" :key="n" animated>
+        <el-skeleton-item variant="h3" style="width: 50%; margin-bottom: 12px;" />
+        <el-skeleton-item variant="text" style="width: 90%; margin-bottom: 8px;" />
+        <el-skeleton-item variant="text" style="width: 70%;" />
+      </el-skeleton>
+    </div>
+    <el-empty v-else-if="filteredArticles.length === 0" description="没有找到符合条件的文章" />
+    <template v-else>
+      <el-card v-for="article in filteredArticles.slice(start,end)" :key="article.id" class="article-card" shadow="hover"
+        @click="goToArticle(article.id)">
+        <h2>{{ article.title }}</h2>
+        <p class="summary">{{ article.summary }}</p>
 
-      <el-tag v-for="(tag, index) in article.tags" :key="index" class="tag" :style="{ color: getTagColor(tag) }">
-        {{ tag }}
-      </el-tag>
-    </el-card>
+        <el-tag v-for="(tag, index) in article.tags" :key="index" class="tag" :style="{ color: getTagColor(tag) }">
+          {{ tag }}
+        </el-tag>
+      </el-card>
+    </template>
     <!-- 分页按钮 -->
-    <div class="pagination">
+    <div v-if="totalPages > 0" class="pagination">
       <el-button :disabled="currentPage === 1" @click="prevPage">上一页</el-button>
       <span>{{ currentPage }} / {{ totalPages }}</span>
       <el-button :disabled="currentPage === totalPages" @click="nextPage">下一页</el-button>
@@ -109,6 +123,10 @@ onMounted(() => {
 
 .category-selected{
   margin-bottom: 20px;
+}
+
+.skeleton-list el-skeleton {
+  margin-bottom: 24px;
 }
 
 .category-selected .el-select{
