@@ -5,7 +5,11 @@ import { useBlogStore } from '@/stores/blog'
 import * as echarts from 'echarts'
 let chart: echarts.ECharts | null = null
 
-const resize = () => chart?.resize()
+// 容器宽度变了要重新决定"标签显不显示"，所以 resize 不只是重绘尺寸
+const resize = () => {
+  chart?.resize()
+  updateChart()
+}
 const blogStore = useBlogStore()
 const chartRef = ref<HTMLDivElement | null>(null)
 const tagStats = computed(() => {
@@ -25,6 +29,11 @@ const tagStats = computed(() => {
 const updateChart = () => {
   if (!chart || !chartRef.value) return
 
+  // 画布宽度不够时，饼图外圈的标签会被裁掉。
+  // 窄屏（手机、平板下的侧栏）关掉标签、放大饼图，靠底部图例辨识；
+  // 宽屏留得下标签，就照常显示，不用去对颜色。
+  const isNarrow = chartRef.value.clientWidth < 400
+
   const option = {
     legend: {
       orient: 'horizontal',
@@ -37,8 +46,7 @@ const updateChart = () => {
     series: [
       {
         type: 'pie',
-        // 标签关掉后外圈不再需要留位置，半径放大一些填满画布
-        radius: ['18%', '62%'],
+        radius: isNarrow ? ['18%', '62%'] : ['13%', '45%'],
         center: ['50%', '50%'],
         roseType: 'area',
         itemStyle: {
@@ -46,10 +54,7 @@ const updateChart = () => {
           borderColor: '#fff',
           borderWidth: 2,
         },
-        // 标签默认关闭：图例已经把每个标签的名字和颜色都列出来了，
-        // 再在饼图外圈画一圈标签，窄屏上会超出画布被裁掉。
-        // 悬停/点击时由下面的 emphasis 单独显示。
-        label: { show: false },
+        label: { show: !isNarrow, fontSize: 11 },
         emphasis: {
           label: { show: true, fontSize: 10, fontWeight: 'bold' },
         },
