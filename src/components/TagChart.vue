@@ -5,11 +5,7 @@ import { useBlogStore } from '@/stores/blog'
 import * as echarts from 'echarts'
 let chart: echarts.ECharts | null = null
 
-// 容器宽度变了要重新决定"标签显不显示"，所以 resize 不只是重绘尺寸
-const resize = () => {
-  chart?.resize()
-  updateChart()
-}
+const resize = () => chart?.resize()
 const blogStore = useBlogStore()
 const chartRef = ref<HTMLDivElement | null>(null)
 const tagStats = computed(() => {
@@ -29,11 +25,6 @@ const tagStats = computed(() => {
 const updateChart = () => {
   if (!chart || !chartRef.value) return
 
-  // 画布宽度不够时，饼图外圈的标签会被裁掉。
-  // 窄屏（手机、平板下的侧栏）关掉标签、放大饼图，靠底部图例辨识；
-  // 宽屏留得下标签，就照常显示，不用去对颜色。
-  const isNarrow = chartRef.value.clientWidth < 400
-
   const option = {
     legend: {
       orient: 'horizontal',
@@ -46,7 +37,8 @@ const updateChart = () => {
     series: [
       {
         type: 'pie',
-        radius: isNarrow ? ['18%', '62%'] : ['13%', '45%'],
+        // 半径收一点，给两侧标签留出确定的余量
+        radius: ['13%', '40%'],
         center: ['50%', '50%'],
         roseType: 'area',
         itemStyle: {
@@ -54,7 +46,17 @@ const updateChart = () => {
           borderColor: '#fff',
           borderWidth: 2,
         },
-        label: { show: !isNarrow, fontSize: 11 },
+        // 标签限定最大宽度并允许截断，这样它占的宽度是固定值，
+        // 不会因为标签变长而顶出画布——手机和 PC 用同一套配置，不需要判断屏幕宽度。
+        label: {
+          fontSize: 11,
+          width: 69,
+          overflow: 'truncate',
+        },
+        labelLine: {
+          length: 8,
+          length2: 8,
+        },
         emphasis: {
           label: { show: true, fontSize: 10, fontWeight: 'bold' },
         },
