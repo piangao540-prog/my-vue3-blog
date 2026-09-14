@@ -18,7 +18,7 @@ instance.interceptors.request.use(
     }
     return config
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 )
 
 // 响应拦截器
@@ -33,7 +33,7 @@ instance.interceptors.response.use(
     }
     console.error('API Error:', error)
     return Promise.reject(error)
-  }
+  },
 )
 
 export default instance

@@ -4,7 +4,7 @@ import LayoutFooter from './LayoutFooter.vue'
 import BackToTop from './BackToTop.vue'
 import { trackPageView, setupErrorTacking } from '@/api/analytics'
 import { onMounted } from 'vue'
-import RagChatWidget from './RagChatWidget.vue';
+import RagChatWidget from './RagChatWidget.vue'
 
 onMounted(() => {
   trackPageView(window.location.pathname)
@@ -17,14 +17,14 @@ onMounted(() => {
     <LayoutHead />
 
     <main class="blog-main">
-      <router-view v-slot="{Component}">
+      <router-view v-slot="{ Component }">
         <transition name="fade">
           <component :is="Component" />
         </transition>
       </router-view>
     </main>
     <BackToTop />
-    <RagChatWidget/>
+    <RagChatWidget />
     <LayoutFooter />
   </div>
 </template>
@@ -46,7 +46,7 @@ onMounted(() => {
   position: relative;
 }
 
-.blog-main > div{
-  position:relative;
+.blog-main > div {
+  position: relative;
 }
 </style>

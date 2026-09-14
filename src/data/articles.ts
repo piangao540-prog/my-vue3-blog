@@ -2,11 +2,11 @@ import type { Article } from '@/stores/blog'
 
 // 文章列表信息
 export const articleList: Article[] = [
-    {
-        id: 1,
-        title: '我的第一篇博客',
-        summary: '这是博客项目的第一篇示例文章，介绍如何搭建一个现代化的博客系统。',
-        content: `
+  {
+    id: 1,
+    title: '我的第一篇博客',
+    summary: '这是博客项目的第一篇示例文章，介绍如何搭建一个现代化的博客系统。',
+    content: `
             <p>欢迎来到我的技术博客！这是一篇介绍博客搭建的文章。</p>
             <h2>技术栈</h2>
             <ul>
@@ -20,18 +20,19 @@ export const articleList: Article[] = [
             <h2>项目结构</h2>
             <p>我们的博客项目采用模块化设计，便于维护和扩展。</p>
         `,
-        views: 0, // 初始阅读量
-        createdAt: '2026-05-05',
-        like: false,
-        sumTag: '前端技术',
-        tags: ['Vue3', 'Vite', 'Element Plus', 'TypeScript', 'Pinia', 'Echarts'],
-        category: '技术分享'
-    },
-    {
-        id: 2,
-        title: 'Vue3 组合式 API 详解',
-        summary: '深入了解 Vue3 的组合式 API，包括 ref、reactive、computed、watch 等核心概念及其最佳实践。',
-        content: `
+    views: 0, // 初始阅读量
+    createdAt: '2026-05-05',
+    like: false,
+    sumTag: '前端技术',
+    tags: ['Vue3', 'Vite', 'Element Plus', 'TypeScript', 'Pinia', 'Echarts'],
+    category: '技术分享',
+  },
+  {
+    id: 2,
+    title: 'Vue3 组合式 API 详解',
+    summary:
+      '深入了解 Vue3 的组合式 API，包括 ref、reactive、computed、watch 等核心概念及其最佳实践。',
+    content: `
             <p>Vue3 引入了组合式 API（Composition API），这是一个强大的新特性，彻底改变了 Vue 应用的开发方式。</p>
             <h2>为什么需要组合式 API？</h2>
             <p>在 Vue2 中，我们使用选项式 API（Options API），虽然简单直观，但在处理复杂逻辑时会遇到一些问题：</p>
@@ -107,18 +108,18 @@ export function useCounter(initialValue = 0) {
                 <li>保持函数的单一职责</li>
             </ul>
         `,
-        views: 0,
-        createdAt: '2026-05-06',
-        like: false,
-        sumTag: '组合式 API',
-        tags: ['Vue3', 'TypeScript'],
-        category: '技术分享'
-    },
-    {
-        id: 3,
-        title: 'TypeScript 入门指南',
-        summary: 'TypeScript 是 JavaScript 的超集，提供了强大的类型系统、智能提示和编译时检查。',
-        content: `
+    views: 0,
+    createdAt: '2026-05-06',
+    like: false,
+    sumTag: '组合式 API',
+    tags: ['Vue3', 'TypeScript'],
+    category: '技术分享',
+  },
+  {
+    id: 3,
+    title: 'TypeScript 入门指南',
+    summary: 'TypeScript 是 JavaScript 的超集，提供了强大的类型系统、智能提示和编译时检查。',
+    content: `
             <p>TypeScript 是 JavaScript 的超集，它添加了可选的静态类型和基于类的面向对象编程。</p>
             <h2>为什么使用 TypeScript？</h2>
             <ul>
@@ -257,18 +258,18 @@ function isString(value: unknown): value is string {
 // 条件类型
 type NonNullable<T> = T extends null | undefined ? never : T</code></pre>
         `,
-        views: 0,
-        createdAt: '2026-05-07',
-        like: false,
-        sumTag: 'TypeScript',
-        tags: ['TypeScript', 'JavaScript'],
-        category: '技术分享'
-    },
-    {
-        id: 4,
-        title: '使用 Vite 快速搭建项目',
-        summary: 'Vite 是一个极快的开发服务器和构建工具，基于 ES Module 实现按需编译。',
-        content: `
+    views: 0,
+    createdAt: '2026-05-07',
+    like: false,
+    sumTag: 'TypeScript',
+    tags: ['TypeScript', 'JavaScript'],
+    category: '技术分享',
+  },
+  {
+    id: 4,
+    title: '使用 Vite 快速搭建项目',
+    summary: 'Vite 是一个极快的开发服务器和构建工具，基于 ES Module 实现按需编译。',
+    content: `
             <p>Vite 是新一代前端构建工具，由 Vue.js 作者尤雨溪开发，它彻底改变了前端项目的开发体验。</p>
             <h2>为什么选择 Vite？</h2>
             <p>传统构建工具如 Webpack 在开发时需要将所有代码打包，这导致启动时间慢、热更新延迟。Vite 采用了完全不同的方式：</p>
@@ -413,18 +414,18 @@ npm run typecheck</code></pre>
                 <li>使用环境变量管理配置</li>
             </ul>
         `,
-        views: 0,
-        createdAt: '2026-05-06',
-        like: false,
-        sumTag: '前端框架',
-        tags: ['Vite', 'Vue3'],
-        category: '技术分享'
-    },
-    {
-        id: 5,
-        title: 'Pinia 状态管理',
-        summary: 'Pinia 是 Vue3 的新状态管理库，简单而强大。',
-        content: `
+    views: 0,
+    createdAt: '2026-05-06',
+    like: false,
+    sumTag: '前端框架',
+    tags: ['Vite', 'Vue3'],
+    category: '技术分享',
+  },
+  {
+    id: 5,
+    title: 'Pinia 状态管理',
+    summary: 'Pinia 是 Vue3 的新状态管理库，简单而强大。',
+    content: `
             <p>Pinia 提供了直观且灵活的状态管理方案。</p>
             <h2>为什么选择 Pinia？</h2>
             <ul>
@@ -494,18 +495,18 @@ const setTag = (tag: string) => {
   return blogStore.getArticlesByTag(selectedTag.value)
 })</code></pre
         `,
-        views: 0, // 初始阅读量
-        createdAt: '2026-05-08',
-        like: false,
-        sumTag: '状态管理',
-        tags: ['Pinia', 'Vue3'],
-        category: '技术分享'
-    },
-    {
-        id: 6,
-        title: '文章阅读量',
-        summary: '文章阅读量统计功能。',
-        content: `
+    views: 0, // 初始阅读量
+    createdAt: '2026-05-08',
+    like: false,
+    sumTag: '状态管理',
+    tags: ['Pinia', 'Vue3'],
+    category: '技术分享',
+  },
+  {
+    id: 6,
+    title: '文章阅读量',
+    summary: '文章阅读量统计功能。',
+    content: `
             <p>文章阅读量统计功能的关键是使用 localStorage 来存储和检索阅读量。</p>
             <h2>文章阅读量统计的核心原理</h2>
             <div>
@@ -522,13 +523,13 @@ const setTag = (tag: string) => {
                 页面更新显示最新阅读量
             </div>
             <h2>基本使用</h2>`,
-        like: false,
-        views: 0, // 初始阅读量
-        createdAt: '2026-05-08',
-        sumTag: '文章阅读量',
-        tags: ['Vue3'],
-        category: '项目经验'
-    },
+    like: false,
+    views: 0, // 初始阅读量
+    createdAt: '2026-05-08',
+    sumTag: '文章阅读量',
+    tags: ['Vue3'],
+    category: '项目经验',
+  },
 
   {
     id: 7,
@@ -596,7 +597,6 @@ articles.value.push(publishedArticle)</code></pre>
     like: false,
     sumTag: '项目实战',
     tags: ['Vue3', 'TypeScript', '项目经验', '踩坑记录'],
-    category: '项目实战'
-  }
-
+    category: '项目实战',
+  },
 ]

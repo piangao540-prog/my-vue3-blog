@@ -5,7 +5,7 @@ import { ArrowDown } from '@element-plus/icons-vue'
 
 const { setSortDesc, currentSort, setSort, sortOptions } = useSort()
 
-const handleSortChange = (option: typeof sortOptions[number]) => {
+const handleSortChange = (option: (typeof sortOptions)[number]) => {
   setSort(option)
 }
 </script>
@@ -24,8 +24,12 @@ const handleSortChange = (option: typeof sortOptions[number]) => {
       </el-button>
       <template #dropdown>
         <el-dropdown-menu>
-          <el-dropdown-item v-for="option in sortOptions" :key="option.key"
-            :class="{ active: currentSort.key === option.key }" @click="handleSortChange(option)">
+          <el-dropdown-item
+            v-for="option in sortOptions"
+            :key="option.key"
+            :class="{ active: currentSort.key === option.key }"
+            @click="handleSortChange(option)"
+          >
             {{ option.label }}
           </el-dropdown-item>
         </el-dropdown-menu>

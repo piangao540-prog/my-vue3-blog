@@ -34,8 +34,14 @@ onMounted(async () => {
         <h3>PianGao</h3>
         <p class="bio">前端开发者 | 技术爱好者</p>
         <div class="contact-links">
-          <a v-for="contact in contactInfo" :key="contact.text" :href="contact.link" class="contact-link"
-            target="_blank" rel="noopener noreferrer">
+          <a
+            v-for="contact in contactInfo"
+            :key="contact.text"
+            :href="contact.link"
+            class="contact-link"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <el-icon :size="18">
               <component :is="iconMap[contact.icon]" />
             </el-icon>
@@ -47,7 +53,13 @@ onMounted(async () => {
       <div class="footer-section tech-section">
         <h4>技术栈</h4>
         <div class="tech-tags">
-          <el-tag v-for="tech in techStack" :key="tech.name" type="info" effect="plain" class="tech-tag">
+          <el-tag
+            v-for="tech in techStack"
+            :key="tech.name"
+            type="info"
+            effect="plain"
+            class="tech-tag"
+          >
             {{ tech.name }}
             <!-- <span class="tech-level">{{ tech.level }}</span> -->
           </el-tag>

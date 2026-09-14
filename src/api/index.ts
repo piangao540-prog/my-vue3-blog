@@ -6,22 +6,22 @@ const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true' || !import.meta.env.VI
 
 // 获取技术栈
 export async function getTechStack(): Promise<TechStack[]> {
-    if (USE_MOCK) {
-        await new Promise(resolve => setTimeout(resolve, 300))
-        return mockTechStack
-    }
+  if (USE_MOCK) {
+    await new Promise((resolve) => setTimeout(resolve, 300))
+    return mockTechStack
+  }
 
-    const response = await axios.get('/tech-stack')
-    return response.data
+  const response = await axios.get('/tech-stack')
+  return response.data
 }
 
 // 获取联系信息
 export async function getContactInfo(): Promise<ContactInfo[]> {
-    if (USE_MOCK) {
-        await new Promise(resolve => setTimeout(resolve, 300))
-        return mockContactInfo
-    }
+  if (USE_MOCK) {
+    await new Promise((resolve) => setTimeout(resolve, 300))
+    return mockContactInfo
+  }
 
-    const response = await axios.get('/contact-info')
-    return response.data
+  const response = await axios.get('/contact-info')
+  return response.data
 }

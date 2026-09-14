@@ -13,17 +13,25 @@ const getTagStyle = (tag: string) => {
     color: isSelected ? '#409eff' : getTagColor(tag),
     backgroundColor: isSelected ? '#ecf5ff' : '',
     borderColor: isSelected ? '#409eff' : '',
-    boxShadow: isSelected ? '0 2px 8px rgba(64, 158, 255, 0.2)' : ''
+    boxShadow: isSelected ? '0 2px 8px rgba(64, 158, 255, 0.2)' : '',
   }
 }
 </script>
 
 <template>
   <div class="tag-filter">
-    <el-button :type="searchStore.selectedTag === '' ? 'primary' : 'default'" @click="searchStore.setSelectedTag('')">
+    <el-button
+      :type="searchStore.selectedTag === '' ? 'primary' : 'default'"
+      @click="searchStore.setSelectedTag('')"
+    >
       全部
     </el-button>
-    <el-button v-for="tag in allTags" :key="tag" @click="searchStore.setSelectedTag(tag)" :style="getTagStyle(tag)">
+    <el-button
+      v-for="tag in allTags"
+      :key="tag"
+      @click="searchStore.setSelectedTag(tag)"
+      :style="getTagStyle(tag)"
+    >
       {{ tag }}
     </el-button>
   </div>

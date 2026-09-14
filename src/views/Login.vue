@@ -20,10 +20,10 @@ const handleLogin = async () => {
 
   if (result.success) {
     router.push('/')
-  }else if(result.error?.includes('不存在')){
+  } else if (result.error?.includes('不存在')) {
     ElMessage.error(result.error || '用户不存在')
     router.push('/register')
-  }else{
+  } else {
     ElMessage.error(result.error || '登陆失败')
   }
 }
@@ -53,11 +53,22 @@ const handleLogin = async () => {
 
         <el-form label-width="0" class="login-form">
           <el-form-item>
-            <el-input v-model="username" placeholder="用户名" class="input-field" prefix-icon="User" />
+            <el-input
+              v-model="username"
+              placeholder="用户名"
+              class="input-field"
+              prefix-icon="User"
+            />
           </el-form-item>
 
           <el-form-item>
-            <el-input v-model="password" type="password" placeholder="密码" class="input-field" prefix-icon="Lock" />
+            <el-input
+              v-model="password"
+              type="password"
+              placeholder="密码"
+              class="input-field"
+              prefix-icon="Lock"
+            />
           </el-form-item>
 
           <el-form-item class="forgot-link">
@@ -65,9 +76,7 @@ const handleLogin = async () => {
           </el-form-item>
 
           <el-form-item>
-            <el-button type="primary" @click="handleLogin" class="login-btn">
-              登录
-            </el-button>
+            <el-button type="primary" @click="handleLogin" class="login-btn"> 登录 </el-button>
           </el-form-item>
         </el-form>
 
@@ -197,8 +206,6 @@ const handleLogin = async () => {
 .login-btn:hover {
   background: linear-gradient(135deg, #5a6fd6 0%, #6a4190 100%);
 }
-
-
 
 .register-link {
   text-align: center;

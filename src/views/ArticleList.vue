@@ -1,22 +1,22 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch} from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useBlogStore } from '../stores/blog'
-import { useRouter } from 'vue-router';
+import { useRouter } from 'vue-router'
 import { ArrowLeft } from '@element-plus/icons-vue'
 import { getTagColor } from '@/composables/useTagColor'
-import { useSearchFilter } from '@/composables/useSearchFilter';
-import { useSearchStore } from '@/stores/search';
+import { useSearchFilter } from '@/composables/useSearchFilter'
+import { useSearchStore } from '@/stores/search'
 
 const blogStore = useBlogStore()
 const router = useRouter()
-const {filteredArticles} = useSearchFilter()
+const { filteredArticles } = useSearchFilter()
 const searchStore = useSearchStore()
 
 // 获取所有分类
 const categories = computed(() => {
   const cats = new Set<string>()
-  blogStore.articles.forEach(article => {
-    if(article.category){
+  blogStore.articles.forEach((article) => {
+    if (article.category) {
       cats.add(article.category)
     }
   })
@@ -69,36 +69,51 @@ onMounted(() => {
       <el-button link @click="router.push('/')">
         <el-icon>
           <ArrowLeft />
-        </el-icon> 返回首页...
+        </el-icon>
+        返回首页...
       </el-button>
 
       <!-- 文章列表内容 -->
-
     </div>
     <h1>文章列表</h1>
     <!-- 分类选择 -->
     <div class="category-selected">
       <el-select v-model="searchStore.selectedCategory" placeholder="选择" clearable>
         <el-option label="全部分类" value=""></el-option>
-        <el-option v-for="category in categories" :key="category" :label="category" :value="category"></el-option>
+        <el-option
+          v-for="category in categories"
+          :key="category"
+          :label="category"
+          :value="category"
+        ></el-option>
       </el-select>
     </div>
-    <br>
+    <br />
     <div v-if="blogStore.loading" class="skeleton-list">
       <el-skeleton v-for="n in 3" :key="n" animated>
-        <el-skeleton-item variant="h3" style="width: 50%; margin-bottom: 12px;" />
-        <el-skeleton-item variant="text" style="width: 90%; margin-bottom: 8px;" />
-        <el-skeleton-item variant="text" style="width: 70%;" />
+        <el-skeleton-item variant="h3" style="width: 50%; margin-bottom: 12px" />
+        <el-skeleton-item variant="text" style="width: 90%; margin-bottom: 8px" />
+        <el-skeleton-item variant="text" style="width: 70%" />
       </el-skeleton>
     </div>
     <el-empty v-else-if="filteredArticles.length === 0" description="没有找到符合条件的文章" />
     <template v-else>
-      <el-card v-for="article in filteredArticles.slice(start,end)" :key="article.id" class="article-card" shadow="hover"
-        @click="goToArticle(article.id)">
+      <el-card
+        v-for="article in filteredArticles.slice(start, end)"
+        :key="article.id"
+        class="article-card"
+        shadow="hover"
+        @click="goToArticle(article.id)"
+      >
         <h2>{{ article.title }}</h2>
         <p class="summary">{{ article.summary }}</p>
 
-        <el-tag v-for="(tag, index) in article.tags" :key="index" class="tag" :style="{ color: getTagColor(tag) }">
+        <el-tag
+          v-for="(tag, index) in article.tags"
+          :key="index"
+          class="tag"
+          :style="{ color: getTagColor(tag) }"
+        >
           {{ tag }}
         </el-tag>
       </el-card>
@@ -113,11 +128,11 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.article-list-container>.el-button {
+.article-list-container > .el-button {
   margin-bottom: 20px;
 }
 
-.category-selected{
+.category-selected {
   margin-bottom: 20px;
 }
 
@@ -125,7 +140,7 @@ onMounted(() => {
   margin-bottom: 24px;
 }
 
-.category-selected .el-select{
+.category-selected .el-select {
   width: 200px;
 }
 

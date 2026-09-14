@@ -1,19 +1,22 @@
 <template>
-    <div class="editor-views">
-        <ArticleEditor
-        :article-id="articleId" :initial-title="initialTitle" :initial-content="initialContent" 
-        @save="handleSave" @publish="handlePublish" />
-    </div>
+  <div class="editor-views">
+    <ArticleEditor
+      :article-id="articleId"
+      :initial-title="initialTitle"
+      :initial-content="initialContent"
+      @save="handleSave"
+      @publish="handlePublish"
+    />
+  </div>
 </template>
 
 <script lang="ts" setup>
 import { ElMessage } from 'element-plus'
-import {ref,onMounted} from 'vue'
+import { ref, onMounted } from 'vue'
 import ArticleEditor from '@/components/ArticleEditor.vue'
 import { useArticleManagerStore } from '@/stores/articleManager'
 import { useBlogStore } from '@/stores/blog'
 import { useRoute } from 'vue-router'
-
 
 const blogStore = useBlogStore()
 const route = useRoute()
@@ -22,55 +25,50 @@ const articleId = ref<number | undefined>(undefined)
 const initialTitle = ref('')
 const initialContent = ref('')
 
-
-const handleSave = async (content:string ,title:string,tags:string[]) => {
-    const draft = await articleManagerStore.saveDraft({title,content,tags})
-    articleId.value = draft.id
-    ElMessage.success('草稿已保存')
+const handleSave = async (content: string, title: string, tags: string[]) => {
+  const draft = await articleManagerStore.saveDraft({ title, content, tags })
+  articleId.value = draft.id
+  ElMessage.success('草稿已保存')
 }
 
 // 发布文章
 const handlePublish = async (content: string, title: string, tags: string[]) => {
-    if (articleId.value) {
-        const publishedArticle = await articleManagerStore.publishArticle(articleId.value)
-        if (publishedArticle) {
-            ElMessage.success('文章已发布')
-            articleId.value = undefined
-        } else {
-            ElMessage.error('发布失败')
-        }
+  if (articleId.value) {
+    const publishedArticle = await articleManagerStore.publishArticle(articleId.value)
+    if (publishedArticle) {
+      ElMessage.success('文章已发布')
+      articleId.value = undefined
     } else {
-        const draft = articleManagerStore.saveDraft({ content, title, tags })
-        const publishedArticle = await articleManagerStore.publishArticle((await draft).id)
-        if (publishedArticle) {
-            ElMessage.success('文章已发布')
-        } else {
-            ElMessage.error('发布失败')
-        }
+      ElMessage.error('发布失败')
     }
+  } else {
+    const draft = articleManagerStore.saveDraft({ content, title, tags })
+    const publishedArticle = await articleManagerStore.publishArticle((await draft).id)
+    if (publishedArticle) {
+      ElMessage.success('文章已发布')
+    } else {
+      ElMessage.error('发布失败')
+    }
+  }
 }
 
-
-
 onMounted(async () => {
-    await articleManagerStore.loadDrafts()
-    const id = route.query.id
-    if (id) {
-        const numId = Number(id)
-        const article = await blogStore.getArticleById(numId)
-        if (article) {
-            articleId.value = numId
-            initialTitle.value = article.title
-            initialContent.value = article.content
-        }
+  await articleManagerStore.loadDrafts()
+  const id = route.query.id
+  if (id) {
+    const numId = Number(id)
+    const article = await blogStore.getArticleById(numId)
+    if (article) {
+      articleId.value = numId
+      initialTitle.value = article.title
+      initialContent.value = article.content
     }
+  }
 })
-
-
 </script>
 
 <style scoped>
-.editor-views{
-    height: 100vh;
+.editor-views {
+  height: 100vh;
 }
 </style>

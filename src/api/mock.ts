@@ -10,12 +10,12 @@ export interface ContactInfo {
 }
 
 export const mockTechStack: TechStack[] = [
-  { name: 'Vue3'},
-  { name: 'TypeScript'},
-  { name: 'Express'},
-  { name: 'Echarts'},
-  { name: 'Pinia'},
-  { name: 'MySQL'},
+  { name: 'Vue3' },
+  { name: 'TypeScript' },
+  { name: 'Express' },
+  { name: 'Echarts' },
+  { name: 'Pinia' },
+  { name: 'MySQL' },
 ]
 
 export const mockContactInfo: ContactInfo[] = [

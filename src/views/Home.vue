@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted} from 'vue'
+import { computed, onMounted } from 'vue'
 import { useBlogStore } from '@/stores/blog'
 import { ElCard, ElTag, ElRow, ElCol } from 'element-plus'
 import { Document, View } from '@element-plus/icons-vue'
@@ -36,7 +36,6 @@ const articles = computed(() => {
   })
 })
 
-
 // 热门推荐（基于访问量）
 const popularArticles = computed(() => {
   return [...blogStore.articles].sort((a, b) => b.views - a.views).slice(0, 3)
@@ -55,12 +54,14 @@ onMounted(() => {
         <!-- 左边：标题和按钮 -->
         <div class="hero-left">
           <h1 class="hero-title">个人博客</h1>
-          <p class="hero-subtitle">
-            Vue3、TypeScript、前端工程化等热门技术内容
-          </p>
+          <p class="hero-subtitle">Vue3、TypeScript、前端工程化等热门技术内容</p>
           <div class="hero-actions">
-            <el-button type="primary" class="primary-action" size="default" @click="goToArticles">浏览文章</el-button>
-            <el-button size="default" class="secondary-action" @click="router.push('/about')">关于我</el-button>
+            <el-button type="primary" class="primary-action" size="default" @click="goToArticles"
+              >浏览文章</el-button
+            >
+            <el-button size="default" class="secondary-action" @click="router.push('/about')"
+              >关于我</el-button
+            >
           </div>
           <div class="hero-stats">
             <div class="stat-item">
@@ -92,35 +93,42 @@ onMounted(() => {
               <h2>最新文章</h2>
             </div>
             <SortFilter />
-            <el-button type="primary" @click="router.push('/editor')">
-              打开编辑器
-            </el-button>
+            <el-button type="primary" @click="router.push('/editor')"> 打开编辑器 </el-button>
             <el-button text @click="goToArticles">查看全部 →</el-button>
           </div>
           <TagFilter />
           <div v-if="blogStore.loading" class="skeleton-list">
             <el-skeleton v-for="n in 3" :key="n" animated>
-              <el-skeleton-item variant="h3" style="width: 60%; margin-bottom: 12px;"/>
-              <el-skeleton-item variant="text" style=" margin-bottom: 8px;"/>
-              <el-skeleton-item variant="text" style="width: 80%; margin-bottom: 8px;"/>
-              <el-skeleton-item variant="text" style="width: 60%;"/>
+              <el-skeleton-item variant="h3" style="width: 60%; margin-bottom: 12px" />
+              <el-skeleton-item variant="text" style="margin-bottom: 8px" />
+              <el-skeleton-item variant="text" style="width: 80%; margin-bottom: 8px" />
+              <el-skeleton-item variant="text" style="width: 60%" />
             </el-skeleton>
           </div>
-          <el-card v-for="article in articles" :key="article.id" class="article-card" shadow="hover"
-            @click="goToArticle(article.id)">
+          <el-card
+            v-for="article in articles"
+            :key="article.id"
+            class="article-card"
+            shadow="hover"
+            @click="goToArticle(article.id)"
+          >
             <div class="article-content">
               <div class="article-info">
                 <h3>{{ article.title }}</h3>
                 <p class="article-summary">{{ article.summary }}</p>
                 <div class="article-meta">
-                  <span class="article-date">{{ article.createdAt.slice(0,10)}}</span>
+                  <span class="article-date">{{ article.createdAt.slice(0, 10) }}</span>
                   <span class="article-views">
                     <el-icon>
                       <View />
-                    </el-icon> {{ article.views }}
+                    </el-icon>
+                    {{ article.views }}
                   </span>
-                  <span class="article-like" :type="article.like ? 'primary' : 'default'"
-                    @click.stop="blogStore.togglelike(article.id)">
+                  <span
+                    class="article-like"
+                    :type="article.like ? 'primary' : 'default'"
+                    @click.stop="blogStore.togglelike(article.id)"
+                  >
                     {{ article.like ? '❤️ 已收藏' : '🤍 收藏' }}
                   </span>
                   <div class="article-tags">
@@ -144,8 +152,14 @@ onMounted(() => {
               </div>
             </template>
             <div class="tags-cloud">
-              <el-tag v-for="tag in allTags" :key="tag" class="tag-item" type="info" effect="plain"
-                :style="{ color: getTagColor(tag) }">
+              <el-tag
+                v-for="tag in allTags"
+                :key="tag"
+                class="tag-item"
+                type="info"
+                effect="plain"
+                :style="{ color: getTagColor(tag) }"
+              >
                 {{ tag }}
               </el-tag>
             </div>
@@ -159,8 +173,12 @@ onMounted(() => {
               </div>
             </template>
             <div class="recommended-list">
-              <div v-for="article in popularArticles" :key="article.id" class="recommended-item"
-                @click="goToArticle(article.id)">
+              <div
+                v-for="article in popularArticles"
+                :key="article.id"
+                class="recommended-item"
+                @click="goToArticle(article.id)"
+              >
                 <span class="recommended-title">{{ article.title }}</span>
                 <span class="recommended-views">{{ article.views }} 阅读</span>
               </div>
@@ -198,7 +216,7 @@ onMounted(() => {
   content: '';
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,0.55);
+  background: rgba(0, 0, 0, 0.55);
   pointer-events: none;
 }
 
@@ -341,19 +359,26 @@ onMounted(() => {
 .article-card {
   margin-bottom: 16px;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
   animation: slideUp 0.4s ease;
-
 }
 
-.article-card:hover{
+.article-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .article-card:hover {
@@ -461,55 +486,88 @@ onMounted(() => {
 }
 
 /* 入场动画 */
-.hero-section{
+.hero-section {
   animation: fadeInDown 0.5s ease;
 }
 
-.hero-left{
+.hero-left {
   animation: fadeInLeft 0.5s ease 0.1s both;
 }
 
-.hero-right{
-    animation: fadeInRight 0.5s ease 0.2s both;
+.hero-right {
+  animation: fadeInRight 0.5s ease 0.2s both;
 }
 
-.main--content{
-    animation: fadeInUp 0.5s ease 0.3s both;
+.main--content {
+  animation: fadeInUp 0.5s ease 0.3s both;
 }
-
 
 .article-card {
-    animation: fadeInUp 0.4s ease backwards;
+  animation: fadeInUp 0.4s ease backwards;
 }
 
-.article-card:nth-child(1) {animation-delay: 0.3s;}
-.article-card:nth-child(2) {animation-delay: 0.4s;}
-.article-card:nth-child(3) {animation-delay: 0.5s;}
+.article-card:nth-child(1) {
+  animation-delay: 0.3s;
+}
+.article-card:nth-child(2) {
+  animation-delay: 0.4s;
+}
+.article-card:nth-child(3) {
+  animation-delay: 0.5s;
+}
 
 .sidebar-card {
   animation: fadeInRight 0.4s ease backwards;
 }
-.sidebar-card:nth-child(1) { animation-delay: 0.4s; }
-.sidebar-card:nth-child(2) { animation-delay: 0.5s; }
+.sidebar-card:nth-child(1) {
+  animation-delay: 0.4s;
+}
+.sidebar-card:nth-child(2) {
+  animation-delay: 0.5s;
+}
 
 @keyframes fadeInUp {
-  form {opacity:0; transform: translateX(20px);}
-  to {opacity:1; transform: translateX(0);}
+  form {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 @keyframes fadeInDown {
-  from {opacity:0; transform: translateX(-20px);}
-  to {opacity:1; transform: translateX(0);}
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 @keyframes fadeInLeft {
-  from { opacity: 0; transform: translateX(-20px); }
-  to { opacity: 1; transform: translateX(0); }
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 @keyframes fadeInRight {
-  from { opacity: 0; transform: translateX(20px); }
-  to { opacity: 1; transform: translateX(0); }
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 /* 移动端适配 */
@@ -519,7 +577,7 @@ onMounted(() => {
     padding: 10px;
     max-width: 100%;
   }
-  
+
   .hero-section {
     width: 100%;
     height: auto;
@@ -527,11 +585,11 @@ onMounted(() => {
     margin: 0;
     border-radius: 12px;
   }
-  
+
   .latest-articles {
     margin-bottom: 20px;
   }
-  
+
   .sidebar-card {
     margin-bottom: 15px;
   }
@@ -541,30 +599,30 @@ onMounted(() => {
     text-align: center;
     padding: 20px;
   }
-  
+
   .hero-content {
     flex-direction: column;
     gap: 20px;
   }
-  
+
   .hero-left {
     order: 1;
     margin-bottom: 20px;
   }
-  
+
   .hero-right {
     order: 2;
     width: 100%;
   }
-  
+
   .hero-title {
     font-size: 1.5rem; /* 减小字体 */
   }
-  
+
   .hero-actions {
     justify-content: center;
   }
-  
+
   .hero-stats {
     justify-content: center;
   }
@@ -574,57 +632,56 @@ onMounted(() => {
     width: 100% !important;
     margin-left: 0 !important;
   }
-  
+
   .el-col {
     width: 100% !important;
   }
-  
+
   .sidebar {
     margin-top: 30px;
   }
-/* 文章卡片 */
+  /* 文章卡片 */
   .article-card {
     margin-bottom: 12px;
     padding: 15px;
   }
-  
+
   .article-content h3 {
     font-size: 1.1rem;
   }
-  
+
   .article-meta {
     flex-wrap: wrap;
     gap: 8px;
   }
-  
+
   .article-tags {
     width: 100%;
     margin-top: 8px;
   }
   /* 标签 */
-    .tags-cloud {
+  .tags-cloud {
     justify-content: center;
   }
-  
+
   .tag-item {
     margin: 4px;
     font-size: 0.85rem;
   }
-  
+
   /* 筛选器适配 */
   .section-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 10px;
   }
-  
+
   .header-left {
     width: 100%;
   }
-
 }
 
-@media (max-width:1024px) {
+@media (max-width: 1024px) {
   .hero-section {
     max-width: 814px;
   }
@@ -633,7 +690,6 @@ onMounted(() => {
     max-width: 860px;
     margin-left: 28px !important;
   }
-
 }
 
 /* 文章阅读量显示 */
@@ -668,5 +724,4 @@ html.dark .recommended-item {
 html.dark .recommended-item:hover {
   background: #333;
 }
-
 </style>

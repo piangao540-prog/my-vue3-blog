@@ -1,9 +1,7 @@
 <template>
   <div class="article-detail" v-if="article">
     <el-button link @click="router.push('/articles')">
-      <el-icon>
-        <ArrowLeft />
-      </el-icon>返回文章列表
+      <el-icon> <ArrowLeft /> </el-icon>返回文章列表
     </el-button>
     <!-- 文章主题 -->
     <article class="article-main">
@@ -14,7 +12,7 @@
             <el-icon>
               <Calendar />
             </el-icon>
-            {{ article.createdAt.slice(0,10) }}
+            {{ article.createdAt.slice(0, 10) }}
           </span>
           <span class="meta-item">
             <el-icon>
@@ -29,7 +27,12 @@
           </div>
         </div>
       </header>
-      <div class="article-content" v-html="article.content.trimStart().startsWith('<') ? article.content : marked(article.content)"></div>
+      <div
+        class="article-content"
+        v-html="
+          article.content.trimStart().startsWith('<') ? article.content : marked(article.content)
+        "
+      ></div>
       <div class="ai-summary">
         <el-button v-if="!aiSummary" link @click="getAiSummary" :loading="aiLoading">
           ai文章摘要
@@ -55,7 +58,7 @@
     </article>
     <!-- 评论区 -->
     <div v-if="userStore.isLoggedIn">
-      <CommentSection :key="String(route.params.id)"/>
+      <CommentSection :key="String(route.params.id)" />
     </div>
     <div v-else>
       <div class="login-prompt">
@@ -76,84 +79,89 @@ import { Calendar, User, ArrowLeft } from '@element-plus/icons-vue'
 import CommentSection from '@/components/CommentSection.vue'
 import { useUserStore } from '@/stores/user'
 import type { Article } from '@/stores/blog'
-import {marked} from 'marked'
+import { marked } from 'marked'
 // 给 Markdown 图片加原生懒加载:进入视口浏览器才请求
 const markdownRenderer = {
-    // marked v5+ 渲染器接收的是 token 对象,不是位置参数
-    image({ href, tokens }) {
-        const text = tokens.map((t) => t.text).join('')
-        return `<img data-src="${href}" alt="${text}" />`
-    }
+  // marked v5+ 渲染器接收的是 token 对象,不是位置参数
+  image({ href, tokens }) {
+    const text = tokens.map((t) => t.text).join('')
+    return `<img data-src="${href}" alt="${text}" />`
+  },
 }
 marked.use({ renderer: markdownRenderer })
 // IntersectionObserver 懒加载:图片进入视口附近才把 data-src 换成 src
 let lazyObserver: IntersectionObserver | null = null
 const initLazyImages = async () => {
-    await nextTick()
-    lazyObserver?.disconnect()
-    lazyObserver = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-                const img = entry.target as HTMLImageElement
-                const src = img.dataset.src
-                if (src) {
-                    img.src = src
-                    delete img.dataset.src
-                }
-                lazyObserver?.unobserve(img)
-            }
-        })
-    }, { rootMargin: '100px 0px' })
-    document.querySelectorAll('.article-content img[data-src]').forEach((img) => lazyObserver?.observe(img))
+  await nextTick()
+  lazyObserver?.disconnect()
+  lazyObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const img = entry.target as HTMLImageElement
+          const src = img.dataset.src
+          if (src) {
+            img.src = src
+            delete img.dataset.src
+          }
+          lazyObserver?.unobserve(img)
+        }
+      })
+    },
+    { rootMargin: '100px 0px' },
+  )
+  document
+    .querySelectorAll('.article-content img[data-src]')
+    .forEach((img) => lazyObserver?.observe(img))
 }
 onBeforeUnmount(() => lazyObserver?.disconnect())
-import { getAiSummary as apiAiSummary} from '@/api/ai'
-
+import { getAiSummary as apiAiSummary } from '@/api/ai'
 
 const aiSummary = ref('')
-const aiLoading =  ref(false)
+const aiLoading = ref(false)
 const userStore = useUserStore()
 const route = useRoute()
 const router = useRouter()
 const blogStore = useBlogStore()
 
-
 // ai文章摘要
 const getAiSummary = async () => {
-  if(aiSummary.value || !article.value) return
+  if (aiSummary.value || !article.value) return
   aiLoading.value = true
   aiSummary.value = ''
-  try{
+  try {
     let lastText = ''
-    await apiAiSummary(article.value.content,article.value.id,
-      (text) => {const newChars = text.slice(lastText.length)
+    await apiAiSummary(article.value.content, article.value.id, (text) => {
+      const newChars = text.slice(lastText.length)
       lastText = text
       let i = 0
       const timer = setInterval(() => {
-        if(i< newChars.length){
+        if (i < newChars.length) {
           aiSummary.value += newChars[i]
           i++
-        }else{
+        } else {
           clearInterval(timer)
         }
-      },30)
-      }
-    )
-  }catch{
+      }, 30)
+    })
+  } catch {
     aiSummary.value = '生成失败'
-  }finally{
+  } finally {
     aiLoading.value = false
   }
 }
 
-
 const article = ref<Article | null>(null)
 
-watch(article,(val) => {
-  if(val?.title){
-    document.title = `${val.title} | PianGao 的博客`
-  }
-},{immediate:true})
+watch(
+  article,
+  (val) => {
+    if (val?.title) {
+      document.title = `${val.title} | PianGao 的博客`
+    }
+  },
+  { immediate: true },
+)
 
 // 获取当前文章的索引
 const currentIndex = computed(() => {
@@ -178,19 +186,19 @@ const goToArticle = async (id: number) => {
 
 // 获取文章数据
 const loadArticle = async (id: number) => {
-  try{
-      const data = await blogStore.getArticleById(id)
-      article.value = data || null
+  try {
+    const data = await blogStore.getArticleById(id)
+    article.value = data || null
 
-      // 阅读量统计
-      if (article.value) {
-        blogStore.addViews(article.value.id)
-      }else{
-        router.replace({name: 'not-found'})
-      }
-  }catch{
+    // 阅读量统计
+    if (article.value) {
+      blogStore.addViews(article.value.id)
+    } else {
+      router.replace({ name: 'not-found' })
+    }
+  } catch {
     article.value = null
-    router.replace({name: 'not-found'})
+    router.replace({ name: 'not-found' })
   }
 }
 
@@ -198,20 +206,22 @@ const loadArticle = async (id: number) => {
 onMounted(async () => {
   const id = Number(route.params.id)
   await loadArticle(id)
-    initLazyImages()
+  initLazyImages()
 })
 
 // 监听路由参数变化（同一路由不同参数）
-watch(() => route.params.id, async (newId) => {
-  if (newId) {
-    window.scrollTo(0,0)
-    aiSummary.value = ''
-    const id = Number(newId)
-    await loadArticle(id)
-    initLazyImages()
-  }
-})
-
+watch(
+  () => route.params.id,
+  async (newId) => {
+    if (newId) {
+      window.scrollTo(0, 0)
+      aiSummary.value = ''
+      const id = Number(newId)
+      await loadArticle(id)
+      initLazyImages()
+    }
+  },
+)
 </script>
 
 <style scoped>
@@ -369,7 +379,6 @@ watch(() => route.params.id, async (newId) => {
   font-size: 0.85rem;
   color: #909399;
   margin-bottom: 8px;
-
 }
 
 .nav-prev a,
@@ -396,44 +405,44 @@ watch(() => route.params.id, async (newId) => {
   color: #666;
 }
 
-@media (max-width: 768px){
-  .article-detail{
+@media (max-width: 768px) {
+  .article-detail {
     padding: 15px 10px;
-    max-width: 100%
+    max-width: 100%;
   }
 
-  .article-main{
+  .article-main {
     margin-top: 15px;
     padding: 20px 15px;
     border-radius: 8px;
   }
 
-  .article-header{
-    margin-bottom:20px;
+  .article-header {
+    margin-bottom: 20px;
     padding-bottom: 15px;
   }
 
-  .article-title{
-    font-size:1.5rem;
+  .article-title {
+    font-size: 1.5rem;
     line-height: 1.3;
     margin-bottom: 12px;
   }
 
-  .article-meta{
+  .article-meta {
     flex-direction: column;
     align-items: flex-start;
-    margin-bottom:12px;
+    margin-bottom: 12px;
   }
-/* 文章内容 */
+  /* 文章内容 */
   .article-content {
     font-size: 0.95rem;
     line-height: 1.6;
   }
 
-  .article-content :deep(h2){
+  .article-content :deep(h2) {
     font-size: 1.2rem;
-    margin-top:24px;
-    margin-bottom:12px;
+    margin-top: 24px;
+    margin-bottom: 12px;
   }
 
   .article-content :deep(h3) {
@@ -445,70 +454,70 @@ watch(() => route.params.id, async (newId) => {
   .article-content :deep(p) {
     margin-bottom: 12px;
   }
-  
+
   .article-content :deep(pre) {
     padding: 12px;
     margin-bottom: 12px;
     font-size: 0.85rem;
   }
-  
+
   .article-content :deep(blockquote) {
     padding-left: 12px;
     margin: 12px 0;
   }
-  
+
   .article-content :deep(ul),
   .article-content :deep(ol) {
     padding-left: 20px;
   }
   /* 文章导航 */
-    .article-content :deep(img[data-src]) {
-  min-height: 120px;
-  background: #f0f2f5;
-}
-.article-content :deep(.image-gallery) {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  margin: 16px 0;
-}
-.article-content :deep(.image-gallery img) {
-  width: 100%;
-  height: auto;
-  margin: 0;
-  border-radius: 8px;
-}
-.article-content :deep(img) {
-  max-width: 100%;
-  height: auto;
-  display: block;
-  margin: 16px auto;
-  border-radius: 8px;
-}
-.article-footer {
+  .article-content :deep(img[data-src]) {
+    min-height: 120px;
+    background: #f0f2f5;
+  }
+  .article-content :deep(.image-gallery) {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin: 16px 0;
+  }
+  .article-content :deep(.image-gallery img) {
+    width: 100%;
+    height: auto;
+    margin: 0;
+    border-radius: 8px;
+  }
+  .article-content :deep(img) {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 16px auto;
+    border-radius: 8px;
+  }
+  .article-footer {
     margin-top: 30px;
   }
-  
+
   .article-nav {
     flex-direction: column;
     gap: 12px;
   }
-  
+
   .nav-prev,
   .nav-next {
     padding: 12px;
     text-align: left;
   }
-  
+
   .nav-next {
     text-align: left;
   }
-  
+
   .nav-label {
     font-size: 0.8rem;
     margin-bottom: 4px;
   }
-  
+
   .nav-prev span:last-child,
   .nav-next span:last-child {
     font-size: 0.9rem;
@@ -550,8 +559,14 @@ html.dark .login-prompt p {
   color: #9ca3af;
 }
 
-.article-content h2 { font-size: 1.5rem; margin: 24px 0 12px; }
-.article-content h3 { font-size: 1.2rem; margin: 20px 0 10px; }
+.article-content h2 {
+  font-size: 1.5rem;
+  margin: 24px 0 12px;
+}
+.article-content h3 {
+  font-size: 1.2rem;
+  margin: 20px 0 10px;
+}
 .article-content code {
   background: #f0f0f0;
   padding: 2px 6px;
@@ -571,20 +586,23 @@ html.dark .login-prompt p {
   width: 100%;
   margin: 16px 0;
 }
-.article-content th, .article-content td {
+.article-content th,
+.article-content td {
   border: 1px solid #ddd;
   padding: 8px 12px;
   text-align: left;
 }
-.article-content th { background: #f5f5f5; }
-
-.ai-summary { 
-  margin: 24px 0;
-  text-align: center; 
+.article-content th {
+  background: #f5f5f5;
 }
 
-.ai-summary .el-button{
-  font-family: 'Noto Serif Sc',serif;
+.ai-summary {
+  margin: 24px 0;
+  text-align: center;
+}
+
+.ai-summary .el-button {
+  font-family: 'Noto Serif Sc', serif;
   font-size: 14px;
   color: #141212;
   border: 1px dashed #e86f83;
@@ -594,8 +612,6 @@ html.dark .login-prompt p {
   letter-spacing: 1px;
 }
 
-
-
 .summary-card {
   background: #f8f4ef;
   border: 1px solid #e8ddd0;
@@ -604,11 +620,10 @@ html.dark .login-prompt p {
   font-size: 14px;
   color: #555;
 }
-.summary-label { 
-  font-weight: 600; 
-  color: #f0b5bf; 
-  display: block; 
-  margin-bottom: 8px; 
+.summary-label {
+  font-weight: 600;
+  color: #f0b5bf;
+  display: block;
+  margin-bottom: 8px;
 }
-
 </style>

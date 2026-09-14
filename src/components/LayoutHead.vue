@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { Menu as MenuIcon, Search ,Sunny, Moon} from '@element-plus/icons-vue'
+import { Menu as MenuIcon, Search, Sunny, Moon } from '@element-plus/icons-vue'
 import portrait from '@/assets/images/portrait.png'
 import { useSearchStore } from '@/stores/search'
 import { ElMenu, ElMenuItem } from 'element-plus'
@@ -9,7 +9,6 @@ import { debounce } from '@/utils/debounce'
 import router from '@/router'
 import { useUserStore } from '@/stores/user'
 import { useThemeStore } from '@/stores/theme'
-
 
 const themeStore = useThemeStore()
 const searchStore = useSearchStore()
@@ -28,8 +27,6 @@ const handleLogout = () => {
   userStore.loginOut()
   router.push('/login')
 }
-
-
 
 const activeMenu = computed(() => {
   if (route.path.startsWith('/articles')) {
@@ -63,20 +60,44 @@ const activeMenu = computed(() => {
     </div>
     <div class="header-middle">
       <nav class="nav-capsule">
-        <router-link to="/" class="nav-item" :class="{ active: route.path === '/' }">首页</router-link>
-        <router-link to="/articles" class="nav-item" :class="{ active: route.path.startsWith('/articles') }">文章</router-link>
-        <router-link to="/archive" class="nav-item" :class="{ active: route.path === '/archive' }">归档</router-link>
-        <router-link to="/about" class="nav-item" :class="{ active: route.path === '/about' }">关于</router-link>
-        <router-link to="/memory" class="nav-item" :class="{ active: route.path === '/memory' }">记忆</router-link>
+        <router-link to="/" class="nav-item" :class="{ active: route.path === '/' }"
+          >首页</router-link
+        >
+        <router-link
+          to="/articles"
+          class="nav-item"
+          :class="{ active: route.path.startsWith('/articles') }"
+          >文章</router-link
+        >
+        <router-link to="/archive" class="nav-item" :class="{ active: route.path === '/archive' }"
+          >归档</router-link
+        >
+        <router-link to="/about" class="nav-item" :class="{ active: route.path === '/about' }"
+          >关于</router-link
+        >
+        <router-link to="/memory" class="nav-item" :class="{ active: route.path === '/memory' }"
+          >记忆</router-link
+        >
       </nav>
     </div>
     <!-- 右侧：搜索框 ,登录按钮 -->
     <div class="header-right">
       <div class="search-box">
-        <el-input v-model="localKeyword" @input="debounceSearch" placeholder="搜索文章..." :prefix-icon="Search" clearable
-          class="search-input" />
+        <el-input
+          v-model="localKeyword"
+          @input="debounceSearch"
+          placeholder="搜索文章..."
+          :prefix-icon="Search"
+          clearable
+          class="search-input"
+        />
       </div>
-      <el-button class="theme-toggle" @click="themeStore.toggleTheme" :icon="themeStore.isDark ? Sunny : Moon" circle></el-button>
+      <el-button
+        class="theme-toggle"
+        @click="themeStore.toggleTheme"
+        :icon="themeStore.isDark ? Sunny : Moon"
+        circle
+      ></el-button>
       <div v-if="userStore.isLoggedIn">
         <el-dropdown>
           <el-button>{{ userStore.userInfo?.username }}</el-button>
@@ -93,8 +114,6 @@ const activeMenu = computed(() => {
         <el-button class="login-button" @click="router.push('/login')">登录</el-button>
       </div>
     </div>
-
-
   </header>
 </template>
 
@@ -109,7 +128,7 @@ const activeMenu = computed(() => {
   position: sticky;
   top: 0;
   z-index: 999;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, .05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   width: 100%;
   box-sizing: border-box;
 }
@@ -145,12 +164,12 @@ const activeMenu = computed(() => {
 }
 
 .nav-capsule {
-    display: flex;
-    gap: 50px;
-    background: #f3f4f6;
-    padding: 6px;
-    border-radius: 12px;
-    margin-left: 97px;
+  display: flex;
+  gap: 50px;
+  background: #f3f4f6;
+  padding: 6px;
+  border-radius: 12px;
+  margin-left: 97px;
 }
 
 .nav-item {
@@ -171,9 +190,8 @@ const activeMenu = computed(() => {
   background: #ffffff;
   color: #e86f83;
   font-weight: 600;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
-
 
 /* 搜索框容器 */
 .header-right {
@@ -258,7 +276,6 @@ const activeMenu = computed(() => {
   }
 }
 
-
 @media (min-width: 769px) {
   .menu-button {
     display: none;
@@ -292,6 +309,4 @@ html.dark .nav-item.active {
   background: #3a3a3a;
   color: #e86f83;
 }
-
-
 </style>

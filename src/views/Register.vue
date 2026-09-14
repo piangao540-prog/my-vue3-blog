@@ -55,16 +55,32 @@ const handleRegister = async () => {
 
         <el-form label-width="0" class="register-form">
           <el-form-item>
-            <el-input v-model="username" placeholder="用户名" class="input-field" prefix-icon="User" />
+            <el-input
+              v-model="username"
+              placeholder="用户名"
+              class="input-field"
+              prefix-icon="User"
+            />
           </el-form-item>
 
           <el-form-item>
-            <el-input v-model="password" type="password" placeholder="密码" class="input-field" prefix-icon="Lock" />
+            <el-input
+              v-model="password"
+              type="password"
+              placeholder="密码"
+              class="input-field"
+              prefix-icon="Lock"
+            />
           </el-form-item>
 
           <el-form-item>
-            <el-input v-model="confirmPassword" type="password" placeholder="确认密码" class="input-field"
-              prefix-icon="Lock" />
+            <el-input
+              v-model="confirmPassword"
+              type="password"
+              placeholder="确认密码"
+              class="input-field"
+              prefix-icon="Lock"
+            />
           </el-form-item>
 
           <el-form-item>
@@ -74,10 +90,7 @@ const handleRegister = async () => {
           </el-form-item>
         </el-form>
 
-
-        <div class="login-link">
-          已有账号？<router-link to="/login">立即登录</router-link>
-        </div>
+        <div class="login-link">已有账号？<router-link to="/login">立即登录</router-link></div>
       </div>
     </div>
   </div>
@@ -89,7 +102,7 @@ const handleRegister = async () => {
   min-height: 70vh;
   min-width: 60vw;
   box-sizing: border-box;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2)
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 }
 
 /* 左边区域 */
@@ -190,7 +203,6 @@ const handleRegister = async () => {
 .register-btn:hover {
   background: linear-gradient(135deg, #5a6fd6 0%, #6a4190 100%);
 }
-
 
 .login-link {
   text-align: center;

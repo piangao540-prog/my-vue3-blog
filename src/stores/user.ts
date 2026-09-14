@@ -2,14 +2,22 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import defaultAvatar from '@/assets/images/converted_image.png'
-import { register as apiRegister, login as apiLogin, updateProfile, changePassword as apiChangePassword } from '@/api/auth'
+import {
+  register as apiRegister,
+  login as apiLogin,
+  updateProfile,
+  changePassword as apiChangePassword,
+} from '@/api/auth'
 import { getMe as apiGetMe } from '@/api/auth'
 
 export const useUserStore = defineStore('user', () => {
   // 用户信息
   const userInfo = ref<{
-    username: string; avatar?: string; nickname?: string;
-    bio?: string; role?: string
+    username: string
+    avatar?: string
+    nickname?: string
+    bio?: string
+    role?: string
   } | null>(null)
 
   // 是否已登录
@@ -17,7 +25,10 @@ export const useUserStore = defineStore('user', () => {
   const isAdmin = computed(() => userInfo.value?.role === 'admin')
 
   // 登录
-  const login = async (username: string, password: string): Promise<{ success: boolean; error?: string }> => {
+  const login = async (
+    username: string,
+    password: string,
+  ): Promise<{ success: boolean; error?: string }> => {
     try {
       const user = await apiLogin(username, password)
       localStorage.setItem('token', user.token)
@@ -26,13 +37,12 @@ export const useUserStore = defineStore('user', () => {
         nickname: user.nickname,
         bio: user.bio,
         avatar: user.avatar || defaultAvatar,
-        role: user.role || 'user'
+        role: user.role || 'user',
       }
       return { success: true }
     } catch (error: any) {
       return { success: false, error: error.response?.data?.error || '登录失败' }
     }
-
   }
 
   // 注册
@@ -44,7 +54,6 @@ export const useUserStore = defineStore('user', () => {
       ElMessage.error(error.response?.data?.error || '注册失败')
       return false
     }
-
   }
 
   // 登出
@@ -58,7 +67,6 @@ export const useUserStore = defineStore('user', () => {
     if (!userInfo.value) return
     await updateProfile({ username: userInfo.value.username, ...info })
     userInfo.value = { ...userInfo.value, ...info }
-
   }
 
   // 修改密码
@@ -68,7 +76,7 @@ export const useUserStore = defineStore('user', () => {
       await apiChangePassword({
         username: userInfo.value.username,
         oldPassword,
-        newPassword
+        newPassword,
       })
       return true
     } catch (error: any) {
@@ -89,7 +97,7 @@ export const useUserStore = defineStore('user', () => {
           nickname: user.nickname,
           bio: user.bio,
           avatar: user.avatar || defaultAvatar,
-          role: user.role || 'user'
+          role: user.role || 'user',
         }
       } catch {
         // 验证失败

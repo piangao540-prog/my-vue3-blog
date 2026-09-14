@@ -2,20 +2,20 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
 export const useThemeStore = defineStore('theme', () => {
-    const isDark = ref(localStorage.getItem('theme') === 'dark')
+  const isDark = ref(localStorage.getItem('theme') === 'dark')
 
-    const toggleTheme = () => {
-        isDark.value = !isDark.value
-        applyTheme()
-    }
-
-    const applyTheme = () => {
-        document.documentElement.classList.toggle('dark', isDark.value)
-        localStorage.setItem('theme', isDark.value ? 'dark' : 'light')
-    }
-
-    // 初始化时应用主题
+  const toggleTheme = () => {
+    isDark.value = !isDark.value
     applyTheme()
+  }
 
-    return { isDark, toggleTheme }
+  const applyTheme = () => {
+    document.documentElement.classList.toggle('dark', isDark.value)
+    localStorage.setItem('theme', isDark.value ? 'dark' : 'light')
+  }
+
+  // 初始化时应用主题
+  applyTheme()
+
+  return { isDark, toggleTheme }
 })

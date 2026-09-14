@@ -5,7 +5,10 @@
   padding: 0;
   box-sizing: border-box;
   /* 全局平滑过渡 */
-  transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+  transition:
+    background-color 0.3s,
+    color 0.3s,
+    border-color 0.3s;
 }
 
 html,
@@ -68,7 +71,6 @@ html.dark ::-webkit-scrollbar-thumb:hover {
 .fade-leave-active {
   transition: opacity 0.2s ease;
 }
-
 
 .fade-enter-from,
 .fade-leave-to {

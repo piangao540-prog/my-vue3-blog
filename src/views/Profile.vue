@@ -38,7 +38,12 @@
       <el-tab-pane label="我的收藏" name="likes">
         <div v-if="likedArticles.length === 0" class="empty-tip">暂无收藏</div>
         <ul v-else class="article-list">
-          <li v-for="article in likedArticles" :key="article.id" class="article-item" @click="() => goToArticle(article)">
+          <li
+            v-for="article in likedArticles"
+            :key="article.id"
+            class="article-item"
+            @click="() => goToArticle(article)"
+          >
             {{ article.title }}
           </li>
         </ul>
@@ -80,11 +85,11 @@ const passwordForm = ref({ oldPassword: '', newPassword: '' })
 // 计算属性
 const userInfo = computed(() => userStore.userInfo)
 const likedArticles = computed(() => {
-  return blogStore.articles.filter(a => a.like)
+  return blogStore.articles.filter((a) => a.like)
 })
 const myComments = computed(() => {
   const name = userInfo.value?.nickname || userInfo.value?.username
-  return comments.value.filter(a => a.author === name)
+  return comments.value.filter((a) => a.author === name)
 })
 
 // 方法
@@ -92,7 +97,7 @@ const myComments = computed(() => {
 const initForm = () => {
   basicForm.value = {
     nickname: '',
-    bio: ''
+    bio: '',
   }
 }
 
@@ -110,7 +115,7 @@ const saveBasicInfo = () => {
 const changePassword = async () => {
   const success = await userStore.changePassword(
     passwordForm.value.oldPassword,
-    passwordForm.value.newPassword
+    passwordForm.value.newPassword,
   )
   if (success) {
     ElMessage.success('修改成功')
@@ -268,36 +273,35 @@ onMounted(() => {
   border-color: #ffcccc;
 }
 
-@media (max-width: 768px){
-  .profile{
+@media (max-width: 768px) {
+  .profile {
     padding: 15px 10px;
     max-width: 100%;
   }
 
-  .user-card{
-    flex-direction:column;
+  .user-card {
+    flex-direction: column;
     align-items: center;
-    text-align:center;
+    text-align: center;
     padding: 20px 15px;
-    gap:15px;
+    gap: 15px;
   }
 
-  .user-card h2{
+  .user-card h2 {
     font-size: 18px;
     margin-bottom: 5px;
   }
 
-  .user-card p{
+  .user-card p {
     font-size: 13px;
   }
 
-  .user-card .bio{
+  .user-card .bio {
     margin-left: 0px;
-    margin-top:10px;
+    margin-top: 10px;
     min-width: auto;
     min-height: 50px;
-    padding:10px 12px;
-
+    padding: 10px 12px;
   }
 }
 </style>

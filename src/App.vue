@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import BlogLayout from './components/BlogLayout.vue';
+import BlogLayout from './components/BlogLayout.vue'
 </script>
 
 <template>
