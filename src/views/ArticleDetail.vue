@@ -1,10 +1,13 @@
 <template>
   <div class="article-detail" v-if="article">
+    <!-- 阅读进度条 -->
+    <div class="reading-progress" :style="{ width: `${readingProgress}%` }"></div>
+
     <el-button link @click="router.push('/articles')">
       <el-icon> <ArrowLeft /> </el-icon>返回文章列表
     </el-button>
     <!-- 文章主题 -->
-    <article class="article-main">
+    <article class="article-main" ref="articleEl">
       <header class="article-header">
         <h1 class="article-title">{{ article.title }}</h1>
         <div class="article-meta">
@@ -29,6 +32,8 @@
       </header>
       <div
         class="article-content"
+        ref="contentEl"
+        @click="onContentClick"
         v-html="
           article.content.trimStart().startsWith('<') ? article.content : marked(article.content)
         "
@@ -56,6 +61,9 @@
         </div>
       </footer>
     </article>
+
+    <ArticleToc :items="tocItems" :active-id="activeHeadingId" @select="scrollToHeading" />
+
     <!-- 评论区 -->
     <div v-if="userStore.isLoggedIn">
       <CommentSection :key="String(route.params.id)" />
@@ -77,6 +85,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useBlogStore } from '@/stores/blog'
 import { Calendar, User, ArrowLeft } from '@element-plus/icons-vue'
 import CommentSection from '@/components/CommentSection.vue'
+import ArticleToc, { type TocItem } from '@/components/ArticleToc.vue'
 import { useUserStore } from '@/stores/user'
 import type { Article } from '@/stores/blog'
 import { marked } from 'marked'
@@ -114,7 +123,12 @@ const initLazyImages = async () => {
     .querySelectorAll('.article-content img[data-src]')
     .forEach((img) => lazyObserver?.observe(img))
 }
-onBeforeUnmount(() => lazyObserver?.disconnect())
+onBeforeUnmount(() => {
+  lazyObserver?.disconnect()
+  window.removeEventListener('scroll', onScroll)
+  window.removeEventListener('resize', onScroll)
+  if (progressRafId) cancelAnimationFrame(progressRafId)
+})
 import { getAiSummary as apiAiSummary } from '@/api/ai'
 
 const aiSummary = ref('')
@@ -202,11 +216,101 @@ const loadArticle = async (id: number) => {
   }
 }
 
+// ---------- 阅读体验增强：阅读进度、目录、代码复制 ----------
+const articleEl = ref<HTMLElement | null>(null)
+const contentEl = ref<HTMLElement | null>(null)
+const tocItems = ref<TocItem[]>([])
+const activeHeadingId = ref('')
+const readingProgress = ref(0)
+
+// 正文渲染后：给标题挂锚点、生成目录、给代码块加复制按钮
+const enhanceContent = async () => {
+  await nextTick()
+  const root = contentEl.value
+  if (!root) return
+
+  const headings = Array.from(root.querySelectorAll<HTMLElement>('h2, h3'))
+  tocItems.value = headings.map((el, index) => {
+    const id = `heading-${index}`
+    el.id = id
+    return { id, text: el.textContent?.trim() ?? '', level: el.tagName === 'H3' ? 3 : 2 }
+  })
+
+  root.querySelectorAll<HTMLPreElement>('pre').forEach((pre) => {
+    if (pre.querySelector('.code-copy-btn')) return
+    const button = document.createElement('button')
+    button.type = 'button'
+    button.className = 'code-copy-btn'
+    button.textContent = '复制'
+    pre.appendChild(button)
+  })
+
+  updateScrollState()
+}
+
+// 复制按钮走事件委托：正文是 v-html 渲染的，重渲染后逐个绑定的监听器会全部失效
+const onContentClick = async (event: MouseEvent) => {
+  const button = (event.target as HTMLElement).closest('.code-copy-btn')
+  if (!button) return
+  const code = button.closest('pre')?.querySelector('code')
+  if (!code) return
+  try {
+    await navigator.clipboard.writeText(code.textContent ?? '')
+    button.textContent = '已复制'
+  } catch {
+    button.textContent = '复制失败'
+  }
+  setTimeout(() => {
+    button.textContent = '复制'
+  }, 1500)
+}
+
+// 滚动状态：阅读进度 + 当前所在章节
+const updateScrollState = () => {
+  const el = articleEl.value
+  if (el) {
+    const scrollable = el.offsetHeight - window.innerHeight
+    const scrolled = -el.getBoundingClientRect().top
+    readingProgress.value =
+      scrollable <= 0 ? 100 : Math.min(100, Math.max(0, (scrolled / scrollable) * 100))
+  }
+  if (tocItems.value.length) {
+    let current = tocItems.value[0].id
+    for (const item of tocItems.value) {
+      const heading = document.getElementById(item.id)
+      if (heading && heading.getBoundingClientRect().top <= 120) {
+        current = item.id
+      } else {
+        break
+      }
+    }
+    activeHeadingId.value = current
+  }
+}
+
+// 用 rAF 而不是节流：节流是"到点才执行"，快速滚动停下时最后一次位置会被丢掉，进度条会停在错的地方
+let progressRafId = 0
+const onScroll = () => {
+  if (progressRafId) return
+  progressRafId = requestAnimationFrame(() => {
+    progressRafId = 0
+    updateScrollState()
+  })
+}
+
+const scrollToHeading = (id: string) => {
+  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  activeHeadingId.value = id
+}
+
 // 文章阅读量统计
 onMounted(async () => {
   const id = Number(route.params.id)
   await loadArticle(id)
   initLazyImages()
+  enhanceContent()
+  window.addEventListener('scroll', onScroll, { passive: true })
+  window.addEventListener('resize', onScroll)
 })
 
 // 监听路由参数变化（同一路由不同参数）
@@ -219,6 +323,7 @@ watch(
       const id = Number(newId)
       await loadArticle(id)
       initLazyImages()
+      enhanceContent()
     }
   },
 )
@@ -231,12 +336,36 @@ watch(
   padding: 20px;
 }
 
+.reading-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: #e86f83;
+  /* 顶部导航是 sticky + z-index 999，这里要比它高才露得出来 */
+  z-index: 1000;
+  transition: width 0.1s linear;
+}
+
 .article-main {
   margin-top: 20px;
   background: white;
   padding: 40px;
   border-radius: 12px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* 窄屏上 .blog-main(20) + .article-detail(20) + .article-main(40) 三层内边距叠加，
+   375px 的手机上正文只剩 215px。收窄卡片内边距把宽度还给正文。 */
+@media (max-width: 768px) {
+  .article-main {
+    padding: 20px 16px;
+    border-radius: 8px;
+  }
+
+  .article-title {
+    font-size: 1.5rem;
+  }
 }
 
 .article-header {
@@ -292,6 +421,12 @@ watch(
   font-size: 1.25rem;
 }
 
+/* 点击目录跳转时给标题留出顶部导航的高度，否则标题会被 sticky 导航盖住 */
+.article-content :deep(h2),
+.article-content :deep(h3) {
+  scroll-margin-top: 90px;
+}
+
 .article-content :deep(p) {
   margin-bottom: 16px;
 }
@@ -307,11 +442,38 @@ watch(
 }
 
 .article-content :deep(pre) {
+  position: relative;
   background: #f5f7fa;
   padding: 16px;
   border-radius: 8px;
   overflow-x: auto;
   margin-bottom: 16px;
+}
+
+/* 复制按钮是 enhanceContent 用 createElement 插进 v-html 内容里的，
+   scoped 样式不会给它加作用域属性，必须用 :deep 才匹配得到 */
+.article-content :deep(.code-copy-btn) {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 2px 10px;
+  font-size: 0.75rem;
+  color: #909399;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  cursor: pointer;
+  opacity: 0.6;
+  transition:
+    opacity 0.2s,
+    color 0.2s,
+    border-color 0.2s;
+}
+
+.article-content :deep(.code-copy-btn:hover) {
+  opacity: 1;
+  color: #e86f83;
+  border-color: #e86f83;
 }
 
 .article-content :deep(code) {

@@ -14,6 +14,7 @@ declare module 'vue' {
     AnalyticsCharts: typeof import('./src/components/AnalyticsCharts.vue')['default']
     ArticleCarousel: typeof import('./src/components/ArticleCarousel.vue')['default']
     ArticleEditor: typeof import('./src/components/ArticleEditor.vue')['default']
+    ArticleToc: typeof import('./src/components/ArticleToc.vue')['default']
     BackToTop: typeof import('./src/components/BackToTop.vue')['default']
     BaseTable: typeof import('./src/components/BaseTable.vue')['default']
     BlogLayout: typeof import('./src/components/BlogLayout.vue')['default']
