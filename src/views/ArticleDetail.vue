@@ -355,6 +355,19 @@ watch(
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
 }
 
+/* 窄屏上 .blog-main(20) + .article-detail(20) + .article-main(40) 三层内边距叠加，
+   375px 的手机上正文只剩 215px。收窄卡片内边距把宽度还给正文。 */
+@media (max-width: 768px) {
+  .article-main {
+    padding: 20px 16px;
+    border-radius: 8px;
+  }
+
+  .article-title {
+    font-size: 1.5rem;
+  }
+}
+
 .article-header {
   margin-bottom: 30px;
   padding-bottom: 20px;
