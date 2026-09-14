@@ -37,12 +37,14 @@ export default defineConfig({
           if (id.includes('node_modules/echarts') || id.includes('node_modules/vue-echarts')) {
             return 'echarts'
           }
-          if (
-            id.includes('node_modules/@kangc') ||
-            id.includes('node_modules/highlight.js') ||
-            id.includes('node_modules/marked')
-          ) {
-            return 'editor'
+          // @kangc 是后台编辑器专用的，单独成 chunk，
+          // 不跟 highlight.js/marked 混在一起——后两者被常驻的 RagChatWidget 引用，
+          // 混在一起会让每个页面都去下载整个编辑器。
+          if (id.includes('node_modules/@kangc')) {
+            return 'md-editor'
+          }
+          if (id.includes('node_modules/highlight.js') || id.includes('node_modules/marked')) {
+            return 'markdown'
           }
         },
       },

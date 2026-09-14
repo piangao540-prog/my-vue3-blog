@@ -66,7 +66,7 @@ import VMdEditor from '@kangc/v-md-editor'
 import '@kangc/v-md-editor/lib/style/base-editor.css'
 import githubTheme from '@kangc/v-md-editor/lib/theme/github.js'
 import '../../node_modules/@kangc/v-md-editor/lib/theme/style/github.css'
-import hljs from 'highlight.js'
+import hljs from '@/utils/highlight'
 VMdEditor.use(githubTheme, { Hljs: hljs })
 
 const props = defineProps<{

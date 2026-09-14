@@ -55,7 +55,7 @@
 import { ref, watch, onMounted } from 'vue'
 import { getChat as chat } from '@/api/ai'
 import { marked } from 'marked'
-import hljs from 'highlight.js'
+import hljs from '@/utils/highlight'
 import { useChatSessions } from '@/composables/useChatSessions'
 import { ChatDotRound, Delete, Plus, Document, Close } from '@element-plus/icons-vue'
 

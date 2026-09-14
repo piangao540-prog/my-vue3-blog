@@ -114,7 +114,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Edit, Delete } from '@element-plus/icons-vue'
 import { marked } from 'marked'
-import hljs from 'highlight.js'
+import hljs from '@/utils/highlight'
 import { useUserStore } from '@/stores/user'
 import { formatTime } from '@/utils/formatTime'
 import {
