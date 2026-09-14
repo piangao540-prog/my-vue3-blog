@@ -29,7 +29,10 @@ const db = mysql.createPool({
 
 initSchema(db)
 
-const JWT_SECRET = process.env.JWT_SECRET || 'blog-jwt-secret-key'
+const JWT_SECRET = process.env.JWT_SECRET
+if (!JWT_SECRET) {
+    throw new Error('缺少JWT_SECRET环境变量，服务拒绝启动')
+}
 
 // 鉴权中间件
 async function auth(req, res, next) {
@@ -472,9 +475,9 @@ app.post('/api/ai/chat', async (req, res) => {
                 try {
                     const data = JSON.parse(line.slice(6))
                     const delta = data.choices?.[0]?.delta || {}
-                    if (delta.reasoning_content && !reasoningStarted){
+                    if (delta.reasoning_content && !reasoningStarted) {
                         reasoningStarted = true
-                        res.write(`data: ${JSON.stringify({type: 'thinking'})}\n\n`)
+                        res.write(`data: ${JSON.stringify({ type: 'thinking' })}\n\n`)
                     }
                     const text = delta.content || ''
                     if (text) {
