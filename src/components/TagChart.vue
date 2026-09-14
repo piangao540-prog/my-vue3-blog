@@ -5,12 +5,7 @@ import { useBlogStore } from '@/stores/blog'
 import * as echarts from 'echarts'
 let chart: echarts.ECharts | null = null
 
-// 封装自动绑定和解绑的 resize 逻辑
-const useChartResize = () => {
-  const resize = () => chart?.resize()
-  onMounted(() => window.addEventListener('resize', resize))
-  onUnmounted(() => window.removeEventListener('resize', resize))
-}
+const resize = () => chart?.resize()
 const blogStore = useBlogStore()
 const chartRef = ref<HTMLDivElement | null>(null)
 const tagStats = computed(() => {
@@ -42,7 +37,8 @@ const updateChart = () => {
     series: [
       {
         type: 'pie',
-        radius: ['13%', '45%'],
+        // 标签关掉后外圈不再需要留位置，半径放大一些填满画布
+        radius: ['18%', '62%'],
         center: ['50%', '50%'],
         roseType: 'area',
         itemStyle: {
@@ -50,7 +46,10 @@ const updateChart = () => {
           borderColor: '#fff',
           borderWidth: 2,
         },
-        label: { fontSize: false },
+        // 标签默认关闭：图例已经把每个标签的名字和颜色都列出来了，
+        // 再在饼图外圈画一圈标签，窄屏上会超出画布被裁掉。
+        // 悬停/点击时由下面的 emphasis 单独显示。
+        label: { show: false },
         emphasis: {
           label: { show: true, fontSize: 10, fontWeight: 'bold' },
         },
@@ -72,7 +71,7 @@ onMounted(() => {
   if (!chartRef.value) return
   chart = echarts.init(chartRef.value)
   updateChart()
-  useChartResize()
+  window.addEventListener('resize', resize)
 })
 
 watch(
@@ -84,6 +83,7 @@ watch(
 )
 
 onUnmounted(() => {
+  window.removeEventListener('resize', resize)
   chart?.dispose()
 })
 </script>
@@ -98,8 +98,8 @@ onUnmounted(() => {
 .tag-chart-container {
   width: 100%;
   max-width: 500px;
-  /* 限制最大宽度 */
-  min-width: 300px;
+  /* 不要设 min-width：窄屏上容器本来就不到 300px，
+     最小值会把图表顶出卡片造成横向溢出 */
   margin: 0 auto;
 }
 
