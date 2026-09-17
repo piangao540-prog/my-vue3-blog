@@ -473,31 +473,11 @@ app.post('/api/ai/chat', async (req, res) => {
     memoryLines = memRows.map((r) => `[${r.category}] ${r.content}`)
   }
 
-  // 没搜到文章、没有记忆、且模型也没直接给出答案时，才返回固定话术
+  // 没搜到文章、没有记忆、且模型也没直接给出答案时，用固定话术兜底。
+  // 这里复用 directAnswer，让兜底话术和闲聊一样走后面统一的流式出口，
+  // 避免同一个接口出现「成功时有时是 JSON、有时是 SSE」两种格式。
   if (!directAnswer && results.length === 0 && memoryLines.length === 0) {
-    const answer = '该问题暂未在博客中收入相关内容'
-    if (user && sessionIdNum) {
-      try {
-        await db
-          .promise()
-          .query(
-            'INSERT INTO chat_messages (session_id, user_id, role, content, sources) VALUES (?,?,?,?,?)',
-            [sessionIdNum, user.id, 'user', question, null],
-          )
-        await db
-          .promise()
-          .query(
-            'INSERT INTO chat_messages (session_id, user_id, role, content, sources) VALUES (?,?,?,?,?)',
-            [sessionIdNum, user.id, 'assistant', answer, null],
-          )
-      } catch (err) {
-        console.error('保存对话失败:', err.message)
-      }
-    }
-    if (user) {
-      await extractMemories(user.id, question, answer, null).catch(() => { })
-    }
-    return res.json({ answer, sessionId: sessionIdNum || undefined })
+    directAnswer = '该问题暂未在博客中收录相关内容'
   }
 
   try {
