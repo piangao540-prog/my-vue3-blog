@@ -36,7 +36,6 @@
       <div v-for="(msg, i) in currentMessages" :key="i" :class="msg.role">
         <span v-html="renderMarkdown(msg.content)"></span>
       </div>
-      <div v-if="loading && status === 'thinking'" class="typing">AI 正在思考...</div>
     </div>
     <div class="chat-footer">
       <el-input
@@ -45,8 +44,7 @@
         @keyup.enter="send"
         :disabled="loading"
       />
-      <el-button v-if="loading" type="danger" @click="stopGeneration">停止</el-button>
-      <el-button v-else type="primary" @click="send">发送</el-button>
+      <el-button type="primary" :disabled="loading" @click="send">发送</el-button>
     </div>
   </div>
 </template>
@@ -62,40 +60,7 @@ import { ChatDotRound, Delete, Plus, Document, Close } from '@element-plus/icons
 const show = ref(false)
 const input = ref('')
 const loading = ref(false)
-const status = ref<'idle' | 'thinking' | 'answering' | 'done' | 'error' | 'stopped'>('idle')
 const chatBody = ref<HTMLElement | null>(null)
-let abortController: AbortController | null = null
-
-// 流式文本缓冲
-let streamText = ''
-let rafId: number | null = null
-
-// 将缓冲内容写进最后一条assistant消息
-const writeAssistant = () => {
-  const last = currentMessages.value[currentMessages.value.length - 1]
-  if (last) last.content = streamText
-}
-
-// 立即冲刷
-const flushStreamText = () => {
-  if (rafId !== null) {
-    cancelAnimationFrame(rafId)
-    rafId = null
-  }
-  writeAssistant()
-}
-
-// 收到流式片段：只更新缓冲，并确保每帧最多排一次刷新
-const applyStreamText = (partial: string) => {
-  status.value = 'answering'
-  streamText = partial
-  if (rafId === null) {
-    rafId = requestAnimationFrame(() => {
-      rafId = null
-      writeAssistant()
-    })
-  }
-}
 
 // 会话管理
 const {
@@ -142,46 +107,20 @@ const send = async () => {
   addMessage('assistant', '')
   const history = currentMessages.value.slice(0, -2)
 
-  abortController = new AbortController()
-
   try {
     const sessionId = currentSessionId.value ? Number(currentSessionId.value) : null
-    streamText = ''
-    await chat(
-      text,
-      history,
-      sessionId,
-      abortController.signal,
-      applyStreamText,
-      (meta) => {
-        if (meta.sessionId && currentSessionId.value !== String(meta.sessionId)) {
-          currentSessionId.value = String(meta.sessionId)
-        }
-      },
-      () => {
-        status.value = 'thinking'
-      },
-    )
-    flushStreamText()
-    status.value = 'done'
-    // 流式结束，保存最终答案
+    const { answer, sessionId: newSessionId } = await chat(text, history, sessionId)
+    if (newSessionId && currentSessionId.value !== String(newSessionId)) {
+      currentSessionId.value = String(newSessionId)
+    }
+    currentMessages.value[currentMessages.value.length - 1].content =
+      answer || '该问题暂未在博客中收录相关内容'
     saveSessions()
-  } catch (e) {
-    if (e instanceof DOMException && e.name === 'AbortError') {
-      // 用户主动停止：把已收到的部分内容展示出来
-      flushStreamText()
-      return
-    }
-    if (rafId !== null) {
-      cancelAnimationFrame(rafId)
-      rafId = null
-    }
-    status.value = 'error'
+  } catch {
     currentMessages.value[currentMessages.value.length - 1].content = '请求失败，请重新尝试'
     saveSessions()
   } finally {
     loading.value = false
-    abortController = null
   }
 }
 
@@ -211,21 +150,8 @@ const clearChat = () => {
   }
 }
 
-const stopGeneration = () => {
-  abortController?.abort()
-  abortController = null
-  loading.value = false
-}
-
 // markdown转换为HTML
-const renderMarkdown = (content: string) => {
-  const openCount = (content.match(/```/g) || []).length
-  let safe = content
-  if (openCount % 2 !== 0) {
-    safe = content + '\n```'
-  }
-  return marked.parse(safe)
-}
+const renderMarkdown = (content: string) => marked.parse(content)
 
 onMounted(() => loadSessions())
 </script>
@@ -381,20 +307,6 @@ onMounted(() => loadSessions())
   cursor: pointer;
 }
 
-.typing {
-  align-self: flex-start;
-  padding: 8px 12px;
-  border-radius: 8px;
-  background: #f0f2f5;
-  color: #999;
-  font-size: 13px;
-}
-
-.typing::after {
-  content: '...';
-  animation: dots 1.5s steps(3, end) infinite;
-}
-
 .assistant pre {
   background: #f8f8f8;
   padding: 12px;
@@ -416,18 +328,6 @@ onMounted(() => loadSessions())
 .assistant ol {
   padding-left: 20px;
   margin: 6px 0;
-}
-
-@keyframes dots {
-  0% {
-    content: '.';
-  }
-  33% {
-    content: '..';
-  }
-  66% {
-    content: '...';
-  }
 }
 
 @media (max-width: 480px) {

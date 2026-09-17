@@ -144,20 +144,7 @@ const getAiSummary = async () => {
   aiLoading.value = true
   aiSummary.value = ''
   try {
-    let lastText = ''
-    await apiAiSummary(article.value.content, article.value.id, (text) => {
-      const newChars = text.slice(lastText.length)
-      lastText = text
-      let i = 0
-      const timer = setInterval(() => {
-        if (i < newChars.length) {
-          aiSummary.value += newChars[i]
-          i++
-        } else {
-          clearInterval(timer)
-        }
-      }, 30)
-    })
+    aiSummary.value = await apiAiSummary(article.value.content, article.value.id)
   } catch {
     aiSummary.value = '生成失败'
   } finally {

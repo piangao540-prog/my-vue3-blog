@@ -1,7 +1,6 @@
 export const getAiSummary = async (
   content: string,
   articleId: number,
-  onText: (text: string) => void,
 ): Promise<string> => {
   const base = window.location.hostname === 'localhost' ? 'http://localhost:3000' : ''
   const response = await fetch(`${base}/api/ai/summary`, {
@@ -10,37 +9,9 @@ export const getAiSummary = async (
     body: JSON.stringify({ content, articleId }),
   })
 
-  const ct = response.headers.get('content-type') || ''
-  if (ct.includes('application/json')) {
-    const data = await response.json()
-    if (data.summary) {
-      onText(data.summary)
-      return data.summary
-    }
-    return ''
-  }
-
-  let fullSummary = ''
-  const reader = response.body!.getReader()
-  const decoder = new TextDecoder()
-
-  while (true) {
-    const { done, value } = await reader.read()
-    if (done) break
-    const chunk = decoder.decode(value)
-    const lines = chunk.split('\n').filter((a) => a.startsWith('data:') && !a.includes('[DONE]'))
-    for (const line of lines) {
-      try {
-        const data = JSON.parse(line.slice(6))
-        const text = data.text || ''
-        fullSummary += text
-        onText(fullSummary)
-      } catch {
-        /* 流式响应的单个分片不完整时跳过该分片，不中断整段总结 */
-      }
-    }
-  }
-  return fullSummary
+  const data = await response.json().catch(() => ({}))
+  if (!response.ok) throw new Error(data.error || '生成摘要失败')
+  return data.summary || ''
 }
 
 export const getAiTags = async (content: string, title?: string): Promise<string[]> => {
@@ -58,11 +29,7 @@ export const getChat = async (
   question: string,
   history: { role: string; content: string }[],
   sessionId: number | null,
-  signal: AbortSignal,
-  onText: (text: string) => void,
-  onMeta?: (meta: { sessionId?: number }) => void,
-  onThinking?: () => void,
-): Promise<string> => {
+): Promise<{ answer: string; sessionId?: number }> => {
   const base = window.location.hostname === 'localhost' ? 'http://localhost:3000' : ''
 
   const token = localStorage.getItem('token')
@@ -73,43 +40,9 @@ export const getChat = async (
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: JSON.stringify({ question, history, sessionId }),
-    signal,
   })
 
-  let fullAnswer = ''
-  const ct = response.headers.get('content-type') || ''
-  if (ct.includes('application/json')) {
-    const data = await response.json()
-    if (data.sessionId) onMeta?.({ sessionId: data.sessionId })
-    onText(data.answer || '该问题暂未在博客中收录相关内容')
-    return data.answer || ''
-  }
-  const reader = response.body!.getReader()
-  const decoder = new TextDecoder()
-  let buffer = ''
-
-  while (true) {
-    const { done, value } = await reader.read()
-    if (done) break
-    buffer += decoder.decode(value, { stream: true })
-    const lines = buffer.split('\n')
-    buffer = lines.pop() || ''
-    for (const line of lines) {
-      if (!line.startsWith('data:') || line.includes('[DONE]')) continue
-      try {
-        const data = JSON.parse(line.slice(6))
-        if (data.sessionId) onMeta?.({ sessionId: data.sessionId })
-        if (data.type === 'thinking') {
-          onThinking?.()
-          continue
-        }
-        const text = data.text || ''
-        fullAnswer += text
-        onText(fullAnswer)
-      } catch {
-        /* 流式响应的单个分片不完整时跳过该分片，不中断整段回答 */
-      }
-    }
-  }
-  return fullAnswer
+  const data = await response.json().catch(() => ({}))
+  if (!response.ok) throw new Error(data.error || '请求失败')
+  return { answer: data.answer || '', sessionId: data.sessionId }
 }

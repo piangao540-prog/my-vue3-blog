@@ -301,56 +301,35 @@ app.post('/api/ai/summary', async (req, res) => {
   }
 
   // 流式输出
-  res.setHeader('Content-Type', 'text/event-stream')
-  res.setHeader('Cache-Control', 'no-cache')
-  res.setHeader('Connection', 'keep-alive')
-
   // 用模板生成 messages 和参数
   const { messages, params } = promptBuilder.build('summary', { content })
 
-  const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: 'deepseek-v4-flash',
-      stream: true,
-      ...params,
-      messages,
-    }),
-  })
+  try {
+    const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'deepseek-v4-flash',
+        ...params,
+        messages,
+      }),
+    })
+    const data = await response.json()
+    const summary = data.choices?.[0]?.message?.content || ''
 
-  let fullSummary = ''
-  const reader = response.body.getReader()
-  const decoder = new TextDecoder()
-
-  while (true) {
-    const { done, value } = await reader.read()
-    if (done) break
-    const chunk = decoder.decode(value)
-    const lines = chunk.split('\n').filter((a) => a.startsWith('data:') && !a.includes('[DONE]'))
-    for (const line of lines) {
-      try {
-        const data = JSON.parse(line.slice(6))
-        const text = data.choices?.[0]?.delta?.content || ''
-        if (text) {
-          fullSummary += text
-          res.write(`data: ${JSON.stringify({ text })}\n\n`)
-        }
-      } catch {}
+    // 存缓存
+    if (articleId && summary) {
+      await db
+        .promise()
+        .query('UPDATE articles SET ai_summary=? WHERE id=?', [summary, articleId])
     }
+    res.json({ summary })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
   }
-
-  // 存缓存
-  if (articleId) {
-    await db
-      .promise()
-      .query('UPDATE articles SET ai_summary=? WHERE id=?', [fullSummary, articleId])
-  }
-  res.write('data: [DONE]\n\n')
-  res.end()
 })
 
 // AI推荐tag标签
@@ -522,21 +501,13 @@ app.post('/api/ai/chat', async (req, res) => {
   }
 
   try {
-    res.setHeader('Content-Type', 'text/event-stream')
-    res.setHeader('Cache-Control', 'no-cache')
-    res.setHeader('Connection', 'keep-alive')
-    if (user) {
-      res.write(`data: ${JSON.stringify({ sessionId: sessionIdNum })}\n\n`)
-    }
-
     let fullAnswer = ''
 
     if (directAnswer) {
-      // 闲聊分支：第 1 轮模型已经给出答案，直接推给前端，不再请求一次模型
+      // 闲聊分支：第 1 轮模型已经给出答案，不再请求一次模型
       fullAnswer = directAnswer
-      res.write(`data: ${JSON.stringify({ text: directAnswer })}\n\n`)
     } else {
-      // 检索分支：带着模型改写后的关键词检索结果，流式生成回答
+      // 检索分支：带着模型改写后的关键词检索结果，生成回答
       const template = user ? 'agent-chat' : 'blog-qa'
       const { messages, params } = promptBuilder.build(template, {
         context,
@@ -554,40 +525,15 @@ app.post('/api/ai/chat', async (req, res) => {
         },
         body: JSON.stringify({
           model: 'deepseek-v4-flash',
-          stream: true,
           ...params,
           messages,
         }),
       })
-
-      const reader = response.body.getReader()
-      const decoder = new TextDecoder()
-
-      let reasoningStarted = false
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-        const chunk = decoder.decode(value)
-        const lines = chunk.split('\n').filter((a) => a.startsWith('data:') && !a.includes('[DONE]'))
-        for (const line of lines) {
-          try {
-            const data = JSON.parse(line.slice(6))
-            const delta = data.choices?.[0]?.delta || {}
-            if (delta.reasoning_content && !reasoningStarted) {
-              reasoningStarted = true
-              res.write(`data: ${JSON.stringify({ type: 'thinking' })}\n\n`)
-            }
-            const text = delta.content || ''
-            if (text) {
-              fullAnswer += text
-              res.write(`data: ${JSON.stringify({ text })}\n\n`)
-            }
-          } catch {}
-        }
-      }
+      const data = await response.json()
+      fullAnswer = data.choices?.[0]?.message?.content || ''
     }
 
-    // 登录用户：流式结束后把这一问一答写进数据库
+    // 登录用户：把这一问一答写进数据库
     if (user && sessionIdNum) {
       try {
         await db
@@ -614,8 +560,7 @@ app.post('/api/ai/chat', async (req, res) => {
       }
     }
 
-    res.write('data: [DONE]\n\n')
-    res.end()
+    res.json({ answer: fullAnswer, sources, sessionId: sessionIdNum || undefined })
   } catch (err) {
     res.status(500).json({ error: err.message })
   }
