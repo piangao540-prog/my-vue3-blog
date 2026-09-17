@@ -56,6 +56,7 @@ import { marked } from 'marked'
 import hljs from '@/utils/highlight'
 import { useChatSessions } from '@/composables/useChatSessions'
 import { ChatDotRound, Delete, Plus, Document, Close } from '@element-plus/icons-vue'
+import { useStreamText } from '@/composables/useStreamText'
 
 const show = ref(false)
 const input = ref('')
@@ -74,6 +75,16 @@ const {
   deleteSession,
   addMessage,
 } = useChatSessions()
+
+// rAF帧刷新
+const {
+  push: pushStream,
+  flush: flushStream,
+  reset: resetStream,
+} = useStreamText((text) => {
+  const last = currentMessages.value[currentMessages.value.length - 1]
+  if (last) last.content = text
+})
 
 // 开启代码高亮
 const renderer = new marked.Renderer()
@@ -107,17 +118,22 @@ const send = async () => {
   addMessage('assistant', '')
   const history = currentMessages.value.slice(0, -2)
 
+  // 清空上一轮残留的缓冲，避免上一轮的内容被冲进新气泡
+  resetStream()
+
   try {
     const sessionId = currentSessionId.value ? Number(currentSessionId.value) : null
-    const { answer, sessionId: newSessionId } = await chat(text, history, sessionId, (full) => {
-      currentMessages.value[currentMessages.value.length - 1].content = full
-    })
+    const { answer, sessionId: newSessionId } = await chat(text, history, sessionId, pushStream)
     if (newSessionId && currentSessionId.value !== String(newSessionId)) {
       currentSessionId.value = String(newSessionId)
     }
+    // 冲掉最后一帧，否则末尾几个字可能还没渲染就结束了
+    flushStream()
     currentMessages.value[currentMessages.value.length - 1].content = answer
     saveSessions()
   } catch {
+    // 先取消排队中的帧，否则它会把"请求失败"覆盖成半截回答
+    resetStream()
     currentMessages.value[currentMessages.value.length - 1].content = '请求失败，请重新尝试'
     saveSessions()
   } finally {
