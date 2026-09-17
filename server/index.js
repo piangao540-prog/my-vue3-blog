@@ -391,6 +391,27 @@ app.post('/api/ai/tag', async (req, res) => {
 })
 
 // Ai智能问答助手
+// Function Calling
+const SEARCH_ARTICLES_TOOL = {
+  type: 'function',
+  function: {
+    name: 'search_articles',
+    description:
+      '在博客文章中做向量检索。当用户的问题需要参考博客内容（技术实现、踩坑记录、作者经历）时调用；打招呼、闲聊、与博客无关的问题不要调用。',
+    parameters: {
+      type: 'object',
+      properties: {
+        keyword: {
+          type: 'string',
+          description:
+            '用于向量检索的关键词。要把用户口语化的提问改写成准确的技术关键词，例如"你那个上传的东西怎么做的"改写成"分片上传"。',
+        },
+      },
+      required: ['keyword'],
+    },
+  },
+}
+
 app.post('/api/ai/chat', async (req, res) => {
   const { question, history, sessionId } = req.body
   if (!question) return res.status(400).json({ error: '缺少问题' })
@@ -414,7 +435,48 @@ app.post('/api/ai/chat', async (req, res) => {
     sessionIdNum = result.insertId
   }
 
-  const results = await search(question)
+  // 第 1 轮：带 tools 请求模型，让它决定"要不要查文章"和"用什么关键词查"。
+  // 这一步是非流式的——只有等模型给出决定，才知道后面怎么走。
+  let results = []
+  let directAnswer = null
+  try {
+    const decideResponse = await fetch('https://api.deepseek.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'deepseek-v4-flash',
+        messages: [
+          {
+            role: 'system',
+            content:
+              '你是博客助手。如果用户的问题需要参考博客文章内容才能回答，调用 search_articles 工具；如果是问候、闲聊或与博客无关的问题，直接回答。',
+          },
+          ...(history || []),
+          { role: 'user', content: question },
+        ],
+        tools: [SEARCH_ARTICLES_TOOL],
+      }),
+    })
+    const decideData = await decideResponse.json()
+    const toolCall = decideData.choices?.[0]?.message?.tool_calls?.[0]
+
+    if (toolCall) {
+      // 模型决定检索：解析它给的关键词，用改写后的关键词去查向量库
+      const { keyword } = JSON.parse(toolCall.function.arguments)
+      results = await search(keyword || question)
+    } else {
+      // 模型判断这是闲聊，第一轮就把答案给出来了，后面不用再请求一次模型
+      directAnswer = decideData.choices?.[0]?.message?.content || null
+    }
+  } catch (err) {
+    // 决策失败不能把功能搞挂：退回改造前的行为，直接用原问题检索
+    console.error('Function Calling 决策失败，退回直接检索:', err.message)
+    results = await search(question)
+  }
+
   const context = results
     .map((a) => `文章标题：${a.title}\n文章内容：${(a.content || '').slice(0, 800)}`)
     .join('\n---\n')
@@ -432,8 +494,8 @@ app.post('/api/ai/chat', async (req, res) => {
     memoryLines = memRows.map((r) => `[${r.category}] ${r.content}`)
   }
 
-  // 没搜到文章且没有记忆可依据时，才返回固定话术
-  if (results.length === 0 && memoryLines.length === 0) {
+  // 没搜到文章、没有记忆、且模型也没直接给出答案时，才返回固定话术
+  if (!directAnswer && results.length === 0 && memoryLines.length === 0) {
     const answer = '该问题暂未在博客中收入相关内容'
     if (user && sessionIdNum) {
       try {
@@ -467,53 +529,61 @@ app.post('/api/ai/chat', async (req, res) => {
       res.write(`data: ${JSON.stringify({ sessionId: sessionIdNum })}\n\n`)
     }
 
-    const template = user ? 'agent-chat' : 'blog-qa'
-    const { messages, params } = promptBuilder.build(template, {
-      context,
-      question,
-      history,
-      memories: memoryLines,
-      username: user ? user.username : '',
-    })
-
-    const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: 'deepseek-v4-flash',
-        stream: true,
-        ...params,
-        messages,
-      }),
-    })
-
     let fullAnswer = ''
-    const reader = response.body.getReader()
-    const decoder = new TextDecoder()
 
-    let reasoningStarted = false
-    while (true) {
-      const { done, value } = await reader.read()
-      if (done) break
-      const chunk = decoder.decode(value)
-      const lines = chunk.split('\n').filter((a) => a.startsWith('data:') && !a.includes('[DONE]'))
-      for (const line of lines) {
-        try {
-          const data = JSON.parse(line.slice(6))
-          const delta = data.choices?.[0]?.delta || {}
-          if (delta.reasoning_content && !reasoningStarted) {
-            reasoningStarted = true
-            res.write(`data: ${JSON.stringify({ type: 'thinking' })}\n\n`)
-          }
-          const text = delta.content || ''
-          if (text) {
-            fullAnswer += text
-            res.write(`data: ${JSON.stringify({ text })}\n\n`)
-          }
-        } catch {}
+    if (directAnswer) {
+      // 闲聊分支：第 1 轮模型已经给出答案，直接推给前端，不再请求一次模型
+      fullAnswer = directAnswer
+      res.write(`data: ${JSON.stringify({ text: directAnswer })}\n\n`)
+    } else {
+      // 检索分支：带着模型改写后的关键词检索结果，流式生成回答
+      const template = user ? 'agent-chat' : 'blog-qa'
+      const { messages, params } = promptBuilder.build(template, {
+        context,
+        question,
+        history,
+        memories: memoryLines,
+        username: user ? user.username : '',
+      })
+
+      const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: 'deepseek-v4-flash',
+          stream: true,
+          ...params,
+          messages,
+        }),
+      })
+
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder()
+
+      let reasoningStarted = false
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        const chunk = decoder.decode(value)
+        const lines = chunk.split('\n').filter((a) => a.startsWith('data:') && !a.includes('[DONE]'))
+        for (const line of lines) {
+          try {
+            const data = JSON.parse(line.slice(6))
+            const delta = data.choices?.[0]?.delta || {}
+            if (delta.reasoning_content && !reasoningStarted) {
+              reasoningStarted = true
+              res.write(`data: ${JSON.stringify({ type: 'thinking' })}\n\n`)
+            }
+            const text = delta.content || ''
+            if (text) {
+              fullAnswer += text
+              res.write(`data: ${JSON.stringify({ text })}\n\n`)
+            }
+          } catch {}
+        }
       }
     }
 
