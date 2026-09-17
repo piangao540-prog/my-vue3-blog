@@ -495,17 +495,28 @@ app.post('/api/ai/chat', async (req, res) => {
       }
     }
     if (user) {
-      await extractMemories(user.id, question, answer, null).catch(() => {})
+      await extractMemories(user.id, question, answer, null).catch(() => { })
     }
     return res.json({ answer, sessionId: sessionIdNum || undefined })
   }
 
   try {
+    res.setHeader('Content-Type', 'text/event-stream')
+    res.setHeader('Cache-Control', 'no-cache')
+    res.setHeader('Connection', 'keep-alive')
+    res.flushHeaders()
+
+    // 前端需要知道这次问答落在哪个会话里（可能是服务端刚建的新会话）
+    if (user && sessionIdNum) {
+      res.write(`data: ${JSON.stringify({ sessionId: sessionIdNum })}\n\n`)
+    }
+
     let fullAnswer = ''
 
     if (directAnswer) {
       // 闲聊分支：第 1 轮模型已经给出答案，不再请求一次模型
       fullAnswer = directAnswer
+      res.write(`data: ${JSON.stringify({ text: fullAnswer })}\n\n`)
     } else {
       // 检索分支：带着模型改写后的关键词检索结果，生成回答
       const template = user ? 'agent-chat' : 'blog-qa'
@@ -525,13 +536,41 @@ app.post('/api/ai/chat', async (req, res) => {
         },
         body: JSON.stringify({
           model: 'deepseek-v4-flash',
+          stream: true,
           ...params,
           messages,
         }),
       })
-      const data = await response.json()
-      fullAnswer = data.choices?.[0]?.message?.content || ''
+
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ''
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        buffer = lines.pop()
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue
+          const raw = line.slice(6)
+          if (raw === '[DONE]') continue
+          try {
+            const chunk = JSON.parse(raw)
+            const text = chunk.choices?.[0]?.delta?.content
+            if (text) {
+              fullAnswer += text
+              res.write(`data: ${JSON.stringify({ text })}\n\n`)
+            }
+          } catch (e) { }
+        }
+      }
+
     }
+
+    res.write('data: [DONE]\n\n')
+    res.end()
 
     // 登录用户：把这一问一答写进数据库
     if (user && sessionIdNum) {
@@ -554,14 +593,18 @@ app.post('/api/ai/chat', async (req, res) => {
               sources.length ? JSON.stringify(sources) : null,
             ],
           )
-        await extractMemories(user.id, question, fullAnswer, msgResult.insertId).catch(() => {})
+        await extractMemories(user.id, question, fullAnswer, msgResult.insertId).catch(() => { })
       } catch (err) {
         console.error('保存对话失败:', err.message)
       }
     }
-
-    res.json({ answer: fullAnswer, sources, sessionId: sessionIdNum || undefined })
   } catch (err) {
+    // 流开始写之后响应头已经发出，不能再改状态码，只能往流里写一条错误事件
+    if (res.headersSent) {
+      res.write(`data: ${JSON.stringify({ error: err.message })}\n\n`)
+      res.end()
+      return
+    }
     res.status(500).json({ error: err.message })
   }
 })
