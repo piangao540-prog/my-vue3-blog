@@ -109,12 +109,13 @@ const send = async () => {
 
   try {
     const sessionId = currentSessionId.value ? Number(currentSessionId.value) : null
-    const { answer, sessionId: newSessionId } = await chat(text, history, sessionId)
+    const { answer, sessionId: newSessionId } = await chat(text, history, sessionId, (full) => {
+      currentMessages.value[currentMessages.value.length - 1].content = full
+    })
     if (newSessionId && currentSessionId.value !== String(newSessionId)) {
       currentSessionId.value = String(newSessionId)
     }
-    currentMessages.value[currentMessages.value.length - 1].content =
-      answer || '该问题暂未在博客中收录相关内容'
+    currentMessages.value[currentMessages.value.length - 1].content = answer
     saveSessions()
   } catch {
     currentMessages.value[currentMessages.value.length - 1].content = '请求失败，请重新尝试'
