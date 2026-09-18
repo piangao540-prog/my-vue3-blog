@@ -322,9 +322,7 @@ app.post('/api/ai/summary', async (req, res) => {
 
     // 存缓存
     if (articleId && summary) {
-      await db
-        .promise()
-        .query('UPDATE articles SET ai_summary=? WHERE id=?', [summary, articleId])
+      await db.promise().query('UPDATE articles SET ai_summary=? WHERE id=?', [summary, articleId])
     }
     res.json({ summary })
   } catch (err) {
@@ -550,10 +548,9 @@ app.post('/api/ai/chat', async (req, res) => {
               fullAnswer += text
               res.write(`data: ${JSON.stringify({ text })}\n\n`)
             }
-          } catch (e) { }
+          } catch (e) {}
         }
       }
-
     }
 
     res.write('data: [DONE]\n\n')
@@ -580,7 +577,15 @@ app.post('/api/ai/chat', async (req, res) => {
               sources.length ? JSON.stringify(sources) : null,
             ],
           )
-        await extractMemories(user.id, question, fullAnswer, msgResult.insertId).catch(() => { })
+        // 会话行要跟着消息一起更新：刷新 updatedAt（会话列表按它排序），
+        // 并在标题还是默认值时用首条问题补上
+        await db
+          .promise()
+          .query(
+            "UPDATE chat_sessions SET title = IF(title = '新对话', LEFT(?, 20), title), updatedAt = NOW() WHERE id = ?",
+            [question, sessionIdNum],
+          )
+        await extractMemories(user.id, question, fullAnswer, msgResult.insertId).catch(() => {})
       } catch (err) {
         console.error('保存对话失败:', err.message)
       }
