@@ -372,6 +372,11 @@ onMounted(() => {
   margin: 8px 0;
 }
 
+.review-content li::marker {
+  color: #9ca3af;
+  font-size: 0.9em;
+}
+
 html.dark .review-content {
   background: #1f1f1f;
   border-color: #333;

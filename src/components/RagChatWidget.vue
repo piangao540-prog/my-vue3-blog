@@ -356,8 +356,15 @@ onMounted(() => loadSessions())
 
 .assistant ul,
 .assistant ol {
-  padding-left: 20px;
+  padding-left: 22px;
   margin: 6px 0;
+}
+
+/* 列表标记默认用元素自身字体绘制，衬线中文字体里的 disc 又大又实，
+   这里调小调淡，避免一个黑点抢走整段回答的注意力 */
+.assistant li::marker {
+  color: #9ca3af;
+  font-size: 0.9em;
 }
 
 @media (max-width: 480px) {
