@@ -63,11 +63,13 @@ const input = ref('')
 const loading = ref(false)
 const chatBody = ref<HTMLElement | null>(null)
 let abortController: AbortController | null = null
+let streamTarget: { role: string; content: string } | null = null
 
 // 会话管理
 const {
   sessions,
   currentSessionId,
+  streamingSessionId,
   currentMessages,
   loadSessions,
   saveSessions,
@@ -83,8 +85,7 @@ const {
   flush: flushStream,
   reset: resetStream,
 } = useStreamText((text) => {
-  const last = currentMessages.value[currentMessages.value.length - 1]
-  if (last) last.content = text
+  if (streamTarget) streamTarget.content = text
 })
 
 // 新建会话（等待服务端创建完成）
@@ -112,12 +113,15 @@ const send = async () => {
 
   // 空消息占位（assistant）
   addMessage('assistant', '')
+  // 锁定写入目标：拿的是消息对象的引用，之后不管切到哪个会话，写的都是这一条
+  streamTarget = currentMessages.value[currentMessages.value.length - 1] ?? null
   const history = currentMessages.value.slice(0, -2)
 
   // 清空上一轮残留的缓冲，避免上一轮的内容被冲进新气泡
   resetStream()
 
   abortController = new AbortController()
+  streamingSessionId.value = currentSessionId.value
 
   try {
     const sessionId = currentSessionId.value ? Number(currentSessionId.value) : null
@@ -133,7 +137,7 @@ const send = async () => {
     }
     // 冲掉最后一帧，否则末尾几个字可能还没渲染就结束了
     flushStream()
-    currentMessages.value[currentMessages.value.length - 1].content = answer
+    if (streamTarget) streamTarget.content = answer
     saveSessions()
   } catch (e) {
     if (e instanceof DOMException && e.name === 'AbortError') {
@@ -143,10 +147,12 @@ const send = async () => {
     }
     // 先取消排队中的帧，否则它会把"请求失败"覆盖成半截回答
     resetStream()
-    currentMessages.value[currentMessages.value.length - 1].content = '请求失败，请重新尝试'
+    if (streamTarget) streamTarget.content = '请求失败，请重新尝试'
     saveSessions()
   } finally {
     abortController = null
+    streamTarget = null
+    streamingSessionId.value = null
     loading.value = false
   }
 }

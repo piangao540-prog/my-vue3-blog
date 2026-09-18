@@ -16,6 +16,8 @@ export const useChatSessions = () => {
   const userStore = useUserStore()
   const sessions = ref<ChatSession[]>([])
   const currentSessionId = ref<string | null>(null)
+  // 正在流式输出中的会话：记住它，避免被服务端数据覆盖
+  const streamingSessionId = ref<string | null>(null)
 
   // 新增：登录用户走服务端存储，访客走 localStorage
   const isServerMode = computed(() => !!userStore.isLoggedIn)
@@ -64,6 +66,9 @@ export const useChatSessions = () => {
   const loadMessages = async (id: string) => {
     const session = sessions.value.find((s) => s.id === id)
     if (!session) return
+    // 正在流式的会话不要重新拉取：那条回答还没落库，覆盖后界面上会"消失"，
+    // 而且后续分片会写进一个已经不在数组里的对象，再也显示不出来
+    if (streamingSessionId.value === id) return
     const ServerMessages = await chatApi.getMessages(Number(id))
     session.messages = ServerMessages.map(mapMessage)
   }
@@ -154,6 +159,7 @@ export const useChatSessions = () => {
   return {
     sessions,
     currentSessionId,
+    streamingSessionId,
     currentMessages,
     loadSessions,
     saveSessions,
