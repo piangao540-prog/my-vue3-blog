@@ -4,10 +4,16 @@
     <el-icon :size="20"><ChatDotRound /></el-icon>
   </button>
   <!-- 聊天对话框 -->
-  <div v-if="show" class="chat-dialog">
+  <div v-if="show" class="chat-dialog" :class="{ expanded }">
     <div class="chat-header">
       <span class="header-title">AI助手</span>
       <div class="header-actions">
+        <el-button
+          size="small"
+          :icon="expanded ? ScaleToOriginal : FullScreen"
+          :title="expanded ? '收起' : '放大'"
+          @click="expanded = !expanded"
+        />
         <el-button size="small" type="primary" :icon="Plus" @click="handleCreateSession"
           >新对话</el-button
         >
@@ -55,12 +61,22 @@ import { ref, watch, onMounted } from 'vue'
 import { getChat as chat } from '@/api/ai'
 import { renderMarkdown } from '@/utils/markdown'
 import { useChatSessions } from '@/composables/useChatSessions'
-import { ChatDotRound, Delete, Plus, Document, Close } from '@element-plus/icons-vue'
+import {
+  ChatDotRound,
+  Delete,
+  Plus,
+  Document,
+  Close,
+  FullScreen,
+  ScaleToOriginal,
+} from '@element-plus/icons-vue'
 import { useStreamText } from '@/composables/useStreamText'
 
 const show = ref(false)
 const input = ref('')
 const loading = ref(false)
+// 回答里代码或内容较多时，可以把面板放大来看
+const expanded = ref(false)
 const chatBody = ref<HTMLElement | null>(null)
 let abortController: AbortController | null = null
 let streamTarget: { role: string; content: string } | null = null
@@ -207,14 +223,25 @@ onMounted(() => loadSessions())
   position: fixed;
   bottom: 84px;
   right: 24px;
-  width: 360px;
-  height: 500px;
+  /* 助手会输出代码块，面板太窄的话代码只能横向滚；
+     用 min() 同时保证大屏够宽、小屏不超出视口 */
+  width: min(460px, calc(100vw - 32px));
+  height: min(570px, calc(100vh - 140px));
   background: white;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
   z-index: 999;
+}
+
+/* 放大态：居中放大到接近全屏，代码和长内容不用再挤在窄面板里 */
+.chat-dialog.expanded {
+  width: min(960px, calc(100vw - 48px));
+  height: min(88vh, 860px);
+  bottom: 10px;
+  right: 50%;
+  transform: translateX(50%);
 }
 
 .chat-header {
@@ -294,7 +321,6 @@ onMounted(() => loadSessions())
 
 .user,
 .assistant {
-  max-width: 80%;
   padding: 8px 12px;
   border-radius: 8px;
   line-height: 1.5;
@@ -303,12 +329,15 @@ onMounted(() => loadSessions())
 
 .user {
   align-self: flex-end;
+  max-width: 80%;
   background: #409eff;
   color: white;
 }
 
 .assistant {
   align-self: flex-start;
+  /* 回答经常带代码块和表格，比用户消息需要更多横向空间 */
+  max-width: 94%;
   background: #f0f2f5;
   color: #333;
 }
@@ -347,7 +376,7 @@ onMounted(() => loadSessions())
 
 .assistant code {
   font-family: 'Consolas', 'Monaco', monospace;
-  font-size: 13px;
+  font-size: 12.5px;
 }
 
 .assistant p {
@@ -370,8 +399,17 @@ onMounted(() => loadSessions())
 @media (max-width: 480px) {
   .chat-dialog {
     right: 8px;
+    bottom: 76px;
     width: calc(100% - 16px);
-    height: 60vh;
+    height: min(70vh, calc(100vh - 120px));
+  }
+
+  .chat-dialog.expanded {
+    right: 8px;
+    width: calc(100% - 16px);
+    /* 放大态上边距与 bottom: 10px 对称，真正接近全屏 */
+    height: calc(100vh - 20px);
+    transform: none;
   }
 }
 </style>
