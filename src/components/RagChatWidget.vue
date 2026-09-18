@@ -44,7 +44,8 @@
         @keyup.enter="send"
         :disabled="loading"
       />
-      <el-button type="primary" :disabled="loading" @click="send">发送</el-button>
+      <el-button v-if="loading" type="danger" @click="stopGeneration">停止</el-button>
+      <el-button v-else type="primary" @click="send">发送</el-button>
     </div>
   </div>
 </template>
@@ -62,6 +63,7 @@ const show = ref(false)
 const input = ref('')
 const loading = ref(false)
 const chatBody = ref<HTMLElement | null>(null)
+let abortController: AbortController | null = null
 
 // 会话管理
 const {
@@ -101,6 +103,11 @@ const handleCreateSession = async () => {
   await createSession()
 }
 
+// 停止发送
+const stopGeneration = () => {
+  abortController?.abort()
+}
+
 // 发送消息
 const send = async () => {
   const text = input.value.trim()
@@ -121,9 +128,17 @@ const send = async () => {
   // 清空上一轮残留的缓冲，避免上一轮的内容被冲进新气泡
   resetStream()
 
+  abortController = new AbortController()
+
   try {
     const sessionId = currentSessionId.value ? Number(currentSessionId.value) : null
-    const { answer, sessionId: newSessionId } = await chat(text, history, sessionId, pushStream)
+    const { answer, sessionId: newSessionId } = await chat(
+      text,
+      history,
+      sessionId,
+      pushStream,
+      abortController.signal,
+    )
     if (newSessionId && currentSessionId.value !== String(newSessionId)) {
       currentSessionId.value = String(newSessionId)
     }
@@ -131,12 +146,18 @@ const send = async () => {
     flushStream()
     currentMessages.value[currentMessages.value.length - 1].content = answer
     saveSessions()
-  } catch {
+  } catch (e) {
+    if (e instanceof DOMException && e.name === 'AbortError') {
+      flushStream()
+      saveSessions()
+      return
+    }
     // 先取消排队中的帧，否则它会把"请求失败"覆盖成半截回答
     resetStream()
     currentMessages.value[currentMessages.value.length - 1].content = '请求失败，请重新尝试'
     saveSessions()
   } finally {
+    abortController = null
     loading.value = false
   }
 }

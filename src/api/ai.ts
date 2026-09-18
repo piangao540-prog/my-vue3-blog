@@ -1,8 +1,4 @@
-
-export const getAiSummary = async (
-  content: string,
-  articleId: number,
-): Promise<string> => {
+export const getAiSummary = async (content: string, articleId: number): Promise<string> => {
   const base = window.location.hostname === 'localhost' ? 'http://localhost:3000' : ''
   const response = await fetch(`${base}/api/ai/summary`, {
     method: 'POST',
@@ -31,6 +27,7 @@ export const getChat = async (
   history: { role: string; content: string }[],
   sessionId: number | null,
   onText?: (full: string) => void,
+  signal?: AbortSignal,
 ): Promise<{ answer: string; sessionId?: number }> => {
   const base = window.location.hostname === 'localhost' ? 'http://localhost:3000' : ''
 
@@ -42,6 +39,7 @@ export const getChat = async (
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: JSON.stringify({ question, history, sessionId }),
+    signal,
   })
 
   if (!response.ok) {
