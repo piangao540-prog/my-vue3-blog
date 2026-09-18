@@ -481,6 +481,12 @@ app.post('/api/ai/chat', async (req, res) => {
   }
 
   try {
+    // 客户端断开（用户点了停止）时，同步取消上游请求，避免白烧 token
+    const upstream = new AbortController()
+    res.on('close', () => {
+      if (!res.writableEnded) upstream.abort()
+    })
+
     res.setHeader('Content-Type', 'text/event-stream')
     res.setHeader('Cache-Control', 'no-cache')
     res.setHeader('Connection', 'keep-alive')
@@ -520,6 +526,7 @@ app.post('/api/ai/chat', async (req, res) => {
           ...params,
           messages,
         }),
+        signal: upstream.signal,
       })
 
       const reader = response.body.getReader()
@@ -581,8 +588,11 @@ app.post('/api/ai/chat', async (req, res) => {
   } catch (err) {
     // 流开始写之后响应头已经发出，不能再改状态码，只能往流里写一条错误事件
     if (res.headersSent) {
-      res.write(`data: ${JSON.stringify({ error: err.message })}\n\n`)
-      res.end()
+      // 客户端已经断开时不用再写，写了也没人收
+      if (!res.writableEnded && !res.destroyed) {
+        res.write(`data: ${JSON.stringify({ error: err.message })}\n\n`)
+        res.end()
+      }
       return
     }
     res.status(500).json({ error: err.message })
