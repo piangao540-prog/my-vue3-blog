@@ -76,6 +76,31 @@ async function getOptionalUser(req) {
   }
 }
 
+// 统一的 DeepSeek 调用入口。
+//
+// 原来各处直接 fetch，再 `data.choices?.[0]?.message?.content || ''`。
+// 问题在于：上游返回错误时（密钥无效、余额不足、限流、模型名不对），
+// fetch 不会抛错，可选链又会一路安静地兜成空字符串——没有日志也没有异常，
+// 线上表现成「助手永远答未收录」，本地却完全正常，极难定位。
+// 这里把非 2xx 显式抛出来，并带上上游的原始错误内容。
+async function deepseekFetch(body, options = {}) {
+  const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`,
+    },
+    body: JSON.stringify(body),
+    ...options,
+  })
+
+  if (!response.ok) {
+    const detail = await response.text()
+    throw new Error(`DeepSeek 返回 ${response.status}：${detail.slice(0, 300)}`)
+  }
+  return response
+}
+
 // 从对话中提炼记忆（回答完成后调用，失败不影响聊天本身）
 async function extractMemories(userId, question, answer, sourceMessageId) {
   const { messages, params } = promptBuilder.build('memory-extract', {
@@ -305,20 +330,10 @@ app.post('/api/ai/summary', async (req, res) => {
   const { messages, params } = promptBuilder.build('summary', { content })
 
   try {
-    const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: 'deepseek-v4-flash',
-        ...params,
-        messages,
-      }),
-    })
+    const response = await deepseekFetch({ model: 'deepseek-v4-flash', ...params, messages })
     const data = await response.json()
     const summary = data.choices?.[0]?.message?.content || ''
+    if (!summary) throw new Error('模型返回了空内容')
 
     // 存缓存
     if (articleId && summary) {
@@ -417,25 +432,18 @@ app.post('/api/ai/chat', async (req, res) => {
   let results = []
   let directAnswer = null
   try {
-    const decideResponse = await fetch('https://api.deepseek.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: 'deepseek-v4-flash',
-        messages: [
-          {
-            role: 'system',
-            content:
-              '你是博客助手。如果用户的问题需要参考博客文章内容才能回答，调用 search_articles 工具；如果是问候、闲聊或与博客无关的问题，直接回答。',
-          },
-          ...(history || []),
-          { role: 'user', content: question },
-        ],
-        tools: [SEARCH_ARTICLES_TOOL],
-      }),
+    const decideResponse = await deepseekFetch({
+      model: 'deepseek-v4-flash',
+      messages: [
+        {
+          role: 'system',
+          content:
+            '你是博客助手。如果用户的问题需要参考博客文章内容才能回答，调用 search_articles 工具；如果是问候、闲聊或与博客无关的问题，直接回答。',
+        },
+        ...(history || []),
+        { role: 'user', content: question },
+      ],
+      tools: [SEARCH_ARTICLES_TOOL],
     })
     const decideData = await decideResponse.json()
     const toolCall = decideData.choices?.[0]?.message?.tool_calls?.[0]
@@ -451,7 +459,10 @@ app.post('/api/ai/chat', async (req, res) => {
   } catch (err) {
     // 决策失败不能把功能搞挂：退回改造前的行为，直接用原问题检索
     console.error('Function Calling 决策失败，退回直接检索:', err.message)
-    results = await search(question)
+    results = await search(question).catch((e) => {
+      console.error('向量检索也失败了:', e.message)
+      return []
+    })
   }
 
   const context = results
@@ -512,20 +523,10 @@ app.post('/api/ai/chat', async (req, res) => {
         username: user ? user.username : '',
       })
 
-      const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`,
-        },
-        body: JSON.stringify({
-          model: 'deepseek-v4-flash',
-          stream: true,
-          ...params,
-          messages,
-        }),
-        signal: upstream.signal,
-      })
+      const response = await deepseekFetch(
+        { model: 'deepseek-v4-flash', stream: true, ...params, messages },
+        { signal: upstream.signal },
+      )
 
       const reader = response.body.getReader()
       const decoder = new TextDecoder()
