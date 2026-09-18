@@ -84,6 +84,12 @@ async function getOptionalUser(req) {
 // 线上表现成「助手永远答未收录」，本地却完全正常，极难定位。
 // 这里把非 2xx 显式抛出来，并带上上游的原始错误内容。
 async function deepseekFetch(body, options = {}) {
+  // 没有 key 时直接报明确错误。否则这里会拼出 "Bearer undefined"，
+  // 上游回一句 "Your api key: ****ined is invalid"，排查半天才发现是没配环境变量。
+  if (!process.env.DEEPSEEK_API_KEY) {
+    throw new Error('缺少 DEEPSEEK_API_KEY 环境变量（Vercel 改完环境变量需要重新部署）')
+  }
+
   const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
     method: 'POST',
     headers: {
