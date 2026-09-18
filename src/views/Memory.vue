@@ -113,8 +113,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Edit, Delete } from '@element-plus/icons-vue'
-import { marked } from 'marked'
-import hljs from '@/utils/highlight'
+import { renderMarkdown } from '@/utils/markdown'
 import { useUserStore } from '@/stores/user'
 import { formatTime } from '@/utils/formatTime'
 import {
@@ -232,22 +231,6 @@ const generateReview = async (force = false) => {
   } finally {
     reviewing.value = false
   }
-}
-
-// markdown 渲染（和聊天组件同款）
-const renderer = new marked.Renderer()
-renderer.code = ({ text, lang }: { text: string; lang?: string }) => {
-  const language = lang && hljs.getLanguage(lang) ? lang : 'plaintext'
-  const highlighted = hljs.highlight(text, { language }).value
-  return `<pre><code class="hljs language-${language}">${highlighted}</code></pre>`
-}
-marked.use({ renderer })
-
-const renderMarkdown = (content: string) => {
-  const openCount = (content.match(/```/g) || []).length
-  let safe = content
-  if (openCount % 2 !== 0) safe = content + '\n```'
-  return marked.parse(safe)
 }
 
 // ===== 数据管理 =====

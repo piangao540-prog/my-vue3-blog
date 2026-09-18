@@ -53,8 +53,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
 import { getChat as chat } from '@/api/ai'
-import { marked } from 'marked'
-import hljs from '@/utils/highlight'
+import { renderMarkdown } from '@/utils/markdown'
 import { useChatSessions } from '@/composables/useChatSessions'
 import { ChatDotRound, Delete, Plus, Document, Close } from '@element-plus/icons-vue'
 import { useStreamText } from '@/composables/useStreamText'
@@ -87,16 +86,6 @@ const {
   const last = currentMessages.value[currentMessages.value.length - 1]
   if (last) last.content = text
 })
-
-// 开启代码高亮
-const renderer = new marked.Renderer()
-renderer.code = ({ text, lang }: { text: string; lang?: string }) => {
-  const language = lang && hljs.getLanguage(lang) ? lang : 'plaintext'
-  const highlighted = hljs.highlight(text, { language }).value
-  return `<pre><code class="hljs language-${language}">${highlighted}</code></pre>`
-}
-
-marked.use({ renderer })
 
 // 新建会话（等待服务端创建完成）
 const handleCreateSession = async () => {
@@ -187,9 +176,6 @@ const clearChat = () => {
     deleteSession(currentSessionId.value)
   }
 }
-
-// markdown转换为HTML
-const renderMarkdown = (content: string) => marked.parse(content)
 
 onMounted(() => loadSessions())
 </script>
