@@ -356,23 +356,33 @@ onMounted(() => {
   color: #999;
 }
 
-.review-content h1,
-.review-content h2,
-.review-content h3 {
+/* 复盘内容也是 v-html 注入的，scoped 样式命中不了，必须用 :deep() */
+.review-content :deep(h1),
+.review-content :deep(h2),
+.review-content :deep(h3) {
   margin: 12px 0 8px;
 }
 
-.review-content p {
+.review-content :deep(p) {
   margin: 8px 0;
 }
 
-.review-content ul,
-.review-content ol {
-  padding-left: 22px;
+.review-content :deep(ul),
+.review-content :deep(ol) {
   margin: 8px 0;
+  padding-left: 1.4em;
+  list-style: none;
 }
 
-.review-content li::marker {
+.review-content :deep(li) {
+  position: relative;
+  list-style: none;
+}
+
+.review-content :deep(ul) > li::before {
+  content: '•';
+  position: absolute;
+  left: -1em;
   color: #9ca3af;
   font-size: 0.9em;
 }

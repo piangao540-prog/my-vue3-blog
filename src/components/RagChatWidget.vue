@@ -41,6 +41,15 @@
     <div ref="chatBody" class="chat-body">
       <div v-for="(msg, i) in currentMessages" :key="i" :class="msg.role">
         <span v-html="renderMarkdown(msg.content)"></span>
+        <span
+          v-if="loading && status === 'thinking' && i === currentMessages.length - 1"
+          class="typing"
+          >AI {{ status }}</span
+        >
+        <span
+          v-if="loading && status === 'answering' && i === currentMessages.length - 1"
+          class="caret"
+        ></span>
       </div>
     </div>
     <div class="chat-footer">
@@ -77,6 +86,7 @@ const input = ref('')
 const loading = ref(false)
 // 回答里代码或内容较多时，可以把面板放大来看
 const expanded = ref(false)
+const status = ref<'idle' | 'thinking' | 'answering' | 'done' | 'stoped' | 'error'>('idle')
 const chatBody = ref<HTMLElement | null>(null)
 let abortController: AbortController | null = null
 let streamTarget: { role: string; content: string } | null = null
@@ -102,6 +112,7 @@ const {
   reset: resetStream,
 } = useStreamText((text) => {
   if (streamTarget) streamTarget.content = text
+  status.value = 'answering'
 })
 
 // 新建会话（等待服务端创建完成）
@@ -135,8 +146,10 @@ const send = async () => {
 
   // 清空上一轮残留的缓冲，避免上一轮的内容被冲进新气泡
   resetStream()
+  status.value = 'thinking'
 
   abortController = new AbortController()
+
   streamingSessionId.value = currentSessionId.value
 
   try {
@@ -154,10 +167,12 @@ const send = async () => {
     // 冲掉最后一帧，否则末尾几个字可能还没渲染就结束了
     flushStream()
     if (streamTarget) streamTarget.content = answer
+    status.value = 'done'
     saveSessions()
   } catch (e) {
     if (e instanceof DOMException && e.name === 'AbortError') {
       flushStream()
+      status.value = 'stoped'
       saveSessions()
       return
     }
@@ -165,6 +180,7 @@ const send = async () => {
     resetStream()
     if (streamTarget) streamTarget.content = '请求失败，请重新尝试'
     saveSessions()
+    status.value = 'error'
   } finally {
     abortController = null
     streamTarget = null
@@ -261,6 +277,42 @@ onMounted(() => loadSessions())
   flex-direction: column;
   gap: 8px;
   overflow-anchor: none;
+}
+
+.typing {
+  color: #999;
+  font-size: 13px;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.caret {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-left: 2px;
+  vertical-align: -0.15em;
+  background: currentColor;
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
 }
 
 /* 会话列表 */
@@ -366,7 +418,9 @@ onMounted(() => loadSessions())
   cursor: pointer;
 }
 
-.assistant pre {
+/* v-html 注入的 DOM 不受 scoped 样式影响，必须用 :deep() 才能命中，
+   否则这些规则一条都不会生效，列表和代码块会退回浏览器默认样式 */
+.assistant :deep(pre) {
   background: #f8f8f8;
   padding: 12px;
   border-radius: 6px;
@@ -374,26 +428,55 @@ onMounted(() => loadSessions())
   max-width: 100%;
 }
 
-.assistant code {
+.assistant :deep(code) {
   font-family: 'Consolas', 'Monaco', monospace;
   font-size: 12.5px;
 }
 
-.assistant p {
+.assistant :deep(p) {
   margin: 6px 0;
 }
 
-.assistant ul,
-.assistant ol {
-  padding-left: 22px;
+/* 列表标记一律自己画。
+   原因有两条：::marker 是"部分支持"的伪元素；而且浏览器 UA 样式表对嵌套列表
+   有 ul ul { list-style-type: circle } 这类规则，会在第二层换成空心圆。
+   全部改成自绘 + CSS 计数器，嵌套多少层表现都一致。 */
+.assistant :deep(ul),
+.assistant :deep(ol) {
   margin: 6px 0;
+  padding-left: 1.4em;
+  list-style: none;
 }
 
-/* 列表标记默认用元素自身字体绘制，衬线中文字体里的 disc 又大又实，
-   这里调小调淡，避免一个黑点抢走整段回答的注意力 */
-.assistant li::marker {
+/* 显式写在 li 上，防止 UA 样式表按嵌套层级接管标记 */
+.assistant :deep(li) {
+  position: relative;
+  list-style: none;
+}
+
+/* 无序项：浅灰小圆点 */
+.assistant :deep(ul) > li::before {
+  content: '•';
+  position: absolute;
+  left: -1em;
   color: #9ca3af;
   font-size: 0.9em;
+}
+
+/* 有序项：用 CSS 计数器编号，颜色和位置可控，嵌套时会自动重新计数 */
+.assistant :deep(ol) {
+  counter-reset: ol-item;
+}
+
+.assistant :deep(ol) > li {
+  counter-increment: ol-item;
+}
+
+.assistant :deep(ol) > li::before {
+  content: counter(ol-item) '.';
+  position: absolute;
+  left: -1.4em;
+  color: inherit;
 }
 
 @media (max-width: 480px) {
