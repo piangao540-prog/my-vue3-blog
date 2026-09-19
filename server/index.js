@@ -488,9 +488,7 @@ app.post('/api/ai/chat', async (req, res) => {
     memoryLines = memRows.map((r) => `[${r.category}] ${r.content}`)
   }
 
-  // 没搜到文章、没有记忆、且模型也没直接给出答案时，用固定话术兜底。
-  // 这里复用 directAnswer，让兜底话术和闲聊一样走后面统一的流式出口，
-  // 避免同一个接口出现「成功时有时是 JSON、有时是 SSE」两种格式。
+
   if (!directAnswer && results.length === 0 && memoryLines.length === 0) {
     directAnswer = '该问题暂未在博客中收录相关内容'
   }
@@ -517,7 +515,16 @@ app.post('/api/ai/chat', async (req, res) => {
     if (directAnswer) {
       // 闲聊分支：第 1 轮模型已经给出答案，不再请求一次模型
       fullAnswer = directAnswer
-      res.write(`data: ${JSON.stringify({ text: fullAnswer })}\n\n`)
+      const chars = Array.from(directAnswer)
+      const chunkSize = Math.max(4, Math.ceil(chars.length / 60))  // 约 60 块
+      for (let i = 0; i < chars.length; i += chunkSize) {
+        if (res.destroyed || res.writableEnded) break   // 用户已断开就别再写了
+        // 切数组而不是切字符串：Array.from 按码点拆分，
+        // 直接 slice 原字符串会按码元切，把 emoji 的代理对劈开、还会丢掉尾部
+        const text = chars.slice(i, i + chunkSize).join('')
+        res.write(`data: ${JSON.stringify({ text })}\n\n`)
+        await new Promise((r) => setTimeout(r, 25))
+      }
     } else {
       // 检索分支：带着模型改写后的关键词检索结果，生成回答
       const template = user ? 'agent-chat' : 'blog-qa'
@@ -555,7 +562,7 @@ app.post('/api/ai/chat', async (req, res) => {
               fullAnswer += text
               res.write(`data: ${JSON.stringify({ text })}\n\n`)
             }
-          } catch (e) {}
+          } catch (e) { }
         }
       }
     }
@@ -592,7 +599,7 @@ app.post('/api/ai/chat', async (req, res) => {
             "UPDATE chat_sessions SET title = IF(title = '新对话', LEFT(?, 20), title), updatedAt = NOW() WHERE id = ?",
             [question, sessionIdNum],
           )
-        await extractMemories(user.id, question, fullAnswer, msgResult.insertId).catch(() => {})
+        await extractMemories(user.id, question, fullAnswer, msgResult.insertId).catch(() => { })
       } catch (err) {
         console.error('保存对话失败:', err.message)
       }
