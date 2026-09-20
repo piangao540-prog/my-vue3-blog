@@ -45,6 +45,24 @@ const statements = [
         createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         UNIQUE KEY uk_user_period (user_id, period)
     ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+  `CREATE TABLE IF NOT EXISTS interviews (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        company VARCHAR(100) NOT NULL,
+        company_public VARCHAR(100) NOT NULL,
+        position VARCHAR(100) NOT NULL,
+        channel VARCHAR(50),
+        result VARCHAR(20) DEFAULT 'ongoing',
+        interview_date DATE NULL,
+        tags TEXT,
+        questions MEDIUMTEXT,
+        content MEDIUMTEXT,
+        views INT DEFAULT 0,
+        status VARCHAR(20) DEFAULT 'published',
+        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        KEY idx_date (interview_date),
+        KEY idx_status (status)
+    ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
 ]
 
 // 自动建表（幂等：只在表不存在时创建，不影响已有数据）

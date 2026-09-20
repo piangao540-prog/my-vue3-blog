@@ -56,6 +56,12 @@ async function auth(req, res, next) {
   }
 }
 
+// 管理员校验：必须挂在 auth 之后，role 来自登录时签进 JWT 的 payload
+function requireAdmin(req, res, next) {
+  if (req.user?.role !== 'admin') return res.status(403).json({ error: '需要管理员权限' })
+  next()
+}
+
 // 可选登录：用于使用智能体
 async function getOptionalUser(req) {
   const authHeader = req.headers.authorization
@@ -247,6 +253,171 @@ app.delete('/api/articles/:id', (req, res) => {
     }
     res.json({ success: true })
   })
+})
+
+// ===== 面经 =====
+// 公开接口一律用 company_public AS company 顶替真名，SQL 里绝不 SELECT company，
+// 保证真名不会进响应体；编辑回填走带鉴权的 /raw。
+
+// 面经列表（公开）：不含真名，也不含正文和面试题
+app.get('/api/interviews', async (req, res) => {
+  try {
+    const [rows] = await db
+      .promise()
+      .query(
+        `SELECT id, company_public AS company, position, channel, result,
+                DATE_FORMAT(interview_date, '%Y-%m-%d') AS interview_date,
+                tags, views, createdAt
+         FROM interviews WHERE status='published'
+         ORDER BY interview_date DESC, id DESC`,
+      )
+    res.json(rows)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// 面经详情（公开）：不含真名
+app.get('/api/interviews/:id', async (req, res) => {
+  try {
+    const [rows] = await db
+      .promise()
+      .query(
+        `SELECT id, company_public AS company, position, channel, result,
+                DATE_FORMAT(interview_date, '%Y-%m-%d') AS interview_date,
+                tags, questions, content, views, createdAt
+         FROM interviews WHERE id=? AND status='published'`,
+        [req.params.id],
+      )
+    if (rows.length === 0) {
+      res.status(404).json({ error: '面经不存在' })
+      return
+    }
+    res.json(rows[0])
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// 面经阅读量
+app.post('/api/interviews/:id/views', async (req, res) => {
+  try {
+    await db.promise().query('UPDATE interviews SET views = views + 1 WHERE id=?', [req.params.id])
+    res.json({ success: true })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// 面经原始数据（仅管理员）：含真名，供编辑页回填
+app.get('/api/interviews/:id/raw', auth, requireAdmin, async (req, res) => {
+  try {
+    const [rows] = await db
+      .promise()
+      .query(
+        `SELECT id, company, company_public, position, channel, result,
+                DATE_FORMAT(interview_date, '%Y-%m-%d') AS interview_date,
+                tags, questions, content, views, status, createdAt
+         FROM interviews WHERE id=?`,
+        [req.params.id],
+      )
+    if (rows.length === 0) {
+      res.status(404).json({ error: '面经不存在' })
+      return
+    }
+    res.json(rows[0])
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// 新增面经
+app.post('/api/interviews', auth, requireAdmin, async (req, res) => {
+  const {
+    company,
+    company_public,
+    position,
+    channel,
+    result,
+    interview_date,
+    tags,
+    questions,
+    content,
+    status,
+  } = req.body
+  try {
+    const [ret] = await db
+      .promise()
+      .query(
+        `INSERT INTO interviews (company,company_public,position,channel,result,interview_date,tags,questions,content,status)
+         VALUES (?,?,?,?,?,?,?,?,?,?)`,
+        [
+          company,
+          company_public,
+          position,
+          channel,
+          result || 'ongoing',
+          interview_date || null,
+          JSON.stringify(tags || []),
+          questions,
+          content,
+          status || 'draft',
+        ],
+      )
+    res.json({ id: ret.insertId, message: '创建成功' })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// 更新面经
+app.put('/api/interviews/:id', auth, requireAdmin, async (req, res) => {
+  const {
+    company,
+    company_public,
+    position,
+    channel,
+    result,
+    interview_date,
+    tags,
+    questions,
+    content,
+    status,
+  } = req.body
+  try {
+    await db
+      .promise()
+      .query(
+        `UPDATE interviews SET company=?,company_public=?,position=?,channel=?,result=?,
+         interview_date=?,tags=?,questions=?,content=?,status=? WHERE id=?`,
+        [
+          company,
+          company_public,
+          position,
+          channel,
+          result,
+          interview_date || null,
+          JSON.stringify(tags || []),
+          questions,
+          content,
+          status || 'published',
+          req.params.id,
+        ],
+      )
+    res.json({ success: true })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// 删除面经
+app.delete('/api/interviews/:id', auth, requireAdmin, async (req, res) => {
+  try {
+    await db.promise().query('DELETE FROM interviews WHERE id=?', [req.params.id])
+    res.json({ success: true })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
 })
 
 // 注册

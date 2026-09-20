@@ -42,6 +42,25 @@ const router = createRouter({
       meta: { title: '文章' },
     },
     {
+      path: '/interviews',
+      name: 'interviews',
+      component: () => import('@/views/InterviewList.vue'),
+      meta: { title: '面经' },
+    },
+    // 必须排在 /interviews/:id 前面，否则 editor 会被当成 id
+    {
+      path: '/interviews/editor',
+      name: 'interview-editor',
+      component: () => import('@/views/InterviewEditorView.vue'),
+      meta: { requiresAuth: true, role: 'admin', title: '写面经' },
+    },
+    {
+      path: '/interviews/:id',
+      name: 'interview-detail',
+      component: () => import('@/views/InterviewDetail.vue'),
+      meta: { title: '面经' },
+    },
+    {
       path: '/about',
       name: 'about',
       component: () => import('@/views/About.vue'),

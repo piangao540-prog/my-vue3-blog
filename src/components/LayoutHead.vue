@@ -32,6 +32,9 @@ const activeMenu = computed(() => {
   if (route.path.startsWith('/articles')) {
     return '/articles'
   }
+  if (route.path.startsWith('/interviews')) {
+    return '/interviews'
+  }
 
   return route.path
 })
@@ -52,6 +55,7 @@ const activeMenu = computed(() => {
         <el-menu mode="vertical" router :default-active="activeMenu" @select="drawer = false">
           <el-menu-item index="/">首页</el-menu-item>
           <el-menu-item index="/articles">文章</el-menu-item>
+          <el-menu-item index="/interviews">面经</el-menu-item>
           <el-menu-item index="/archive">归档</el-menu-item>
           <el-menu-item index="/about">关于</el-menu-item>
           <el-menu-item index="/memory">记忆</el-menu-item>
@@ -68,6 +72,12 @@ const activeMenu = computed(() => {
           class="nav-item"
           :class="{ active: route.path.startsWith('/articles') }"
           >文章</router-link
+        >
+        <router-link
+          to="/interviews"
+          class="nav-item"
+          :class="{ active: route.path.startsWith('/interviews') }"
+          >面经</router-link
         >
         <router-link to="/archive" class="nav-item" :class="{ active: route.path === '/archive' }"
           >归档</router-link
