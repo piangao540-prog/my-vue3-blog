@@ -1,14 +1,24 @@
 <script setup lang="ts">
 import { ElMessage } from 'element-plus'
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 
+const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
 
 const username = ref('')
 const password = ref('')
+
+// 只接受站内路径，避免 redirect 被用来跳到外部站点
+const resolveRedirect = () => {
+  const redirect = route.query.redirect
+  if (typeof redirect === 'string' && redirect.startsWith('/') && !redirect.startsWith('//')) {
+    return redirect
+  }
+  return '/'
+}
 
 const handleLogin = async () => {
   if (!username.value || !password.value) {
@@ -19,7 +29,7 @@ const handleLogin = async () => {
   const result = await userStore.login(username.value, password.value)
 
   if (result.success) {
-    router.push('/')
+    router.push(resolveRedirect())
   } else if (result.error?.includes('不存在')) {
     ElMessage.error(result.error || '用户不存在')
     router.push('/register')

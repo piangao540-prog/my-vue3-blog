@@ -102,7 +102,8 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const userStore = useUserStore()
   if (to.meta.requiresAuth && !userStore.isLoggedIn) {
-    next('/login')
+    // 带上原目标地址，登录后才能跳回来
+    next({ path: '/login', query: { redirect: to.fullPath } })
     return
   }
   if (to.meta.role && userStore.userInfo?.role !== to.meta.role) {

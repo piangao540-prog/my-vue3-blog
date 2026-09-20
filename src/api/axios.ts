@@ -28,7 +28,9 @@ instance.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem('token')
       if (!location.pathname.startsWith('/login')) {
-        location.href = '/login'
+        // 带上当前地址，重新登录后能回到原地
+        const redirect = encodeURIComponent(location.pathname + location.search)
+        location.href = `/login?redirect=${redirect}`
       }
     }
     console.error('API Error:', error)
