@@ -9,6 +9,7 @@ import { debounce } from '@/utils/debounce'
 import router from '@/router'
 import { useUserStore } from '@/stores/user'
 import { useThemeStore } from '@/stores/theme'
+import MusicPlayer from './MusicPlayer.vue'
 
 const themeStore = useThemeStore()
 const searchStore = useSearchStore()
@@ -108,6 +109,7 @@ const activeMenu = computed(() => {
         :icon="themeStore.isDark ? Sunny : Moon"
         circle
       ></el-button>
+      <MusicPlayer/>
       <div v-if="userStore.isLoggedIn">
         <el-dropdown>
           <el-button>{{ userStore.userInfo?.username }}</el-button>
