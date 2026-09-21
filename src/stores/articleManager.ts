@@ -1,9 +1,10 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import type { Article } from './blog'
+import { useBlogStore, type Article } from './blog'
 import { createArticle, updateArticle, deleteArticle, getArticles } from '@/api/articles'
 
 export const useArticleManagerStore = defineStore('articleManager', () => {
+  const blogStore = useBlogStore()
   const drafts = ref<Article[]>([])
   const isLoading = ref(false)
 
@@ -69,6 +70,7 @@ export const useArticleManagerStore = defineStore('articleManager', () => {
         status: 'published',
       })
       drafts.value = drafts.value.filter((d) => d.id !== draftId)
+      blogStore.invalidateArticles() // 这篇从草稿变成公开了，列表缓存作废
       return true
     } catch (error) {
       console.log('发布失败', error)

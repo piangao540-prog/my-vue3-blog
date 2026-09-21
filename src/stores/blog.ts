@@ -24,12 +24,24 @@ export const useBlogStore = defineStore('blog', () => {
   const userStore = useUserStore()
   const articles = ref<Article[]>([])
   const loading = ref(false)
-  // 初始化加载文章
-  const loadArticles = async () => {
+
+  // 首页/文章页/后台切换时都会重新加载，加一层短缓存挡掉重复请求
+  const CACHE_TTL = 5 * 60 * 1000
+  let loadedAt = 0
+
+  // 发布/删除后调用，让列表下次进入时重新拉
+  const invalidateArticles = () => {
+    loadedAt = 0
+  }
+
+  // 初始化加载文章。force = true 时跳过缓存强制刷新
+  const loadArticles = async (force = false) => {
+    if (!force && articles.value.length && Date.now() - loadedAt < CACHE_TTL) return
     loading.value = true
     try {
       // 加载文章数据
       articles.value = (await articleApi.getArticles()).filter((a) => a.status !== 'draft')
+      loadedAt = Date.now()
       await loadLike() // 文章加载后再恢复收藏状态
     } catch (error) {
       console.error('加载文章失败:', error)
@@ -111,6 +123,7 @@ export const useBlogStore = defineStore('blog', () => {
     togglelike,
     loadLike,
     loadArticles,
+    invalidateArticles,
     deleteArticle,
   }
 })

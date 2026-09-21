@@ -97,7 +97,7 @@ const handleDeleteDraft = async (id: number) => {
 }
 
 onMounted(async () => {
-  await blogStore.loadArticles()
+  await blogStore.loadArticles(true) // 后台要看最新数据，跳过列表缓存
   await articleManagerStore.loadDrafts()
 })
 </script>

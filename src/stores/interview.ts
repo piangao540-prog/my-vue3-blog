@@ -61,10 +61,21 @@ export const useInterviewStore = defineStore('interview', () => {
   const interviews = ref<Interview[]>([])
   const loading = ref(false)
 
-  const loadInterviews = async () => {
+  // 同 blog store：页面来回切不必重复请求
+  const CACHE_TTL = 5 * 60 * 1000
+  let loadedAt = 0
+
+  // 新增/编辑/删除后调用，让列表下次进入时重新拉
+  const invalidateInterviews = () => {
+    loadedAt = 0
+  }
+
+  const loadInterviews = async (force = false) => {
+    if (!force && interviews.value.length && Date.now() - loadedAt < CACHE_TTL) return
     loading.value = true
     try {
       interviews.value = await interviewApi.getInterviews()
+      loadedAt = Date.now()
     } catch (error) {
       console.error('加载面经失败:', error)
     } finally {
@@ -77,5 +88,5 @@ export const useInterviewStore = defineStore('interview', () => {
     return await interviewApi.getInterviewById(id)
   }
 
-  return { interviews, loading, loadInterviews, getInterviewById }
+  return { interviews, loading, loadInterviews, invalidateInterviews, getInterviewById }
 })

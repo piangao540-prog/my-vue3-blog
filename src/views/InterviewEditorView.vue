@@ -14,13 +14,14 @@ import {
   deleteInterview,
   getInterviewRaw,
 } from '@/api/interview'
-import { RESULT_OPTIONS } from '@/stores/interview'
+import { RESULT_OPTIONS, useInterviewStore } from '@/stores/interview'
 import type { InterviewPayload, InterviewResult } from '@/stores/interview'
 
 VMdEditor.use(githubTheme, { Hljs: hljs })
 
 const route = useRoute()
 const router = useRouter()
+const interviewStore = useInterviewStore()
 
 const formRef = ref<FormInstance>()
 const interviewId = ref<number>()
@@ -86,6 +87,7 @@ const handleSave = async (status: 'draft' | 'published') => {
     }
     ElMessage.success(status === 'draft' ? '草稿已保存' : '面经已发布')
     if (status === 'published') {
+      interviewStore.invalidateInterviews() // 不作废的话跳过去看到的还是旧列表
       router.push('/interviews')
     }
   } catch {
@@ -105,6 +107,7 @@ const handleDelete = async () => {
   try {
     await deleteInterview(interviewId.value)
     ElMessage.success('已删除')
+    interviewStore.invalidateInterviews()
     router.push('/interviews')
   } catch {
     ElMessage.error('删除失败')
