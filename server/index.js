@@ -16,6 +16,9 @@ const app = express()
 app.use(cors())
 app.use(express.json({ limit: '2mb' })) //放宽body上限
 
+// 公开只读接口的边缘缓存：60 秒内直接命中 CDN，过期后先返回旧值再后台回源，访客不用等函数冷启动
+const CACHE_PUBLIC = 'public, s-maxage=60, stale-while-revalidate=600'
+
 const db = mysql.createPool({
   host: process.env.DB_HOST,
   port: process.env.DB_PORT,
@@ -173,6 +176,7 @@ app.get('/api/articles', (req, res) => {
       res.status(500).json({ error: err.message })
       return
     }
+    res.set('Cache-Control', CACHE_PUBLIC)
     res.json(result)
   })
 })
@@ -201,6 +205,7 @@ app.get('/api/articles/:id', (req, res) => {
       res.status(404).json({ error: '文章不存在' })
       return
     }
+    res.set('Cache-Control', CACHE_PUBLIC)
     res.json(results[0])
   })
 })
@@ -275,6 +280,7 @@ app.get('/api/interviews', async (req, res) => {
          FROM interviews WHERE status='published'
          ORDER BY interview_date DESC, id DESC`,
       )
+    res.set('Cache-Control', CACHE_PUBLIC)
     res.json(rows)
   } catch (err) {
     res.status(500).json({ error: err.message })
@@ -297,6 +303,7 @@ app.get('/api/interviews/:id', async (req, res) => {
       res.status(404).json({ error: '面经不存在' })
       return
     }
+    res.set('Cache-Control', CACHE_PUBLIC)
     res.json(rows[0])
   } catch (err) {
     res.status(500).json({ error: err.message })
