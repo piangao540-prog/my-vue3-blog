@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { playlist as tracks } from '@/data/playlist'
 import { useAudioPlayer } from '@/composables/useAudioPlayer'
 import { Headset, VideoPlay, VideoPause, ArrowLeft, ArrowRight } from '@element-plus/icons-vue'
@@ -22,6 +22,10 @@ const {
 
 onMounted(() => start(tracks))
 
+const coverUrl = computed(() =>
+  currentTrack.value?.cover ? `url('${currentTrack.value.cover}')` : 'none',
+)
+
 const fmt = (s: number) => {
   if (!Number.isFinite(s)) return '00:00'
   const m = Math.floor(s / 60)
@@ -41,7 +45,7 @@ const fmt = (s: number) => {
       @click="show = !show"
     />
     <transition name="fade">
-      <div v-if="show" class="music-panel">
+      <div v-if="show" class="music-panel" :style="{ '--cover': coverUrl }">
         <div class="track-info">
           <div class="track-title">{{ currentTrack?.title ?? '暂无歌曲' }}</div>
           <div class="track-artist">{{ currentTrack?.artist }}</div>
@@ -114,12 +118,12 @@ const fmt = (s: number) => {
 .track-title {
   font-size: 14px;
   font-weight: 600;
-  color: #374151;
+  color: #fff;
 }
 
 .track-artist {
   font-size: 12px;
-  color: #9ca3af;
+  color: rgba(255, 255, 255, 0.75);
 }
 
 .music-panel {
@@ -128,10 +132,17 @@ const fmt = (s: number) => {
   right: 20px;
   width: 300px;
   padding: 16px;
-  background: #fff;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   z-index: 1000;
+  /* 渐变写在 url() 前面 = 盖在图片上层，拿它当半透明遮罩用。
+     不能改 opacity，那会把面板里的文字一起弄透明，只能这样叠一层。 */
+  /* 没有封面时的兜底色，否则面板会变成全透明 */
+  background-color: #16162a;
+  background-image:
+    linear-gradient(rgba(18, 18, 32, 0), rgba(18, 18, 32, 0.72)), var(--cover, none);
+  background-size: cover;
+  background-position: center;
 }
 
 .progress-row,
@@ -144,15 +155,20 @@ const fmt = (s: number) => {
 .volume-icon {
   width: 16px;
   height: 16px;
-  color: #9ca3af;
+  color: rgba(255, 255, 255, 0.65);
   flex-shrink: 0;
 }
 
 .time {
   font-size: 12px;
-  color: #9ca3af;
+  color: rgba(255, 255, 255, 0.65);
   font-variant-numeric: tabular-nums; /* 数字等宽，秒数跳动时不会左右抖 */
   flex-shrink: 0;
+}
+
+/* el-slider 内部的 DOM 不带 scoped 属性，必须用 :deep() 才够得着 */
+.music-panel :deep(.el-slider__runway) {
+  background-color: rgba(255, 255, 255, 0.25);
 }
 
 .controls {
@@ -163,12 +179,9 @@ const fmt = (s: number) => {
 }
 
 html.dark .music-panel {
-  background: #2a2a2a;
+  /* 暗色下遮罩再压深一点，让面板比页面更沉 */
+  background-image: linear-gradient(rgba(8, 8, 16, 0.85), rgba(8, 8, 16, 0.85)), var(--cover, none);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-}
-
-html.dark .track-title {
-  color: #e5e7eb;
 }
 
 @media (max-width: 768px) {
