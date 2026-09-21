@@ -24,10 +24,14 @@ const db = mysql.createPool({
   database: process.env.DB_NAME,
   charset: 'utf8mb4',
   connectionLimit: 5,
+  connectTimeout: 8000, // 短于 vercel.json 的 maxDuration(10s)，连不上时直接报错而不是拖成 504
   ssl: process.env.VERCEL ? { rejectUnauthorized: true } : false,
 })
 
-initSchema(db)
+// 建表只在显式开启时跑：表已存在，serverless 每次冷启动都打 6 条 DDL 是白费
+if (process.env.INIT_SCHEMA === 'true') {
+  initSchema(db)
+}
 
 const JWT_SECRET = process.env.JWT_SECRET
 if (!JWT_SECRET) {
