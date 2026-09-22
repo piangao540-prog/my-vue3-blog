@@ -60,6 +60,8 @@ export const RESULT_OPTIONS = (Object.keys(RESULT_LABELS) as InterviewResult[]).
 export const useInterviewStore = defineStore('interview', () => {
   const interviews = ref<Interview[]>([])
   const loading = ref(false)
+  // 加载失败要跟"确实没有面经"区分开，否则页面会显示成一片空白
+  const loadError = ref(false)
 
   // 同 blog store：页面来回切不必重复请求
   const CACHE_TTL = 5 * 60 * 1000
@@ -73,10 +75,12 @@ export const useInterviewStore = defineStore('interview', () => {
   const loadInterviews = async (force = false) => {
     if (!force && interviews.value.length && Date.now() - loadedAt < CACHE_TTL) return
     loading.value = true
+    loadError.value = false
     try {
       interviews.value = await interviewApi.getInterviews()
       loadedAt = Date.now()
     } catch (error) {
+      loadError.value = true
       console.error('加载面经失败:', error)
     } finally {
       loading.value = false
@@ -88,5 +92,5 @@ export const useInterviewStore = defineStore('interview', () => {
     return await interviewApi.getInterviewById(id)
   }
 
-  return { interviews, loading, loadInterviews, invalidateInterviews, getInterviewById }
+  return { interviews, loading, loadError, loadInterviews, invalidateInterviews, getInterviewById }
 })

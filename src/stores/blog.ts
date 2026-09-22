@@ -24,6 +24,8 @@ export const useBlogStore = defineStore('blog', () => {
   const userStore = useUserStore()
   const articles = ref<Article[]>([])
   const loading = ref(false)
+  // 加载失败要跟"确实没有文章"区分开，否则页面会显示成一片空白
+  const loadError = ref(false)
 
   // 首页/文章页/后台切换时都会重新加载，加一层短缓存挡掉重复请求
   const CACHE_TTL = 5 * 60 * 1000
@@ -38,12 +40,14 @@ export const useBlogStore = defineStore('blog', () => {
   const loadArticles = async (force = false) => {
     if (!force && articles.value.length && Date.now() - loadedAt < CACHE_TTL) return
     loading.value = true
+    loadError.value = false
     try {
       // 加载文章数据
       articles.value = (await articleApi.getArticles()).filter((a) => a.status !== 'draft')
       loadedAt = Date.now()
       await loadLike() // 文章加载后再恢复收藏状态
     } catch (error) {
+      loadError.value = true
       console.error('加载文章失败:', error)
     } finally {
       loading.value = false
@@ -117,6 +121,7 @@ export const useBlogStore = defineStore('blog', () => {
     latestArticles,
     paginatedArticles,
     loading,
+    loadError,
     getArticleById,
     getArticlesByTag,
     addViews,

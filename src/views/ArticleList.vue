@@ -6,6 +6,7 @@ import { ArrowLeft } from '@element-plus/icons-vue'
 import { getTagColor } from '@/composables/useTagColor'
 import { useSearchFilter } from '@/composables/useSearchFilter'
 import { useSearchStore } from '@/stores/search'
+import LoadFailed from '@/components/LoadFailed.vue'
 
 const blogStore = useBlogStore()
 const router = useRouter()
@@ -96,6 +97,7 @@ onMounted(() => {
         <el-skeleton-item variant="text" style="width: 70%" />
       </el-skeleton>
     </div>
+    <LoadFailed v-else-if="blogStore.loadError" @retry="blogStore.loadArticles(true)" />
     <el-empty v-else-if="filteredArticles.length === 0" description="没有找到符合条件的文章" />
     <template v-else>
       <el-card

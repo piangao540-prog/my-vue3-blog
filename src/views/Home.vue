@@ -10,6 +10,7 @@ import SortFilter from '@/components/SortFilter.vue'
 import { useSort, type SortKey } from '@/composables/useSort'
 import { getTagColor } from '@/composables/useTagColor'
 import ArticleCarousel from '@/components/ArticleCarousel.vue'
+import LoadFailed from '@/components/LoadFailed.vue'
 
 const TagChart = defineAsyncComponent(() => import('@/components/TagChart.vue'))
 
@@ -106,6 +107,7 @@ onMounted(() => {
               <el-skeleton-item variant="text" style="width: 60%" />
             </el-skeleton>
           </div>
+          <LoadFailed v-else-if="blogStore.loadError" @retry="blogStore.loadArticles(true)" />
           <el-card
             v-for="article in articles"
             :key="article.id"

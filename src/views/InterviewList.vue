@@ -12,11 +12,12 @@ import {
   RESULT_OPTIONS,
 } from '@/stores/interview'
 import { useUserStore } from '@/stores/user'
+import LoadFailed from '@/components/LoadFailed.vue'
 
 const router = useRouter()
 const interviewStore = useInterviewStore()
 const userStore = useUserStore()
-const { interviews, loading } = storeToRefs(interviewStore)
+const { interviews, loading, loadError } = storeToRefs(interviewStore)
 const { resultFilter, yearFilter, tagFilter, filteredInterviews, allTags, allYears } =
   useInterviewFilter(interviews)
 
@@ -86,6 +87,7 @@ onMounted(() => {
       </el-skeleton>
     </div>
 
+    <LoadFailed v-else-if="loadError" @retry="interviewStore.loadInterviews(true)" />
     <el-empty v-else-if="filteredInterviews.length === 0" description="没有符合条件的面经" />
 
     <template v-else>
