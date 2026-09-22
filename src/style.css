@@ -79,7 +79,8 @@ button:active {
   transform: scale(0.97);
 }
 
-.el-button--primary {
+/* 双写类名提优先级，否则会跟 element-plus 的同名规则比加载顺序，dev 与线上结果不一致 */
+.el-button.el-button--primary {
   --el-button-bg-color: #e86f83;
   --el-button-border-color: #e86f83;
   --el-button-hover-bg-color: #d95d72;
