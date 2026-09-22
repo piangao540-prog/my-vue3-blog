@@ -11,9 +11,11 @@ import {
   RESULT_TAG_TYPES,
   RESULT_OPTIONS,
 } from '@/stores/interview'
+import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
 const interviewStore = useInterviewStore()
+const userStore = useUserStore()
 const { interviews, loading } = storeToRefs(interviewStore)
 const { resultFilter, yearFilter, tagFilter, filteredInterviews, allTags, allYears } =
   useInterviewFilter(interviews)
@@ -50,8 +52,13 @@ onMounted(() => {
     </el-button>
 
     <div class="page-head">
-      <h1>面经</h1>
-      <p>记录投过的公司、被问到的题和复盘。出于隐私考虑，公司名做了脱敏处理。</p>
+      <div>
+        <h1>面经</h1>
+        <p>记录投过的公司、被问到的题和复盘。出于隐私考虑，公司名做了脱敏处理。</p>
+      </div>
+      <el-button v-if="userStore.isAdmin" type="primary" @click="router.push('/interviews/editor')">
+        写面经
+      </el-button>
     </div>
 
     <div class="filter-row">
@@ -132,6 +139,13 @@ onMounted(() => {
   max-width: 960px;
   margin: 0 auto;
   padding: 20px;
+}
+
+.page-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
 }
 
 .page-head h1 {
