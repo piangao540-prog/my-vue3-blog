@@ -76,6 +76,8 @@ const props = defineProps<{
   articleId?: number
 }>()
 
+type CompressedImage = { data: string; mime: string; width: number; height: number }
+
 const emit = defineEmits(['save', 'publish'])
 
 const tags = ref<string[]>(props.initialTags || [])
@@ -125,7 +127,7 @@ const triggerUpload = () => {
 }
 
 const compressImage = (file: File, maxSize = 900, quality = 0.75) => {
-  return new Promise<{ data: string; mime: string }>((resolve, reject) => {
+  return new Promise<CompressedImage>((resolve, reject) => {
     const img = new Image()
     const objectUrl = URL.createObjectURL(file)
     img.onload = () => {
@@ -150,6 +152,8 @@ const compressImage = (file: File, maxSize = 900, quality = 0.75) => {
       resolve({
         data: dataUrl.split(',')[1],
         mime: dataUrl.split(';')[0].split(':')[1],
+        width: canvas.width,
+        height: canvas.height,
       })
     }
     img.onerror = () => {
@@ -178,15 +182,15 @@ const handleFileChange = async (event: Event) => {
 
   uploading.value = true
   try {
-    const { data, mime } = await compressImage(file)
+    const { data, mime, width, height } = await compressImage(file)
     if (data.length > 2000000) {
       throw new Error('图片压缩后仍过大,请换一张小图')
     }
     const url = await uploadImage(data, mime)
-    content.value += `\n![图片](${url})\n`
+    content.value += `\n<img data-src="${url}" width="${width}" height="${height}" alt="图片">\n`
     ElMessage.success('图片已插入')
-  } catch (err: any) {
-    ElMessage.error(err?.message || '上传失败,请重试')
+  } catch (err) {
+    ElMessage.error(err instanceof Error ? err.message : '上传失败,请重试')
   } finally {
     uploading.value = false
   }

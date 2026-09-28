@@ -175,7 +175,15 @@ onMounted(() => {
                 <span>📖 推荐阅读</span>
               </div>
             </template>
-            <div class="recommended-list">
+            <div v-if="blogStore.loading" class="recommended-list">
+              <div v-for="n in 3" :key="n" class="recommended-item skeleton-item">
+                <el-skeleton animated>
+                  <el-skeleton-item variant="text" style="width: 80%; margin-bottom: 8px" />
+                  <el-skeleton-item variant="text" style="width: 40%" />
+                </el-skeleton>
+              </div>
+            </div>
+            <div v-else class="recommended-list">
               <div
                 v-for="article in popularArticles"
                 :key="article.id"
@@ -472,6 +480,12 @@ onMounted(() => {
 .recommended-item:hover {
   background: #ecf5ff;
   transform: translateX(4px);
+}
+
+/* 骨架块只借 .recommended-item 的尺寸撑高度，不要底色和 hover */
+.skeleton-item {
+  background: transparent;
+  pointer-events: none;
 }
 
 .recommended-title {
