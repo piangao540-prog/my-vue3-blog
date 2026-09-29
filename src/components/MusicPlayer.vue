@@ -3,8 +3,12 @@ import { ref, computed, onMounted } from 'vue'
 import { playlist as tracks } from '@/data/playlist'
 import { useAudioPlayer } from '@/composables/useAudioPlayer'
 import { Headset, VideoPlay, VideoPause, ArrowLeft, ArrowRight } from '@element-plus/icons-vue'
+import { ClickOutside as vClickOutside } from 'element-plus'
 
 const show = ref(false)
+const closePanel = () => {
+  show.value = false
+}
 const {
   currentTrack,
   isPlaying,
@@ -35,7 +39,7 @@ const fmt = (s: number) => {
 </script>
 
 <template>
-  <div class="music-player">
+  <div v-click-outside="closePanel" class="music-player">
     <el-button
       class="music-trigger"
       :class="{ playing: isPlaying }"

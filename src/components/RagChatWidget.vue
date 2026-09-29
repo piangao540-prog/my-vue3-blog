@@ -1,66 +1,68 @@
 <template>
-  <!-- 浮动的按钮 -->
-  <button class="chat-float-btn" @click="show = !show">
-    <el-icon :size="20"><ChatDotRound /></el-icon>
-  </button>
-  <!-- 聊天对话框 -->
-  <div v-if="show" class="chat-dialog" :class="{ expanded }">
-    <div class="chat-header">
-      <span class="header-title">AI助手</span>
-      <div class="header-actions">
-        <el-button
-          size="small"
-          :icon="expanded ? ScaleToOriginal : FullScreen"
-          :title="expanded ? '收起' : '放大'"
-          @click="expanded = !expanded"
-        />
-        <el-button size="small" type="primary" :icon="Plus" @click="handleCreateSession"
-          >新对话</el-button
-        >
-        <el-button size="small" :icon="Delete" @click="clearChat">清空</el-button>
-      </div>
-    </div>
-    <!-- 会话列表（可折叠） -->
-    <el-scrollbar class="session-scroll" v-if="sessions.length > 1">
-      <div class="session-list">
-        <div
-          v-for="session in sessions"
-          :key="session.id"
-          class="session-item"
-          :class="{ active: session.id === currentSessionId }"
-          @click="switchSession(session.id)"
-        >
-          <el-icon class="session-icon"><Document /></el-icon>
-          <span class="session-title">{{ session.title }}</span>
-          <el-icon class="session-delete" @click.stop="deleteSession(session.id)">
-            <Close />
-          </el-icon>
+  <div v-click-outside="closePanel">
+    <!-- 浮动的按钮 -->
+    <button class="chat-float-btn" @click="show = !show">
+      <el-icon :size="20"><ChatDotRound /></el-icon>
+    </button>
+    <!-- 聊天对话框 -->
+    <div v-if="show" class="chat-dialog" :class="{ expanded }">
+      <div class="chat-header">
+        <span class="header-title">AI助手</span>
+        <div class="header-actions">
+          <el-button
+            size="small"
+            :icon="expanded ? ScaleToOriginal : FullScreen"
+            :title="expanded ? '收起' : '放大'"
+            @click="expanded = !expanded"
+          />
+          <el-button size="small" type="primary" :icon="Plus" @click="handleCreateSession"
+            >新对话</el-button
+          >
+          <el-button size="small" :icon="Delete" @click="clearChat">清空</el-button>
         </div>
       </div>
-    </el-scrollbar>
-    <div ref="chatBody" class="chat-body">
-      <div v-for="(msg, i) in currentMessages" :key="i" :class="msg.role">
-        <span v-html="renderMarkdown(msg.content)"></span>
-        <span
-          v-if="loading && status === 'thinking' && i === currentMessages.length - 1"
-          class="typing"
-          >AI {{ status }}</span
-        >
-        <span
-          v-if="loading && status === 'answering' && i === currentMessages.length - 1"
-          class="caret"
-        ></span>
+      <!-- 会话列表（可折叠） -->
+      <el-scrollbar class="session-scroll" v-if="sessions.length > 1">
+        <div class="session-list">
+          <div
+            v-for="session in sessions"
+            :key="session.id"
+            class="session-item"
+            :class="{ active: session.id === currentSessionId }"
+            @click="switchSession(session.id)"
+          >
+            <el-icon class="session-icon"><Document /></el-icon>
+            <span class="session-title">{{ session.title }}</span>
+            <el-icon class="session-delete" @click.stop="deleteSession(session.id)">
+              <Close />
+            </el-icon>
+          </div>
+        </div>
+      </el-scrollbar>
+      <div ref="chatBody" class="chat-body">
+        <div v-for="(msg, i) in currentMessages" :key="i" :class="msg.role">
+          <span v-html="renderMarkdown(msg.content)"></span>
+          <span
+            v-if="loading && status === 'thinking' && i === currentMessages.length - 1"
+            class="typing"
+            >AI {{ status }}</span
+          >
+          <span
+            v-if="loading && status === 'answering' && i === currentMessages.length - 1"
+            class="caret"
+          ></span>
+        </div>
       </div>
-    </div>
-    <div class="chat-footer">
-      <el-input
-        v-model="input"
-        placeholder="请输入问题..."
-        @keyup.enter="send"
-        :disabled="loading"
-      />
-      <el-button v-if="loading" type="danger" @click="stopGeneration">停止</el-button>
-      <el-button v-else type="primary" @click="send">发送</el-button>
+      <div class="chat-footer">
+        <el-input
+          v-model="input"
+          placeholder="请输入问题..."
+          @keyup.enter="send"
+          :disabled="loading"
+        />
+        <el-button v-if="loading" type="danger" @click="stopGeneration">停止</el-button>
+        <el-button v-else type="primary" @click="send">发送</el-button>
+      </div>
     </div>
   </div>
 </template>
@@ -80,8 +82,13 @@ import {
   ScaleToOriginal,
 } from '@element-plus/icons-vue'
 import { useStreamText } from '@/composables/useStreamText'
+// 指令不在 ElementPlusResolver 的自动导入清单里，得手动引；vClickOutside 的名字对应 v-click-outside
+import { ClickOutside as vClickOutside } from 'element-plus'
 
 const show = ref(false)
+const closePanel = () => {
+  show.value = false
+}
 const input = ref('')
 const loading = ref(false)
 // 回答里代码或内容较多时，可以把面板放大来看
