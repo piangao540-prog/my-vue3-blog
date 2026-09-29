@@ -45,6 +45,7 @@ const load = (autoplay = true) => {
 const initAudio = () => {
   if (audio) return audio
   audio = new Audio()
+  audio.preload = 'metadata'
   audio.volume = volume.value
 
   audio.addEventListener('loadedmetadata', () => {
@@ -78,16 +79,17 @@ const toggle = () => {
   }
 }
 
+// 切歌沿用当前播放状态：正在播就接着播，暂停着就只换歌不出声
 const next = () => {
   if (!playlist.value.length) return
   currentIndex.value = (currentIndex.value + 1) % playlist.value.length
-  load()
+  load(isPlaying.value)
 }
 
 const prev = () => {
   if (!playlist.value.length) return
   currentIndex.value = (currentIndex.value - 1 + playlist.value.length) % playlist.value.length
-  load()
+  load(isPlaying.value)
 }
 
 const seek = (v: number) => {
