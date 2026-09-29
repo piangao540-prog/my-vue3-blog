@@ -7,4 +7,10 @@ export const playlist: Track[] = [
     src: '/music/Brand-New-Sky.mp3',
     cover: '/music-img/Brand-New-Sky.jpg',
   },
+  {
+    title: '勾指起誓',
+    artist: '洛天依 / ilem',
+    src: '/music/Gou-Zhi-Qi-Shi.mp3',
+    cover: '/music-img/Gou-Zhi-Qi-Shi.jpg',
+  },
 ]
