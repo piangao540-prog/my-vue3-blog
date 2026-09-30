@@ -12,7 +12,7 @@ export interface ServerMessage {
   id: number
   role: string
   content: string
-  sources: { articleId?: number; title: string }[] | null
+  sources: { type: string; refId: number; title: string }[] | null
   createdAt: string
 }
 

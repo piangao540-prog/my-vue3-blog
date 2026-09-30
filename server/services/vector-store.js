@@ -17,10 +17,9 @@ function cosineSimilarity(a, b) {
   return dot / (Math.sqrt(normA) * Math.sqrt(normB))
 }
 
-// 把文章切块
-function chunkArticle(article) {
-  const content = article.content || ''
-  const paragraphs = content.split('\n').filter((p) => p.trim().length > 0)
+// 把正文切块
+function chunkText(text) {
+  const paragraphs = (text || '').split('\n').filter((p) => p.trim().length > 0)
   const chunks = []
   let current = ''
 
@@ -36,18 +35,19 @@ function chunkArticle(article) {
   return chunks
 }
 
-// 构建向量库
-async function buildVectorStore(articles) {
+// 构建向量库，docs 是统一结构：{ type, refId, title, content }
+async function buildVectorStore(docs) {
   const records = []
-  for (const article of articles) {
-    const chunks = chunkArticle(article)
+  for (const doc of docs) {
+    const chunks = chunkText(doc.content)
     for (let i = 0; i < chunks.length; i++) {
-      console.log(`向量化: ${article.title} (${i + 1}/${chunks.length})`)
+      console.log(`向量化: ${doc.title} (${i + 1}/${chunks.length})`)
       const vector = await getEmbedding(chunks[i])
       records.push({
-        id: `${article.id}-${i}`,
-        articleId: article.id,
-        title: article.title,
+        id: `${doc.type}-${doc.refId}-${i}`,
+        type: doc.type,
+        refId: doc.refId,
+        title: doc.title,
         content: chunks[i].slice(0, 500),
         vector,
       })
@@ -75,4 +75,4 @@ async function search(query, topK = 3, threshold = 0.3) {
   return top.filter((r) => r.score >= threshold)
 }
 
-module.exports = { buildVectorStore, search, chunkArticle }
+module.exports = { buildVectorStore, search, chunkText }

@@ -653,10 +653,15 @@ app.post('/api/ai/chat', async (req, res) => {
     })
   }
 
+  // 检索结果可能来自文章，也可能来自面试经历，提示词里要标清楚
+  const TYPE_LABEL = { article: '文章', interview: '面试经历' }
   const context = results
-    .map((a) => `文章标题：${a.title}\n文章内容：${(a.content || '').slice(0, 800)}`)
+    .map(
+      (a) =>
+        `${TYPE_LABEL[a.type] || '文章'}：${a.title}\n内容：${(a.content || '').slice(0, 800)}`,
+    )
     .join('\n---\n')
-  const sources = results.map((a) => ({ articleId: a.articleId, title: a.title }))
+  const sources = results.map((a) => ({ type: a.type, refId: a.refId, title: a.title }))
 
   // 登录用户：加载已有记忆，注入到对话
   let memoryLines = []
