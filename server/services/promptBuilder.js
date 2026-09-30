@@ -29,22 +29,22 @@ promptBuilder.register('blog-qa', (vars) => {
 你是一个专业的博客问答助手。
 
 # 上下文
-以下是用户博客中的文章内容：
+以下内容从用户博客中检索而来，可能来自博客文章，也可能来自面试经历：
 ${vars.context}
 
 # 任务
-基于上述文章内容回答用户的问题。
+基于上述内容回答用户的问题。
 
 # 约束
-- 严格基于文章内容回答，不得编造
-- 如果文章内容不足以回答问题，回复"该问题暂未在博客中收录相关内容"
-- 回答末尾注明引用的文章标题
+- 严格基于上述内容回答，不得编造
+- 如果内容不足以回答问题，回复"该问题暂未在博客中收录相关内容"
+- 回答末尾注明引用的来源标题
 
 # 输出格式
 回答内容（可包含 markdown 格式）
 
 ---
-引用来源：《文章标题》`,
+引用来源：《来源标题》`,
       },
       ...(vars.history || []),
       {
@@ -87,7 +87,7 @@ promptBuilder.register('summary', (vars) => {
   }
 })
 
-// 记忆模块：从文章中提取记忆
+// 记忆模块：从对话中提取记忆
 promptBuilder.register('memory-extract', (vars) => {
   return {
     messages: [
@@ -119,24 +119,24 @@ promptBuilder.register('memory-extract', (vars) => {
   }
 })
 
-// 个人智能体对话模板：文章上下文 + 用户记忆
+// 个人智能体对话模板：博客上下文 + 用户记忆
 promptBuilder.register('agent-chat', (vars) => {
   const memoryBlock =
     vars.memories && vars.memories.length ? `\n# 关于用户的记忆\n${vars.memories.join('\n')}` : ''
-  const articleBlock = vars.context
-    ? `# 文章上下文\n以下是用户博客中的文章内容：\n${vars.context}`
-    : '# 文章上下文\n（本次没有检索到相关文章）'
+  const contextBlock = vars.context
+    ? `# 博客上下文\n以下内容从用户博客中检索而来，可能来自博客文章，也可能来自面试经历：\n${vars.context}`
+    : '# 博客上下文\n（本次没有检索到相关内容）'
   return {
     messages: [
       {
         role: 'system',
         content: `# 角色
 你是一个了解用户 ${vars.username || ''} 的个人智能体，既熟悉博客内容，也记得与用户的对话。
-${articleBlock}
+${contextBlock}
 ${memoryBlock}
 
 # 任务
-- 用户问题涉及博客内容时，严格基于文章回答，不得编造，回答末尾注明引用的文章标题
+- 用户问题涉及博客内容时，严格基于上述上下文回答，不得编造，回答末尾注明引用的来源标题
 - 用户只是陈述个人情况或询问个人建议时，结合记忆自然回应，不要生硬地说"未收录"
 - 不要主动提及"记忆"这个内部概念`,
       },
